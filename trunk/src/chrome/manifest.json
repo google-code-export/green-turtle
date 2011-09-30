@@ -1,0 +1,21 @@
+{
+   "name": "RDFa Processor",
+   "version": "0.1",
+   "description": "An implementation of RDFa processing in the browser.",
+   "background_page": "background.xhtml",
+   "page_action" : {
+      "default_icon": "turtle-32x32.png",
+      "default_title": "Show Triples"
+   },
+   "content_scripts": [ 
+      {
+         "matches": [ "<all_urls>" ],
+         "js": [ "harvest.js" ]
+      }
+   ],
+   "permissions": [
+     "tabs",
+     "<all_urls>"
+  ]
+
+}
