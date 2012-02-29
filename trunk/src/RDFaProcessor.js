@@ -1,8 +1,7 @@
 
 function RDFaProcessor(targetObject) {
    this.target = targetObject;
-   this.target.triples = [];
-   this.target.origins = [];
+   this.target.triplesGraph = {};
    this.target.subjectOrigins = {};
    this.prefixes = {};
    this.terms = {};
@@ -123,6 +122,8 @@ RDFaProcessor.prototype.checkForKnownProfiles = function(node) {
    this.terms["meta"] = "http://www.w3.org/1999/xhtml/vocab#meta";
    this.terms["next"] = "http://www.w3.org/1999/xhtml/vocab#next";
    this.terms["prev"] = "http://www.w3.org/1999/xhtml/vocab#prev";
+   this.terms["previous"] = "http://www.w3.org/1999/xhtml/vocab#prev";
+   this.terms["related"] = "http://www.w3.org/1999/xhtml/vocab#related";
    this.terms["section"] = "http://www.w3.org/1999/xhtml/vocab#section";
    this.terms["stylesheet"] = "http://www.w3.org/1999/xhtml/vocab#stylesheet";
    this.terms["subsection"] = "http://www.w3.org/1999/xhtml/vocab#subsection";
@@ -134,6 +135,28 @@ RDFaProcessor.prototype.checkForKnownProfiles = function(node) {
    this.terms["p3pv1"] = "http://www.w3.org/1999/xhtml/vocab#p3pv1";
    this.terms["role"] = "http://www.w3.org/1999/xhtml/vocab#role";
    this.terms["transformation"] = "http://www.w3.org/1999/xhtml/vocab#transformation";
+}
+
+RDFaProcessor.prototype.addTriple = function(data,origin,subject,predicate,object) {
+   var graph = data.triplesGraph;
+   var snode = graph[subject];
+   if (!snode) {
+      snode = { subject: subject, predicates: {} };
+      graph[subject] = snode;
+   }
+   var pnode = snode.predicates[predicate];
+   if (!pnode) {
+      pnode = { predicate: predicate, objects: [] };
+      snode.predicates[predicate] = pnode;
+   }
+
+   for (var i=0; i<pnode.objects.length; i++) {
+      if (pnode.objects[i].type==object.type && pnode.objects[i].value==object.value) {
+         return;
+      }
+   }
+   data.tripleCount++;
+   pnode.objects.push(object);
 }
 
 RDFaProcessor.prototype.process = function(node) {
@@ -306,8 +329,7 @@ RDFaProcessor.prototype.process = function(node) {
          for (var i=0; i<values.length; i++) {
             var object = this.curieParser.parseTermOrCURIEOrURI(values[i],terms,prefixes,base);
             if (object) {
-               this.target.triples.push({ subject: newSubject, predicate: this.typeURI, object: { type: this.objectURI , value: object}});
-               this.target.origins.push(current);
+               this.addTriple(this.target,current,newSubject,this.typeURI,{ type: this.objectURI , value: object});
             }
          }
       }
@@ -320,8 +342,7 @@ RDFaProcessor.prototype.process = function(node) {
             for (var i=0; i<values.length; i++) {
                var predicate = this.curieParser.parseTermOrCURIEOrURI(values[i],terms,prefixes,base);
                if (predicate) {
-                  this.target.triples.push({ subject: newSubject, predicate: predicate, object: { type: this.objectURI, value: currentObjectResource}});
-                  this.target.origins.push(current);
+                  this.addTriple(this.target,current,newSubject,predicate,{ type: this.objectURI, value: currentObjectResource});
                }
             }
          }
@@ -330,8 +351,7 @@ RDFaProcessor.prototype.process = function(node) {
             for (var i=0; i<values.length; i++) {
                var predicate = this.curieParser.parseTermOrCURIEOrURI(values[i],terms,prefixes,base);
                if (predicate) {
-                  this.target.triples.push({ subject: currentObjectResource, predicate: predicate, object: { type: this.objectURI, value: newSubject}});
-                  this.target.origins.push(current);
+                  this.addTriple(this.target,current,currentObjectResource, predicate, { type: this.objectURI, value: newSubject});
                }
             }
          }
@@ -377,11 +397,10 @@ RDFaProcessor.prototype.process = function(node) {
             var predicate = this.curieParser.parseTermOrCURIEOrURI(values[i],terms,prefixes,base);
             if (predicate) {
                if (datatype==this.XMLLiteralURI) {
-                  this.target.triples.push({subject: newSubject, predicate: predicate, object: { type: this.XMLLiteralURI, value: current.childNodes}});
+                  this.addTriple(this.target,current,newSubject,predicate,{ type: this.XMLLiteralURI, value: current.childNodes});
                } else {
-                  this.target.triples.push({subject: newSubject, predicate: predicate, object: { type: datatype ? datatype : this.PlainLiteralURI, value: content, language: language}});
+                  this.addTriple(this.target,current,newSubject,predicate,{ type: datatype ? datatype : this.PlainLiteralURI, value: content, language: language});
                }
-               this.target.origins.push(current);
                //alert(this.triples[this.triples.length-1].predicate+"="+this.triples[this.triples.length-1].object.value);
             }
          }
@@ -403,12 +422,11 @@ RDFaProcessor.prototype.process = function(node) {
             for (var i=0; i<context.incomplete.length; i++) {
                if (context.incomplete[i].forward) {
                   //alert(current.tagName+": completing forward triple with object="+context.subject);
-                  this.target.triples.push({subject: context.subject, predicate: context.incomplete[i].predicate, object: { type: this.objectURI, value: newSubject}});
+                  this.addTriple(this.target,current,context.subject,context.incomplete[i].predicate, { type: this.objectURI, value: newSubject});
                } else {
                   //alert(current.tagName+": completing reverse triple with object="+context.subject);
-                  this.target.triples.push({subject: newSubject, predicate: context.incomplete[i].predicate, object: { type: this.objectURI, value: context.subject}});
+                  this.addTriple(this.target,current,newSubject,context.incomplete[i].predicate,{ type: this.objectURI, value: context.subject});
                }
-               this.target.origins.push(current);
             }
          }
          childContext = this.push(context,base,newSubject);
@@ -426,6 +444,7 @@ RDFaProcessor.prototype.process = function(node) {
       }
    }
 }
+
 
 RDFaProcessor.prototype.push = function(parent,base,subject) {
    return {
