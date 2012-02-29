@@ -43,6 +43,8 @@
 <copy file="${src.dir}/chrome/background.xhtml" todir="${install.dir}"/>
 <copy file="${src.dir}/chrome/viewer.xhtml" todir="${install.dir}"/>
 <copy file="${src.dir}/chrome/viewer.js" todir="${install.dir}"/>
+<copy file="${src.dir}/chrome/viewer.css" todir="${install.dir}"/>
+<copy file="${src.dir}/chrome/jit.js" todir="${install.dir}"/>
 <copy file="${src.dir}/chrome/turtle-32x32.png" todir="${install.dir}"/>
 <concat destfile="${install.dir}/harvest.js">
 <string>
@@ -59,16 +61,16 @@ var data = new DocumentData(document.baseURI);
 chrome.extension.onRequest.addListener(
    function(request,sender,sendResponse) {
       if (request.getTriples) {
-         sendResponse({ setTriples: true, triples: data.triples });
+         sendResponse({ setTriples: true, triples: data.triplesGraph });
       }
 });
 var rdfaProcessor = new RDFaProcessor(data);
 rdfaProcessor.process(document.documentElement);
 rdfaProcessor = null;
-if (data.triples.length>0) {
+if (data.tripleCount>0) {
    document.data = data;
    chrome.extension.sendRequest({ harvestedTriples: true });
-   console.log("Found "+data.triples.length+" triples");
+   console.log("Found "+data.tripleCount+" triples");
 }
 
 

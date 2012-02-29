@@ -1,18 +1,23 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head><title>Triple Viewer</title>
+<link rel="stylesheet" type="text/css" href="viewer.css"/>
 <script type="text/javascript" src="viewer.js">//</script>
-<style type='text/css'>
-tbody {
-   font-family: monospace;
-}
-</style>
+<script type="text/javascript" src="jit.js">//</script>
 </head>
 <body>
+<div id="container"> 
+<div id="visualization"><div id="log"/></div>
+<div id="inspector">
+<div id="info"><p>Select a node to view the triples...</p></div>
+<div id="table">
 <table>
 <thead>
 <tr><th>Subject</th><th>Predicate</th><th>Object</th></tr>
 </thead>
-<tbody id='triples'/>
+<tbody id="triples"/>
 </table>
+</div>
+</div>
+</div>
 </body>
 </html>

@@ -1,7 +1,7 @@
 
 function DocumentData (uri) {
-   this.triples = [];
-   this.origins = [];
+   this.tripleCount = 0;
+   this.triplesGraph = {};
    this.prefixes = {};
    this.curieParser = new CurieParser();
    this.baseURI = new URI(uri);
