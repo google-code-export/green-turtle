@@ -346,11 +346,17 @@ Viewer.prototype.addTriple = function(snode,pnode,object) {
 
 var viewer = new Viewer();
 
-chrome.extension.onRequest.addListener(
-   function(request, sender, sendResponse) {
-      if (request.viewerInit) {
-         viewer.init(request.url,request.id);
-      }
-   }
+window.addEventListener(
+   "load",
+   function() {
+      chrome.extension.onRequest.addListener(
+         function(request, sender, sendResponse) {
+            if (request.viewerInit) {
+               viewer.init(request.url,request.id);
+            }
+         }
+      );
+   },
+   false
 );
 
