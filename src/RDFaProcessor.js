@@ -170,7 +170,7 @@ RDFaProcessor.prototype.process = function(node) {
       var vocabAtt = current.getAttributeNode("vocab");
       if (vocabAtt) {
          var value = this.trim(vocabAtt.value);
-         if (value.length()>0) {
+         if (value.length>0) {
             vocabulary = value;
          } else {
             vocabulary = this.vocabulary;
