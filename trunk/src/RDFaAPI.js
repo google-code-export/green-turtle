@@ -1,3 +1,41 @@
+function RDFaEnvironment(owner) {
+   this.owner = owner;
+}
+
+RDFaEnvironment.prototype.query = function(query,template)
+{
+   if (!query) {
+      return this.owner.getProjections(template);
+   }
+   var projections = [];
+   for (var subject in this.owner.triplesGraph) {
+      var snode = this.owner.triplesGraph[subject];
+      for (var key in query) {
+         var predicate = this.owner.curieParser.parse(key,true);
+         var pnode = snode.predicates[predicate];
+         if (!pnode) {
+            snode = null;
+            break;
+         }
+         var value = this.owner.curieParser.parse(query[key],false);
+         var object = null;
+         for (var i=0; !object && i<pnode.objects.length; i++) {
+            if (pnode.objects[i].value==value) {
+               object = pnode.objects[i];
+            }
+         }
+         if (!object) {
+            snode = null;
+            break;
+         }
+      }
+      if (snode) {
+         projections.push(this.owner._toProjection(snode,template));
+      }
+   }
+   return projections;
+}
+
 function Projection(owner,subject) {
    this.owner = owner;
    this.subject = subject;
@@ -17,13 +55,13 @@ Projection.prototype.getSubject = function() {
 }
 
 Projection.prototype.get = function(uriOrCurie) {
-   var property = this.owner.curieParser.parse(uriOrCurie);
+   var property = this.owner.curieParser.parse(uriOrCurie,true);
    var objects = this.properties[property];
    return objects ? objects[0] : null;
 }
 
 Projection.prototype.getAll = function(uriOrCurie) {
-   var property = this.owner.curieParser.parse(uriOrCurie);
+   var property = this.owner.curieParser.parse(uriOrCurie,true);
    return this.properties[property];
 }
 
@@ -34,12 +72,13 @@ function DocumentData (uri) {
    this.triplesGraph = {};
    this.prefixes = {};
    this.terms = {};
+   this.rdfa = new RDFaEnvironment(this);
    var dataContext = this;
    this.curieParser = {
       trim: function(str) {
          return str.replace(/^\s\s*/, '').replace(/\s\s*$/, '');
       },
-      parse: function(value) {
+      parse: function(value,resolve) {
          value = this.trim(value);
          if (value.charAt(0)=='[' && value.charAt(value.length-1)==']') {
             value = value.substring(1,value.length-1);
@@ -62,7 +101,7 @@ function DocumentData (uri) {
             }
          }
 
-         return dataContext.baseURI.resolve(value);
+         return resolve ? dataContext.baseURI.resolve(value) : value;
       }
    };
    this.baseURI = this.parseURI(uri);
@@ -76,7 +115,7 @@ DocumentData.prototype.getProperties = function(subject) {
    var properties = [];
 
    if (subject) {
-      subject = this.curieParser.parse(subject);
+      subject = this.curieParser.parse(subject,true);
       snode = this.triplesGraph[subject];
       if (snode) {
          for (var predicate in snode.predicates) {
@@ -103,7 +142,7 @@ DocumentData.prototype.getProperties = function(subject) {
 DocumentData.prototype.getSubjects = function(property,value) {
    var subjects = [];
    if (property) {
-      property = this.curieParser.parse(property);
+      property = this.curieParser.parse(property,true);
    }
    if (property && value) {
       for (var subject in this.triplesGraph) {
@@ -156,10 +195,10 @@ DocumentData.prototype.getSubjects = function(property,value) {
 DocumentData.prototype.getValues = function(subject,property) {
    var values = [];
    if (property) {
-      property = this.curieParser.parse(property);
+      property = this.curieParser.parse(property,true);
    }
    if (subject) {
-      subject = this.curieParser.parse(subject);
+      subject = this.curieParser.parse(subject,true);
       var snode = this.triplesGraph[subject];
       if (snode) {
          if (property) {
@@ -209,7 +248,7 @@ DocumentData.prototype.setMapping = function(prefix,uri) {
 DocumentData.prototype.getProjection = function(subject, template) {
    if (!subject) { return null }
 
-   subject = this.curieParser.parse(subject);
+   subject = this.curieParser.parse(subject,true);
    
    var snode = this.triplesGraph[subject];
    if (!snode) {
@@ -233,7 +272,7 @@ DocumentData.prototype._toProjection = function(snode,template) {
    if (template) {
       for (var key in template) {
          var predicate = template[key];
-         predicate = this.curieParser.parse(predicate);
+         predicate = this.curieParser.parse(predicate,true);
          var values = projection.properties[predicate];
          if (values) {
             // TODO: API issue: is this the first value or all values?
