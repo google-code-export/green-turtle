@@ -21,7 +21,7 @@
 <copy file="${src.dir}/license.txt" todir="${install.dir}"/>
 <echo file="${install.dir}/manifest.json">
 {
-   "name": "Green Turtle RDFa API",
+   "name": "Green Turtle RDFa",
    "version": "${version.label}",
    "description": "An implementation of RDFa processing in the browser.",
    "background_page": "background.xhtml",
