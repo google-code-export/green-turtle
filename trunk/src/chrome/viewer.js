@@ -319,16 +319,7 @@ Viewer.prototype.addTriple = function(snode,pnode,object) {
       }
       valueCell.appendChild(document.createTextNode(literal));
    } else if (object.type==this.XMLLiteralURI) {
-      var serializer = new XMLSerializer();
-      var value = "";
-      for (var i=0; i<object.value.length; i++) {
-         if (object.value[i].nodeType==Node.ELEMENT_NODE) {
-            value += serializer.serializeToString(object.value[i]);
-         } else if (object.value[i].nodeType==Node.TEXT_NODE) {
-            value += object.value[i].nodeValue;
-         }
-      } 
-      valueCell.appendChild(document.createTextNode(value));
+      valueCell.appendChild(document.createTextNode(object.value));
    } else if (object.type==this.objectURI) {
       valueCell.appendChild(document.createTextNode("<"+object.value+">"));
    } else {

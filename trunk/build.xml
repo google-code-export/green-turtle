@@ -56,7 +56,7 @@ var rdfaProcessor = new RDFaProcessor({});
 chrome.extension.onRequest.addListener(
    function(request,sender,sendResponse) {
       if (request.getTriples) {
-         sendResponse({ setTriples: true, triples: rdfaProcessor.target.triplesGraph });
+         sendResponse({ setTriples: true, triples: rdfaProcessor.getTransferGraph() });
       }
 });
 rdfaProcessor.process(document.documentElement);
