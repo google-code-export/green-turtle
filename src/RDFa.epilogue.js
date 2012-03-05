@@ -5,12 +5,7 @@
       return hasFeature(feature,version);
    }
 
-   Object.defineProperty(document,"data", {
-      value: new DocumentData(document.baseURI),
-      writable: false,
-      configurable: false,
-      enumerable: true
-   });
+   DocumentData.attach(document);
 
    var processor = new RDFaProcessor(document.data._data_);
    

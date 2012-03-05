@@ -1,10 +1,19 @@
+Object.size = function(obj) {
+   var size = 0;
+   for (var key in obj) {
+      if (obj.hasOwnProperty(key)) {
+         size++;
+      }
+   }
+   return size;
+};
+
 RDFaProcessor.prototype = new URIResolver();
 RDFaProcessor.prototype.constructor=RDFaProcessor;
 function RDFaProcessor(targetObject) {
    this.target = targetObject;
    this.target.tripleCount = 0;
    this.target.triplesGraph = {};
-   this.target.subjectOrigins = {};
    this.target.prefixes = {};
    this.target.terms = {};
    this.language = null;
@@ -197,13 +206,56 @@ RDFaProcessor.prototype.checkForKnownProfiles = function(node) {
    this.target.terms["transformation"] = "http://www.w3.org/1999/xhtml/vocab#transformation";
 }
 
+RDFaProcessor.prototype.getTransferGraph = function() {
+   var graph = {};
+   for (var subject in this.target.triplesGraph) {
+      var snode = this.target.triplesGraph[subject];
+      var tsnode = { subject: subject, predicates: {} };
+      graph[subject] = tsnode;
+      for (var predicate in snode.predicates) {
+         var pnode = snode.predicates[predicate];
+         var tpnode = { predicate: predicate, objects: [] };
+         tsnode.predicates[predicate] = tpnode;
+         for (var i=0; i<pnode.objects.length; i++) {
+            var object = pnode.objects[i];
+            if (object.type==this.XMLLiteralURI) {
+               var serializer = new XMLSerializer();
+               var value = "";
+               for (var x=0; x<object.value.length; x++) {
+                  if (object.value[x].nodeType==Node.ELEMENT_NODE) {
+                     value += serializer.serializeToString(object.value[x]);
+                  } else if (object.value[x].nodeType==Node.TEXT_NODE) {
+                     value += object.value[x].nodeValue;
+                  }
+               } 
+               tpnode.objects.push({ type: object.type, value: value});
+            } else {
+               tpnode.objects.push({ type: object.type, value: object.value});
+            }
+         }
+      }
+   }
+   return graph;
+}
+
+RDFaProcessor.prototype.newSubject = function(data,origin,subject) {
+   var snode = data.triplesGraph[subject];
+   if (!snode) {
+      snode = { subject: subject, predicates: {}, origins: [] };
+      data.triplesGraph[subject] = snode;
+   }
+   for (var i=0; i<snode.origins.length; i++) {
+      if (snode.origins[i]==origin) {
+         return snode;
+      }
+   }
+   snode.origins.push(origin);
+   return snode;
+}
+
 RDFaProcessor.prototype.addTriple = function(data,origin,subject,predicate,object) {
    var graph = data.triplesGraph;
-   var snode = graph[subject];
-   if (!snode) {
-      snode = { subject: subject, predicates: {} };
-      graph[subject] = snode;
-   }
+   var snode = this.newSubject(data,origin,subject);
    var pnode = snode.predicates[predicate];
    if (!pnode) {
       pnode = { predicate: predicate, objects: [] };
@@ -217,6 +269,7 @@ RDFaProcessor.prototype.addTriple = function(data,origin,subject,predicate,objec
    }
    data.tripleCount++;
    pnode.objects.push(object);
+   object.origin = origin;
    //console.log("Added triple.");
 }
 
@@ -376,12 +429,7 @@ RDFaProcessor.prototype.process = function(node) {
       //console.log(current.tagName+": newSubject="+newSubject+", currentObjectResource="+currentObjectResource+", skip="+skip);
 
       if (newSubject) {
-         var origins = this.target.subjectOrigins[newSubject];
-         if (typeof origins == "undefined") {
-            origins = [];
-            this.target.subjectOrigins[newSubject] = origins;
-         }
-         origins.push(current);
+         this.newSubject(this.target,current,newSubject);
       }
 
       // generate type triple
@@ -502,6 +550,12 @@ RDFaProcessor.prototype.process = function(node) {
          if (child.nodeType==Node.ELEMENT_NODE) {
             queue.push({ current: child, context: childContext});
          }
+      }
+   }
+   for (var subject in this.target.triplesGraph) {
+      var snode = this.target.triplesGraph[subject];
+      if (Object.size(snode.predicates)==0) {
+         delete this.target.triplesGraph[subject];
       }
    }
 }

@@ -325,55 +325,70 @@ DocumentData.prototype.getProjections = function(property, value, template) {
    return projections;
 };
 
+DocumentData.attach = function(target) {
 
-/*
-Document.prototype.getElementsByType = function(type) {
-   var nodes = [];
-   nodes.item = function(index) {
-      return this[index];
-   };
-   if (this.data) {
-      type = this.data.curieParser.parseCURIEOrURI(type,this.data.prefixes,this.data.baseURI);
-      for (var i=0; i<this.data.triples.length; i++) {
-         if (this.data.triples[i].predicate=="http://www.w3.org/1999/02/22-rdf-syntax-ns#type" && this.data.triples[i].object.value==type) {
-            nodes.push(this.data.origins[i]);
+   Object.defineProperty(target,"data", {
+      value: new DocumentData(target.baseURI),
+      writable: false,
+      configurable: false,
+      enumerable: true
+   });
+
+   target.getElementsByType = function(type) {
+      var nodes = [];
+      nodes.item = function(index) {
+         return this[index];
+      };
+      type = this.data._data_.curieParser.parse(type,true);
+      for (var subject in this.data._data_.triplesGraph) {
+         var snode = this.data._data_.triplesGraph[subject];
+         var pnode = snode.predicates["http://www.w3.org/1999/02/22-rdf-syntax-ns#type"];
+         if (pnode && pnode.objects.length>0 && pnode.objects[0].value==type) {
+            for (var i=0; i<snode.origins.length; i++) {
+               nodes.push(snode.origins[i]);
+            }
          }
       }
-   }
-   return nodes;
-};
-
-Document.prototype.getElementsBySubject = function(subject) {
-   var nodes = [];
-   nodes.item = function(index) {
-      return this[index];
+      return nodes;
    };
-   if (this.data) {
-      subject = this.data.curieParser.parseCURIEOrURI(subject,this.data.prefixes,this.data.baseURI);
-      for (var i=0; i<this.data.triples.length; i++) {
-         if (this.data.triples[i].subject==subject) {
-            nodes.push(this.data.origins[i]);
+
+   target.getElementsBySubject = function(subject) {
+      var nodes = [];
+      nodes.item = function(index) {
+         return this[index];
+      };
+      subject = this.data._data_.curieParser.parse(subject,true);
+      var snode = this.data._data_.triplesGraph[subject];
+      if (snode) {
+         for (var i=0; i<snode.origins.length; i++) {
+            nodes.push(snode.origins[i]);
          }
       }
-   }
-   return nodes;
-};
-
-Document.prototype.getElementsByProperty = function(property,value) {
-   var nodes = [];
-   nodes.item = function(index) {
-      return this[index];
+      return nodes;
    };
-   if (this.data) {
+
+   target.getElementsByProperty = function(property,value) {
+      var nodes = [];
+      nodes.item = function(index) {
+         return this[index];
+      };
+      if (value) {
+         value = this.data._data_.curieParser.parse(value,false);
+      }
       var noValue = typeof value == "undefined";
-      property = this.data.curieParser.parseCURIEOrURI(property,this.data.prefixes,this.data.baseURI);
-      for (var i=0; i<this.data.triples.length; i++) {
-         if (this.data.triples[i].predicate==property && (noValue || this.data.triples[i].object.value==value)) {
-            nodes.push(this.data.origin[i]);
+      property = this.data._data_.curieParser.parse(property,true);
+      for (var subject in this.data._data_.triplesGraph) {
+         var snode = this.data._data_.triplesGraph[subject];
+         var pnode = snode.predicates[property];
+         if (pnode) {
+            for (var i=0; i<pnode.objects.length; i++) {
+               if (noValue || pnode.objects[i].value==value) {
+                  nodes.push(pnode.objects[i].origin);
+               }
+            }
          }
       }
-   }
-   return nodes;
-};
-*/
+      return nodes;
+   };
+}
 
