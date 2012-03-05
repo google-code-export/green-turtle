@@ -12,7 +12,7 @@
       enumerable: true
    });
 
-   var processor = new RDFaProcessor(document.data);
+   var processor = new RDFaProcessor(document.data._data_);
    
    processor.process(document.documentElement);
 
