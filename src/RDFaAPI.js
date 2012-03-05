@@ -1,7 +1,39 @@
 function RDFaEnvironment(owner) {
-   this.owner = owner;
+   this.query = function(query,template) {
+      if (!query) {
+         return this.owner.getProjections(template);
+      }
+      var projections = [];
+      for (var subject in owner.triplesGraph) {
+         var snode = owner.triplesGraph[subject];
+         for (var key in query) {
+            var predicate = owner.curieParser.parse(key,true);
+            var pnode = snode.predicates[predicate];
+            if (!pnode) {
+               snode = null;
+               break;
+            }
+            var value = owner.curieParser.parse(query[key],false);
+            var object = null;
+            for (var i=0; !object && i<pnode.objects.length; i++) {
+               if (pnode.objects[i].value==value) {
+                  object = pnode.objects[i];
+               }
+            }
+            if (!object) {
+               snode = null;
+               break;
+            }
+         }
+         if (snode) {
+            projections.push(owner._toProjection(snode,template));
+         }
+      }
+      return projections;
+   }
 }
 
+/*
 RDFaEnvironment.prototype.query = function(query,template)
 {
    if (!query) {
@@ -35,34 +67,37 @@ RDFaEnvironment.prototype.query = function(query,template)
    }
    return projections;
 }
+*/
 
 function Projection(owner,subject) {
-   this.owner = owner;
-   this.subject = subject;
-   this.properties = {};
+   this._data_ = { 
+      owner: owner,
+      subject: subject,
+      properties: {}
+   };
 }
 
 Projection.prototype.getProperties = function() {
    var propertyNames = [];
-   for (var property in this.properties) {
+   for (var property in this._data_.properties) {
       propertyNames.push(property);
    }
    return propertyNames;
 }
 
 Projection.prototype.getSubject = function() {
-   return this.subject;
+   return this._data_.subject;
 }
 
 Projection.prototype.get = function(uriOrCurie) {
-   var property = this.owner.curieParser.parse(uriOrCurie,true);
-   var objects = this.properties[property];
+   var property = this._data_.owner.curieParser.parse(uriOrCurie,true);
+   var objects = this._data_.properties[property];
    return objects ? objects[0] : null;
 }
 
 Projection.prototype.getAll = function(uriOrCurie) {
-   var property = this.owner.curieParser.parse(uriOrCurie,true);
-   return this.properties[property];
+   var property = this._data_.owner.curieParser.parse(uriOrCurie,true);
+   return this._data_.properties[property];
 }
 
 DocumentData.prototype = new URIResolver();
@@ -264,7 +299,7 @@ DocumentData.prototype._toProjection = function(snode,template) {
    for (var predicate in snode.predicates) {
       var pnode = snode.predicates[predicate];
       var values = [];
-      projection.properties[predicate] = values;
+      projection._data_.properties[predicate] = values;
       for (var i=0; i<pnode.objects.length; i++) {
          values.push(pnode.objects[i].value);
       }

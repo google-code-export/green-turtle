@@ -5,7 +5,13 @@
       return hasFeature(feature,version);
    }
 
-   document.data = new DocumentData(document.baseURI);
+   Object.defineProperty(document,"data", {
+      value: new DocumentData(document.baseURI),
+      writable: false,
+      configurable: false,
+      enumerable: true
+   });
+
    var processor = new RDFaProcessor(document.data);
    
    processor.process(document.documentElement);
