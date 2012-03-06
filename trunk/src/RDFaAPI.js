@@ -278,6 +278,43 @@ DocumentData.prototype.setMapping = function(prefix,uri) {
    this._data_.prefix[prefix] = uri;
 };
 
+DocumentData.prototype.getSubjectTriples = function(subject) {
+   if (!subject) { return null; }
+
+   subject = this._data_.curieParser.parse(subject,true);
+   var triples = { subject: subject, predicates: {} };
+ 
+   var snode = this._data_.triplesGraph[subject];
+   if (!snode) {
+      return null;
+   }
+
+   for (var predicate in snode.predicates) {
+      var pnode = snode.predicates[predicate];
+      var objects = [];
+      triples.predicates[predicate] = { predicate: predicate, objects: objects };
+      for (var i=0; i<pnode.objects.length; i++) {
+         var object = pnode.objects[i];
+         if (object.type==this.XMLLiteralURI) {
+            var serializer = new XMLSerializer();
+            var value = "";
+            for (var x=0; x<object.value.length; x++) {
+               if (object.value[x].nodeType==Node.ELEMENT_NODE) {
+                  value += serializer.serializeToString(object.value[x]);
+               } else if (object.value[x].nodeType==Node.TEXT_NODE) {
+                  value += object.value[x].nodeValue;
+               }
+            } 
+            objects.push({ type: object.type, value: value });
+         } else {
+            objects.push({ type: object.type, value: object.value });
+         }
+      }
+   }
+
+   return triples;
+}
+
 DocumentData.prototype.getProjection = function(subject, template) {
    if (!subject) { return null }
 
