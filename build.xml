@@ -48,37 +48,29 @@
 <copy file="${src.dir}/chrome/jit.js" todir="${install.dir}"/>
 <copy file="${src.dir}/chrome/turtle-32x32.png" todir="${install.dir}"/>
 <concat destfile="${install.dir}/harvest.js">
+<string>
+// VERSION: ${version.label}
+var rdfaHostPath = "s3.amazonaws.com/green-turtle/RDFa.${version.label}.js";
+</string>
 <file file="${src.dir}/URI.js"/>
 <file file="${src.dir}/RDFaProcessor.js"/>
-<string>
-
-var rdfaProcessor = new RDFaProcessor({});
-chrome.extension.onRequest.addListener(
-   function(request,sender,sendResponse) {
-      if (request.getTriples) {
-         sendResponse({ setTriples: true, triples: rdfaProcessor.getTransferGraph() });
-      }
-});
-rdfaProcessor.process(document.documentElement);
-if (rdfaProcessor.target.tripleCount>0) {
-   chrome.extension.sendRequest({ harvestedTriples: true });
-   console.log("Found "+rdfaProcessor.target.tripleCount+" triples");
-}
-
-</string>
+<file file="${src.dir}/chrome/invoke.js"/>
 </concat>
 <zip destfile="${dist.dir}/${product.label}.zip"
      basedir="${install.dir}"/>
 </target>
 
 <target name="web">
+<delete file="${dist.dir}/RDFa.js"/>
 <concat destfile="${dist.dir}/RDFa.js">
+<file file="${src.dir}/license.js"/>
 <file file="${src.dir}/RDFa.prolog.js"/>
 <file file="${src.dir}/URI.js"/>
 <file file="${src.dir}/RDFaProcessor.js"/>
 <file file="${src.dir}/RDFaAPI.js"/>
 <file file="${src.dir}/RDFa.epilogue.js"/>
 </concat>
+<copy file="${dist.dir}/RDFa.js" tofile="${dist.dir}/RDFa.${version.label}.js"/>
 </target>
 
 </project>

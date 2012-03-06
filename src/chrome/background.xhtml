@@ -16,13 +16,17 @@ try {
     }
   });
   chrome.pageAction.onClicked.addListener(function(tab) {
-     var url = chrome.extension.getURL("viewer.xhtml");
-     chrome.tabs.create({"url": url, "selected": true},
-        function(viewerTab) {
-           chrome.tabs.sendRequest(viewerTab.id, { viewerInit: true, url: tab.url, id: tab.id});
-        }
-     );
-  });
+     chrome.tabs.sendRequest(tab.id,{ getTriples: true},function(response) {
+         console.log(response.triples);
+         var url = chrome.extension.getURL("viewer.xhtml");
+         chrome.tabs.create({"url": url, "selected": true},
+            function(viewerTab) {
+               chrome.tabs.sendRequest(viewerTab.id, { viewerInit: true, url: tab.url, id: tab.id});
+               chrome.tabs.sendRequest(viewerTab.id, { setTriples: true, triples: response.triples });
+            }
+         );
+    });
+ });
 } catch (ex) {
    console.log("Error setting up rdfa extension: "+ex);
 }

@@ -23,10 +23,12 @@ Viewer.prototype.init = function(url,id) {
    this.table = document.getElementById('triples');
    var current = this;
    document.title = "RDFa: "+url;   
+   /*
    chrome.extension.sendRequest(
       { getTriples: true, id: id},
       function(response) { current.setTriples(response.triples) }
    );
+   */
 }
 
 Viewer.prototype.clear = function(parent) {
@@ -344,6 +346,8 @@ window.addEventListener(
          function(request, sender, sendResponse) {
             if (request.viewerInit) {
                viewer.init(request.url,request.id);
+            } else if (request.setTriples) {
+               viewer.setTriples(request.triples);
             }
          }
       );
