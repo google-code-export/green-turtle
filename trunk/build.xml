@@ -50,6 +50,7 @@
 <concat destfile="${install.dir}/harvest.js">
 <string>
 // VERSION: ${version.label}
+var version = "${version.label}";
 var rdfaHostPath = "s3.amazonaws.com/green-turtle/RDFa.${version.label}.js";
 </string>
 <file file="${src.dir}/URI.js"/>
