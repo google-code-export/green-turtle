@@ -1,4 +1,5 @@
-if (document.head) {
+var treeSource = document.getElementById("webkit-xml-viewer-source-xml");
+if (!treeSource && document.head) {
    if (!document.data) {
       var script = document.createElement("script");
       script.setAttribute("type","text/javascript");
@@ -76,6 +77,20 @@ if (document.head) {
       }
    }
    searchForMeta();
+} else if (treeSource) {
+   console.log("Extracting data from XML embedded in rendered tree view...");
+   var rdfaProcessor = new RDFaProcessor({});
+   chrome.extension.onRequest.addListener(
+      function(request,sender,sendResponse) {
+         if (request.getTriples) {
+            sendResponse({ setTriples: true, triples: rdfaProcessor.getTransferGraph() });
+         }
+      });
+   rdfaProcessor.process(treeSource.firstChild);
+   if (rdfaProcessor.target.tripleCount>0) {
+      chrome.extension.sendRequest({ harvestedTriples: true });
+      console.log("Found "+rdfaProcessor.target.tripleCount+" triples");
+   }
 } else {
    var rdfaProcessor = new RDFaProcessor({});
    chrome.extension.onRequest.addListener(
