@@ -130,13 +130,13 @@ RDFaProcessor.prototype.ancestorPath = function(node) {
 }
 
 RDFaProcessor.prototype.checkForKnownProfiles = function(node) {
+   this.setXMLContext();
+
    // We only recognized XHTML
    if (node.namespaceURI=="http://www.w3.org/1999/xhtml") {
       this.setXHTMLContext();
-      return;
    }
 
-   this.setXMLContext();
 }
 
 RDFaProcessor.prototype.setXMLContext = function() {
@@ -185,43 +185,7 @@ RDFaProcessor.prototype.setXMLContext = function() {
 RDFaProcessor.prototype.setXHTMLContext = function() {
    this.target.prefixes[""] = "http://www.w3.org/1999/xhtml/vocab#";
 
-   // From http://www.w3.org/profile/rdfa-1.1
-   this.target.prefixes["grddl"] = "http://www.w3.org/2003/g/data-view#";
-   this.target.prefixes["owl"] = "http://www.w3.org/2002/07/owl#";
-   this.target.prefixes["rdf"] = "http://www.w3.org/1999/02/22-rdf-syntax-ns#";
-   this.target.prefixes["rdfa"] = "http://www.w3.org/ns/rdfa#";
-   this.target.prefixes["rdfs"] = "http://www.w3.org/2000/01/rdf-schema#";
-   this.target.prefixes["rif"] = "http://www.w3.org/2007/rif#";
-   this.target.prefixes["skos"] = "http://www.w3.org/2004/02/skos/core#";
-   this.target.prefixes["skosxl"] = "http://www.w3.org/2008/05/skos-xl#";
-   this.target.prefixes["wdr"] = "http://www.w3.org/2007/05/powder#";
-   this.target.prefixes["void"] = "http://rdfs.org/ns/void#";
-   this.target.prefixes["wdrs"] = "http://www.w3.org/2007/05/powder-s#";
-   this.target.prefixes["xhv"] = "http://www.w3.org/1999/xhtml/vocab#";
-   this.target.prefixes["xml"] = "http://www.w3.org/XML/1998/namespace";
-   this.target.prefixes["xmlns"] = "http://www.w3.org/2000/xmlns/";
-   this.target.prefixes["xsd"] = "http://www.w3.org/2001/XMLSchema#";
-   this.target.prefixes["sd"] = "http://www.w3.org/ns/sparql-service-description#";
-   this.target.prefixes["cnt"] = "http://www.w3.org/2008/content#";
-   this.target.prefixes["earl"] = "http://www.w3.org/ns/earl#";
-   this.target.prefixes["ht"] = "http://www.w3.org/2006/http#";
-   this.target.prefixes["ma"] = "http://www.w3.org/ns/ma-ont#";
-   this.target.prefixes["ptr"] = "http://www.w3.org/2009/pointers#";
-   this.target.prefixes["cc"] = "http://creativecommons.org/ns#";
-   this.target.prefixes["ctag"] = "http://commontag.org/ns#";
-   this.target.prefixes["dc"] = "http://purl.org/dc/terms/";
-   this.target.prefixes["foaf"] = "http://xmlns.com/foaf/0.1/";
-   this.target.prefixes["gr"] = "http://purl.org/goodrelations/v1#";
-   this.target.prefixes["ical"] = "http://www.w3.org/2002/12/cal/icaltzd#";
-   this.target.prefixes["og"] = "http://ogp.me/ns#";
-   this.target.prefixes["rev"] = "http://purl.org/stuff/rev#";
-   this.target.prefixes["sioc"] = "http://rdfs.org/sioc/ns#";
-   this.target.prefixes["v"] = "http://rdf.data-vocabulary.org/#";
-   this.target.prefixes["vcard"] = "http://www.w3.org/2006/vcard/ns#";
-
-   this.target.terms["describedby"] = "http://www.w3.org/2007/05/powder-s#describedby";
-
-   // From http://www.w3.org/profile/html-rdfa-1.1
+   // From http://www.w3.org/2011/rdfa-context/xhtml-rdfa-1.1
    this.target.terms["alternate"] = "http://www.w3.org/1999/xhtml/vocab#alternate";
    this.target.terms["appendix"] = "http://www.w3.org/1999/xhtml/vocab#appendix";
    this.target.terms["bookmark"] = "http://www.w3.org/1999/xhtml/vocab#bookmark";
@@ -240,16 +204,16 @@ RDFaProcessor.prototype.setXHTMLContext = function() {
    this.target.terms["next"] = "http://www.w3.org/1999/xhtml/vocab#next";
    this.target.terms["prev"] = "http://www.w3.org/1999/xhtml/vocab#prev";
    this.target.terms["previous"] = "http://www.w3.org/1999/xhtml/vocab#prev";
-   this.target.terms["related"] = "http://www.w3.org/1999/xhtml/vocab#related";
    this.target.terms["section"] = "http://www.w3.org/1999/xhtml/vocab#section";
    this.target.terms["stylesheet"] = "http://www.w3.org/1999/xhtml/vocab#stylesheet";
    this.target.terms["subsection"] = "http://www.w3.org/1999/xhtml/vocab#subsection";
    this.target.terms["start"] = "http://www.w3.org/1999/xhtml/vocab#start";
    this.target.terms["top"] = "http://www.w3.org/1999/xhtml/vocab#top";
    this.target.terms["up"] = "http://www.w3.org/1999/xhtml/vocab#up";
-
-   this.target.terms["itsRules"] = "http://www.w3.org/1999/xhtml/vocab#itsRules";
    this.target.terms["p3pv1"] = "http://www.w3.org/1999/xhtml/vocab#p3pv1";
+
+   // other
+   this.target.terms["related"] = "http://www.w3.org/1999/xhtml/vocab#related";
    this.target.terms["role"] = "http://www.w3.org/1999/xhtml/vocab#role";
    this.target.terms["transformation"] = "http://www.w3.org/1999/xhtml/vocab#transformation";
 }
