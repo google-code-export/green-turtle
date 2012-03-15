@@ -63,10 +63,13 @@ RDFaProcessor.prototype.parseCURIEOrURI = function(value,prefixes,base) {
    return base.resolve(value);
 }
 
-RDFaProcessor.prototype.parseTermOrCURIEOrURI = function(value,terms,prefixes,base) {
+RDFaProcessor.prototype.parseTermOrCURIEOrURI = function(value,defaultVocabulary,terms,prefixes,base) {
    value = this.trim(value);
    if (value.charAt(0)=='[' && value.charAt(value.length-1)==']') {
       value = value.substring(1,value.length-1);
+   }
+   if (defaultVocabulary) {
+      return defaultVocabulary+value;
    }
    var term = terms[value];
    if (term) {
@@ -448,7 +451,7 @@ RDFaProcessor.prototype.process = function(node) {
       if (newSubject && typeofAtt) {
          var values = this.tokenize(typeofAtt.value);
          for (var i=0; i<values.length; i++) {
-            var object = this.parseTermOrCURIEOrURI(values[i],terms,prefixes,base);
+            var object = this.parseTermOrCURIEOrURI(values[i],vocabulary,terms,prefixes,base);
             if (object) {
                this.addTriple(this.target,current,newSubject,this.typeURI,{ type: this.objectURI , value: object});
             }
@@ -461,7 +464,7 @@ RDFaProcessor.prototype.process = function(node) {
             var values = this.tokenize(relAtt.value);
             //alert(newSubject+" "+relAtt.value+" "+currentObjectResource+" "+values.length);
             for (var i=0; i<values.length; i++) {
-               var predicate = this.parseTermOrCURIEOrURI(values[i],terms,prefixes,base);
+               var predicate = this.parseTermOrCURIEOrURI(values[i],vocabulary,terms,prefixes,base);
                if (predicate) {
                   this.addTriple(this.target,current,newSubject,predicate,{ type: this.objectURI, value: currentObjectResource});
                }
@@ -470,7 +473,7 @@ RDFaProcessor.prototype.process = function(node) {
          if (revAtt) {
             var values = this.tokenize(revAtt.value);
             for (var i=0; i<values.length; i++) {
-               var predicate = this.parseTermOrCURIEOrURI(values[i],terms,prefixes,base);
+               var predicate = this.parseTermOrCURIEOrURI(values[i],vocabulary,terms,prefixes,base);
                if (predicate) {
                   this.addTriple(this.target,current,currentObjectResource, predicate, { type: this.objectURI, value: newSubject});
                }
@@ -486,7 +489,7 @@ RDFaProcessor.prototype.process = function(node) {
          if (relAtt) {
             var values = this.tokenize(relAtt.value);
             for (var i=0; i<values.length; i++) {
-               var predicate = this.parseTermOrCURIEOrURI(values[i],terms,prefixes,base);
+               var predicate = this.parseTermOrCURIEOrURI(values[i],vocabulary,terms,prefixes,base);
                if (predicate) {
                   incomplete.push({ predicate: predicate, forward: true });
                }
@@ -496,7 +499,7 @@ RDFaProcessor.prototype.process = function(node) {
          if (revAtt) {
             var values = this.tokenize(revAtt.value);
             for (var i=0; i<values.length; i++) {
-               var predicate = this.parseTermOrCURIEOrURI(values[i],terms,prefixes,base);
+               var predicate = this.parseTermOrCURIEOrURI(values[i],vocabulary,terms,prefixes,base);
                if (predicate) {
                   incomplete.push({ predicate: predicate, forward: false });
                }
@@ -510,12 +513,12 @@ RDFaProcessor.prototype.process = function(node) {
          var contentAtt = current.getAttributeNode("content");
          var datatype = null;
          if (datatypeAtt) {
-            datatype = this.parseTermOrCURIEOrURI(datatypeAtt.value,terms,prefixes,base);
+            datatype = this.parseTermOrCURIEOrURI(datatypeAtt.value,vocabulary,terms,prefixes,base);
          }
          var values = this.tokenize(propertyAtt.value);
          var content = datatype==this.XMLLiteralURI ? null : (contentAtt ? contentAtt.value : current.textContent); 
          for (var i=0; i<values.length; i++) {
-            var predicate = this.parseTermOrCURIEOrURI(values[i],terms,prefixes,base);
+            var predicate = this.parseTermOrCURIEOrURI(values[i],vocabulary,terms,prefixes,base);
             if (predicate) {
                if (datatype==this.XMLLiteralURI) {
                   this.addTriple(this.target,current,newSubject,predicate,{ type: this.XMLLiteralURI, value: current.childNodes});
