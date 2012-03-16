@@ -122,12 +122,6 @@ RDFaProcessor.prototype.copyMappings = function(mappings) {
    return newMappings;
 }
 
-RDFaProcessor.prototype.mergeMappings = function(target,source) {
-   for (var k in source) {
-      target[k] = source[k];
-   }
-}
-
 RDFaProcessor.prototype.ancestorPath = function(node) {
    var path = "";
    while (node && node.nodeType!=Node.DOCUMENT_NODE) {
@@ -137,7 +131,7 @@ RDFaProcessor.prototype.ancestorPath = function(node) {
    return path;
 }
 
-RDFaProcessor.prototype.checkForKnownProfiles = function(node) {
+RDFaProcessor.prototype.setContext = function(node) {
    this.setXMLContext();
 
    // We only recognized XHTML
@@ -295,15 +289,46 @@ RDFaProcessor.prototype.addTriple = function(data,origin,subject,predicate,objec
 
 RDFaProcessor.prototype.process = function(node) {
 
+   /*
+   if (!window.console) {
+      window.console = { log: function() {} };
+   }*/
    if (node.parentNode.nodeType==Node.DOCUMENT_NODE) {
-      this.checkForKnownProfiles(node);
+      this.setContext(node);
    }
    var queue = [];
    queue.push({ current: node, context: this.push(null,node.baseURI)});
    while (queue.length>0) {
       var item = queue.shift();
+      if (item.parent) {
+         // Sequence Step 14: list triple generation
+         if (item.context.parent && item.context.parent.listMapping==item.listMapping) {
+            // Skip a child context with exactly the same mapping
+            continue;
+         }
+         //console.log("Generating lists for "+item.subject+", tag "+item.parent.localName);
+         for (var predicate in item.listMapping) {
+            var list = item.listMapping[predicate];
+            if (list.length==0) {
+               continue;
+            }
+            var bnodes = [];
+            for (var i=0; i<list.length; i++) {
+               bnodes.push(this.newBlankNode());
+               this.newSubject(this.target,item.parent,bnodes[i]);
+            }
+            for (var i=0; i<bnodes.length; i++) {
+               this.addTriple(this.target,item.parent,bnodes[i],"http://www.w3.org/1999/02/22-rdf-syntax-ns#first",list[i]);
+               this.addTriple(this.target,item.parent,bnodes[i],"http://www.w3.org/1999/02/22-rdf-syntax-ns#next",{ type: this.objectURI , value: (i+1)<bnodes.length ? bnodes[i+1] : "http://www.w3.org/1999/02/22-rdf-syntax-ns#nil" });
+            }
+            this.addTriple(this.target,item.parent,item.subject,predicate,{ type: this.objectURI, value: bnodes[0] });
+         }
+         continue;
+      }
       var current = item.current;
       var context = item.context;
+
+      //console.log("Tag: "+current.localName);
 
       // Sequence Step 1
       var skip = false;
@@ -314,9 +339,8 @@ RDFaProcessor.prototype.process = function(node) {
       var prefixesCopied = false;
       var incomplete = [];
       var listMapping = context.listMapping;
+      var listMappingDifferent = context.parent ? false : true;
       var language = context.language;
-      var terms = context.terms;
-      var termsCopied = false;
       var vocabulary = context.vocabulary;
 
       // TODO: is "base" the document base URI or the current elements base URI?
@@ -392,6 +416,7 @@ RDFaProcessor.prototype.process = function(node) {
       var srcAtt = current.getAttributeNode("src");
       var resourceAtt = current.getAttributeNode("resource");
       var hrefAtt = current.getAttributeNode("href");
+      var inlistAtt = current.getAttributeNode("inlist");
 
       if (relAtt || revAtt) {
          // Sequence Step 6: establish new subject and value
@@ -481,20 +506,39 @@ RDFaProcessor.prototype.process = function(node) {
       if (typedResource) {
          var values = this.tokenize(typeofAtt.value);
          for (var i=0; i<values.length; i++) {
-            var object = this.parseTermOrCURIEOrURI(values[i],vocabulary,terms,prefixes,base);
+            var object = this.parseTermOrCURIEOrURI(values[i],vocabulary,context.terms,prefixes,base);
             if (object) {
                this.addTriple(this.target,current,typedResource,this.typeURI,{ type: this.objectURI , value: object});
             }
          }
       }
 
+      // Sequence Step 8: new list mappings if there is a new subject
+      if (newSubject && newSubject!=context.parentObject) {
+         listMapping = {};
+         listMappingDifferent = true;
+      }
+
       // Sequence Step 9: generate object triple
       if (currentObjectResource) {
-         if (relAtt) {
+         if (relAtt && inlistAtt) {
+            var values = this.tokenize(relAtt.value);
+            for (var i=0; i<values.length; i++) {
+               var predicate = this.parseTermOrCURIEOrURI(values[i],vocabulary,context.terms,prefixes,base);
+               if (predicate) {
+                  var list = listMapping[predicate];
+                  if (!list) {
+                     list = [];
+                     listMapping[predicate] = list;
+                  }
+                  list.push({ type: this.objectURI, value: currentObjectResource });
+               }
+            }
+         } else if (relAtt) {
             var values = this.tokenize(relAtt.value);
             //alert(newSubject+" "+relAtt.value+" "+currentObjectResource+" "+values.length);
             for (var i=0; i<values.length; i++) {
-               var predicate = this.parseTermOrCURIEOrURI(values[i],vocabulary,terms,prefixes,base);
+               var predicate = this.parseTermOrCURIEOrURI(values[i],vocabulary,context.terms,prefixes,base);
                if (predicate) {
                   this.addTriple(this.target,current,newSubject,predicate,{ type: this.objectURI, value: currentObjectResource});
                }
@@ -503,7 +547,7 @@ RDFaProcessor.prototype.process = function(node) {
          if (revAtt) {
             var values = this.tokenize(revAtt.value);
             for (var i=0; i<values.length; i++) {
-               var predicate = this.parseTermOrCURIEOrURI(values[i],vocabulary,terms,prefixes,base);
+               var predicate = this.parseTermOrCURIEOrURI(values[i],vocabulary,context.terms,prefixes,base);
                if (predicate) {
                   this.addTriple(this.target,current,currentObjectResource, predicate, { type: this.objectURI, value: newSubject});
                }
@@ -516,10 +560,24 @@ RDFaProcessor.prototype.process = function(node) {
             currentObjectResource = this.newBlankNode();
             //alert(current.tagName+": generated blank node, newSubject="+newSubject+" currentObjectResource="+currentObjectResource);
          }
-         if (relAtt) {
+         if (relAtt && inlistAtt) {
             var values = this.tokenize(relAtt.value);
             for (var i=0; i<values.length; i++) {
-               var predicate = this.parseTermOrCURIEOrURI(values[i],vocabulary,terms,prefixes,base);
+               var predicate = this.parseTermOrCURIEOrURI(values[i],vocabulary,context.terms,prefixes,base);
+               if (predicate) {
+                  var list = listMapping[predicate];
+                  if (!list) {
+                     list = [];
+                     listMapping[predicate] = list;
+                  }
+                  //console.log("Adding incomplete list for "+predicate);
+                  incomplete.push({ predicate: predicate, list: list });
+               }
+            }
+         } else if (relAtt) {
+            var values = this.tokenize(relAtt.value);
+            for (var i=0; i<values.length; i++) {
+               var predicate = this.parseTermOrCURIEOrURI(values[i],vocabulary,context.terms,prefixes,base);
                if (predicate) {
                   incomplete.push({ predicate: predicate, forward: true });
                }
@@ -529,7 +587,7 @@ RDFaProcessor.prototype.process = function(node) {
          if (revAtt) {
             var values = this.tokenize(revAtt.value);
             for (var i=0; i<values.length; i++) {
-               var predicate = this.parseTermOrCURIEOrURI(values[i],vocabulary,terms,prefixes,base);
+               var predicate = this.parseTermOrCURIEOrURI(values[i],vocabulary,context.terms,prefixes,base);
                if (predicate) {
                   incomplete.push({ predicate: predicate, forward: false });
                }
@@ -543,7 +601,7 @@ RDFaProcessor.prototype.process = function(node) {
          var datatype = null;
          var content = null; 
          if (datatypeAtt) {
-            datatype = datatypeAtt.value=="" ? this.PlainLiteralURI : this.parseTermOrCURIEOrURI(datatypeAtt.value,vocabulary,terms,prefixes,base);
+            datatype = datatypeAtt.value=="" ? this.PlainLiteralURI : this.parseTermOrCURIEOrURI(datatypeAtt.value,vocabulary,context.terms,prefixes,base);
             content = datatype==this.XMLLiteralURI ? null : (contentAtt ? contentAtt.value : current.textContent);
          } else if (contentAtt) {
             datatype = this.PlainLiteralURI;
@@ -568,14 +626,40 @@ RDFaProcessor.prototype.process = function(node) {
          }
          var values = this.tokenize(propertyAtt.value);
          for (var i=0; i<values.length; i++) {
-            var predicate = this.parseTermOrCURIEOrURI(values[i],vocabulary,terms,prefixes,base);
+            var predicate = this.parseTermOrCURIEOrURI(values[i],vocabulary,context.terms,prefixes,base);
             if (predicate) {
-               if (datatype==this.XMLLiteralURI) {
-                  this.addTriple(this.target,current,newSubject,predicate,{ type: this.XMLLiteralURI, value: current.childNodes});
+               if (inlistAtt) {
+                  var list = listMapping[predicate];
+                  if (!list) {
+                     list = [];
+                     listMapping[predicate] = list;
+                  }
+                  list.push(datatype==this.XMLLiteralURI ? { type: this.XMLLiteralURI, value: current.childNodes} : { type: datatype ? datatype : this.PlainLiteralURI, value: content, language: language});
                } else {
-                  this.addTriple(this.target,current,newSubject,predicate,{ type: datatype ? datatype : this.PlainLiteralURI, value: content, language: language});
+                  if (datatype==this.XMLLiteralURI) {
+                     this.addTriple(this.target,current,newSubject,predicate,{ type: this.XMLLiteralURI, value: current.childNodes});
+                  } else {
+                     this.addTriple(this.target,current,newSubject,predicate,{ type: datatype ? datatype : this.PlainLiteralURI, value: content, language: language});
+                  }
                }
                //alert(this.triples[this.triples.length-1].predicate+"="+this.triples[this.triples.length-1].object.value);
+            }
+         }
+      }
+
+      // Sequence Step 12: complete incomplete triples with new subject
+      if (newSubject && !skip) {
+         for (var i=0; i<context.incomplete.length; i++) {
+            if (context.incomplete[i].list) {
+               //console.log("Adding subject "+newSubject+" to list for "+context.incomplete[i].predicate);
+               // TODO: it is unclear what to do here
+               context.incomplete[i].list.push({ type: this.objectURI, value: newSubject });
+            } else if (context.incomplete[i].forward) {
+               //alert(current.tagName+": completing forward triple with object="+context.subject);
+               this.addTriple(this.target,current,context.subject,context.incomplete[i].predicate, { type: this.objectURI, value: newSubject});
+            } else {
+               //alert(current.tagName+": completing reverse triple with object="+context.subject);
+               this.addTriple(this.target,current,newSubject,context.incomplete[i].predicate,{ type: this.objectURI, value: context.subject});
             }
          }
       }
@@ -590,30 +674,22 @@ RDFaProcessor.prototype.process = function(node) {
          childContext.language = language;
          childContext.prefixes = prefixes;
       } else {
-         if (newSubject) {
-            // complete contents incomplete
-            //alert(current.tagName+": completing triples "+context.incomplete.length);
-            for (var i=0; i<context.incomplete.length; i++) {
-               if (context.incomplete[i].forward) {
-                  //alert(current.tagName+": completing forward triple with object="+context.subject);
-                  this.addTriple(this.target,current,context.subject,context.incomplete[i].predicate, { type: this.objectURI, value: newSubject});
-               } else {
-                  //alert(current.tagName+": completing reverse triple with object="+context.subject);
-                  this.addTriple(this.target,current,newSubject,context.incomplete[i].predicate,{ type: this.objectURI, value: context.subject});
-               }
-            }
-         }
          childContext = this.push(context,newSubject);
          childContext.parentObject = currentObjectResource ? currentObjectResource : (newSubject ? newSubject : context.subject);
          childContext.prefixes = prefixes;
          childContext.incomplete = incomplete;
+         childContext.listMapping = listMapping;
          childContext.language = language;
-         childContext.terms = terms;
          childContext.vocabulary = vocabulary;
       }
-      for (var child = current.firstChild; child; child = child.nextSibling) {
+      if (listMappingDifferent) {
+         //console.log("Pushing parent "+current.localName);
+         queue.unshift({ parent: current, context: context, subject: newSubject, listMapping: listMapping});
+      }
+      for (var child = current.lastChild; child; child = child.previousSibling) {
          if (child.nodeType==Node.ELEMENT_NODE) {
-            queue.push({ current: child, context: childContext});
+            //console.log("Pushing child "+child.localName);
+            queue.unshift({ current: child, context: childContext});
          }
       }
    }
@@ -632,6 +708,7 @@ RDFaProcessor.prototype.push = function(parent,subject) {
       subject: subject ? subject : (parent ? parent.subject : null),
       parentObject: null,
       incomplete: [],
+      listMapping: parent ? parent.listMapping : {},
       language: parent ? parent.language : this.language,
       prefixes: parent ? parent.prefixes : this.target.prefixes,
       terms: parent ? parent.terms : this.target.terms,
