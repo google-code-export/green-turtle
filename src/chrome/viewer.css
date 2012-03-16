@@ -12,6 +12,17 @@ tbody {
     color:#23A4FF;
 }
 
+.toolbar {
+   width:800px;
+   text-align: right;
+   margin: 0px;
+   padding: 0px;
+   margin-bottom: 5px;
+}
+.toolbar button {
+   font-size:8pt;
+}
+
 #container {
    min-width: 910px;
 }
@@ -19,12 +30,15 @@ tbody {
 #visualization {
     //position:relative;
     width:800px;
-    height:800px;
+    height:300px;
+    border: 1px solid rgb(200,200,200);
+    padding: 5px;
     //margin:auto;
     overflow:hidden;
 }
 
 #inspector {
+   margin-top: 10px;
    border-top: 2px solid rgb(100,100,100);
    font-size: 10pt;   
    padding-left: 2%;

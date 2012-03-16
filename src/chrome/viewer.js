@@ -23,6 +23,18 @@ Viewer.prototype.init = function(url,id) {
    this.table = document.getElementById('triples');
    var current = this;
    document.title = "RDFa: "+url;   
+   document.getElementById("s1").onclick = function() {
+      current.visualization.canvas.resize(800,300);
+      document.getElementById("visualization").style.height="300px";
+   };
+   document.getElementById("s2").onclick = function() {
+      current.visualization.canvas.resize(800,500);
+      document.getElementById("visualization").style.height="500px";
+   };
+   document.getElementById("s3").onclick = function() {
+      current.visualization.canvas.resize(800,800);
+      document.getElementById("visualization").style.height="800px";
+   };
    /*
    chrome.extension.sendRequest(
       { getTriples: true, id: id},
@@ -246,6 +258,7 @@ Viewer.prototype.update = function() {
 	 });
       }
    });
+   this.visualization = fd;
 
 }
 
