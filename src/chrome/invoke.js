@@ -73,9 +73,10 @@ if (!treeSource && document.head) {
          }
          current = current.nextSibling;
       }
-      if (!meta && ((new Date()).getTime()-start) < 10000) {
+      var elapsed = (new Date()).getTime()-start;
+      if (!meta && elapsed < 10000) {
          setTimeout(searchForMeta,500);
-      } else {
+      } else if (!meta && elapsed >= 10000) {
          // script load failed (probably offline)
          console.log("Green turtle script load failed, harvesting for extension only (i.e. no document.data)");
          document.head.removeChild(script);
