@@ -336,6 +336,7 @@ RDFaProcessor.prototype.process = function(node) {
          }
       }
 
+      // Sequence Step 3: IRI mappings
       // Handle prefix mappings (@prefix)
       var prefixAtt = current.getAttributeNode("prefix");
       if (prefixAtt) {
@@ -361,12 +362,23 @@ RDFaProcessor.prototype.process = function(node) {
          }
       }
 
-      // handle @xml:lang
+      // Sequence Step 4: language
+      // always use the xml:lang atribute
       var xmlLangAtt = current.getAttributeNodeNS("http://www.w3.org/XML/1998/namespace","lang");
       if (xmlLangAtt) {
          var value = this.trim(xmlLangAtt.value);
          if (value.length>0) {
             language = value;
+         }
+      } else if ((current.namespaceURI=="http://www.w3.org/1999/xhtml" && current.localName=="html") ||
+                 ((!current.namespaceURI || current.namespaceURI=="") && current.localName=="html")) {
+         // For XHTML/HTML, the html/@lang attribute should be used
+         var langAtt = current.getAttributeNode("lang");
+         if (langAtt) {
+            var value = this.trim(langAtt.value);
+            if (value.length>0) {
+               language = value;
+            }
          }
       }
 
