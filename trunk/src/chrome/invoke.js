@@ -1,7 +1,8 @@
 var treeSource = document.getElementById("webkit-xml-viewer-source-xml");
 if (!treeSource && document.head) {
+   var script = null;
    if (!document.data) {
-      var script = document.createElement("script");
+      script = document.createElement("script");
       script.setAttribute("type","text/javascript");
       script.setAttribute("src",(document.location.protocol=="https:" ? "https:" : "http:")+"//"+rdfaHostPath);
       document.head.appendChild(script);
@@ -72,8 +73,24 @@ if (!treeSource && document.head) {
          }
          current = current.nextSibling;
       }
-      if (!meta && ((new Date()).getTime()-start) < 30000) {
+      if (!meta && ((new Date()).getTime()-start) < 10000) {
          setTimeout(searchForMeta,500);
+      } else {
+         // script load failed (probably offline)
+         console.log("Green turtle script load failed, harvesting for extension only (i.e. no document.data)");
+         document.head.removeChild(script);
+         var rdfaProcessor = new RDFaProcessor(document.documentElement);
+         chrome.extension.onRequest.addListener(
+            function(request,sender,sendResponse) {
+               if (request.getTriples) {
+                  sendResponse({ setTriples: true, triples: rdfaProcessor.getTransferGraph() });
+               }
+            });
+         rdfaProcessor.process(document.documentElement);
+         if (rdfaProcessor.target.tripleCount>0) {
+            chrome.extension.sendRequest({ harvestedTriples: true });
+            console.log("Found "+rdfaProcessor.target.tripleCount+" triples");
+         }
       }
    }
    searchForMeta();
