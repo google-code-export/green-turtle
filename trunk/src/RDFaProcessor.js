@@ -304,32 +304,33 @@ RDFaProcessor.prototype.process = function(node) {
       var item = queue.shift();
       var current = item.current;
       var context = item.context;
+
+      // Sequence Step 1
       var skip = false;
       var newSubject = null;
-      var typedResource = null;
       var currentObjectResource = null;
+      var typedResource = null;
       var prefixes = context.prefixes;
       var prefixesCopied = false;
       var incomplete = [];
+      var listMapping = context.listMapping;
       var language = context.language;
       var terms = context.terms;
       var termsCopied = false;
       var vocabulary = context.vocabulary;
 
+      // TODO: is "base" the document base URI or the current elements base URI?
       var base = this.parseURI(current.baseURI);
-      //console.log("Processing: "+this.ancestorPath(current)+", "+base.spec);
 
-      // handle loading profiles (@profile)
-      var profileAtt = current.getAttributeNode("profile");
-      if (profileAtt) {
-      }
-      
-      // handle setting the default vocabulary (@vocab)
+      // Sequence Step 2: set the default vocabulary
       var vocabAtt = current.getAttributeNode("vocab");
       if (vocabAtt) {
          var value = this.trim(vocabAtt.value);
          if (value.length>0) {
             vocabulary = value;
+            var baseSubject = base.spec;
+            this.newSubject(this.target,current,baseSubject);
+            this.addTriple(this.target,current,baseSubject,"http://www.w3.org/ns/rdfa#usesVocabulary",{ type: this.objectURI , value: vocabulary});
          } else {
             vocabulary = this.vocabulary;
          }
