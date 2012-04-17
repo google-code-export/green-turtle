@@ -69,16 +69,10 @@ RDFaProcessor.prototype.parseCURIEOrURI = function(value,prefixes,base) {
 }
 
 RDFaProcessor.prototype.parseTermOrCURIEOrURI = function(value,defaultVocabulary,terms,prefixes,base) {
+   //alert("Parsing "+value+" with default vocab "+defaultVocabulary);
    value = this.trim(value);
    if (value.charAt(0)=='[' && value.charAt(value.length-1)==']') {
       value = value.substring(1,value.length-1);
-   }
-   if (defaultVocabulary) {
-      return defaultVocabulary+value;
-   }
-   var term = terms[value];
-   if (term) {
-      return term;
    }
    var colon = value.indexOf(":");
    if (colon>=0) {
@@ -96,6 +90,14 @@ RDFaProcessor.prototype.parseTermOrCURIEOrURI = function(value,defaultVocabulary
             return uri+value.substring(colon+1);
          }
       }
+   } else {
+       var term = terms[value];
+       if (term) {
+          return term;
+       }
+       if (defaultVocabulary) {
+          return defaultVocabulary+value
+       }
    }
    return base.resolve(value);
 }
@@ -673,6 +675,7 @@ RDFaProcessor.prototype.process = function(node) {
          childContext.parentObject = current.parentNode.baseURI==context.parentObject ? current.baseURI : context.parentObject;
          childContext.language = language;
          childContext.prefixes = prefixes;
+         childContext.vocabulary = vocabulary;
       } else {
          childContext = this.push(context,newSubject);
          childContext.parentObject = currentObjectResource ? currentObjectResource : (newSubject ? newSubject : context.subject);
