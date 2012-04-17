@@ -19,6 +19,10 @@ URIResolver.prototype.parseURI = function(uri) {
       if (!href) {
          return this.spec;
       }
+      if (href.charAt(0)=='#') {
+         var lastHash = this.spec.lastIndexOf('#');
+         return lastHash<0 ? this.spec+href : this.spec.substring(0,lastHash)+href;
+      }
       if (!this.isGeneric) {
          throw "Cannot resolve uri against non-generic URI: "+this.spec;
       }
