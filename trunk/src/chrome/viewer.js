@@ -35,6 +35,13 @@ Viewer.prototype.init = function(url,id) {
       current.visualization.canvas.resize(800,800);
       document.getElementById("visualization").style.height="800px";
    };
+   document.getElementById("visualize").onclick = function() {
+      document.getElementById("graphviz").style.display = "block";
+      document.getElementById("no-graphviz").style.display = "none";
+      setTimeout(function() {
+         current.renderGraph()
+      },10);
+   };
    /*
    chrome.extension.sendRequest(
       { getTriples: true, id: id},
@@ -141,10 +148,27 @@ Viewer.prototype.tripleGraph = function() {
 Viewer.prototype.update = function() {
    var infoDiv = document.getElementById("info");
 
-   var graph = this.tripleGraph();
+   Log.write("Constructing graph...");
+   this.graph = this.tripleGraph();
+   
+   var graphVizDiv = document.getElementById("graphviz");
+   var nographVizDiv = document.getElementById("no-graphviz");
+   if (this.table.childNodes.length>100) {
+      graphVizDiv.style.display = "none";
+      nographVizDiv.style.display = "block";
+   } else {
+      graphVizDiv.style.display = "block";
+      nographVizDiv.style.display = "none";
+      var app = this;
+      setTimeout(function() {
+         app.renderGraph()
+      },10);
+   }
+}
 
-   Log.write("Loading graph...");
+Viewer.prototype.renderGraph = function() {
    var app = this;
+   Log.write("Constructing graph renderer...");
    var fd = new $jit.ForceDirected({
       //id of the visualization container
       injectInto: 'visualization',
@@ -241,8 +265,10 @@ Viewer.prototype.update = function() {
       //Edge length  
       levelDistance: 5
    });
-   fd.loadJSON(graph);
+   Log.write("Loading graph...");
+   fd.loadJSON(this.graph);
    // compute positions incrementally and animate.
+   Log.write("Rendering graph...");
    fd.computeIncremental({
       iter: 40,
       property: 'end',

@@ -6,14 +6,20 @@
 </head>
 <body>
 <div id="container">
+<div id="graphviz">
 <p class="toolbar">
   <button id="s1">800 x 300</button>
   <button id="s2">800 x 500</button>
   <button id="s3">800 x 800</button>
 </p>
 <div id="visualization"><div id="log"/></div>
+  <div id="info"><p>Select a node to view the triples...</p></div>
+</div>
+<div id="no-graphviz">
+  <p>There were many triples harvested from this document.  Rendering them may take awhile!</p>
+  <button id="visualize">Render Visualization</button>
+</div>
 <div id="inspector">
-<div id="info"><p>Select a node to view the triples...</p></div>
 <div id="table">
 <table>
 <thead>

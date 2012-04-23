@@ -48,6 +48,14 @@ tbody {
 #info {
 }
 
+#graphviz {
+    display: none;
+}
+
+#no-graphviz {
+    display: none;
+}
+
 #table table {
    width: 100%;
 }
