@@ -466,6 +466,8 @@ RDFaProcessor.prototype.process = function(node) {
                typedResource = base.resolve(hrefAtt.value);
             } else if (srcAtt) {
                typedResource = base.resolve(srcAtt.value);
+            } else if (aboutAtt) {
+               typedResource = newSubject;
             } else {
                typedResource = this.newBlankNode();
             }
@@ -608,20 +610,18 @@ RDFaProcessor.prototype.process = function(node) {
          } else if (contentAtt) {
             datatype = this.PlainLiteralURI;
             content = contentAtt.value;
-         } else if (typeofAtt) {
+         } else if (!relAtt && !revAtt && !contentAtt && resourceAtt) {
+            datatype = this.objectURI;
+            content = this.parseCURIEOrURI(resourceAtt.value,prefixes,base);
+         } else if (!relAtt && !revAtt && !contentAtt && hrefAtt) {
+            datatype = this.objectURI;
+            content = base.resolve(hrefAtt.value);
+         } else if (!relAtt && !revAtt && !contentAtt && srcAtt) {
+            datatype = this.objectURI;
+            content = base.resolve(srcAtt.value);
+         } else if (typeofAtt && !aboutAtt) {
             datatype = this.objectURI;
             content = typedResource;
-         } else if (!relAtt && !revAtt && !contentAtt) {
-            if (resourceAtt) {
-               content = this.parseCURIEOrURI(resourceAtt.value,prefixes,base);
-            } else if (hrefAtt) {
-               content = base.resolve(hrefAtt.value);
-            } else if (srcAtt) {
-               content = base.resolve(srcAtt.value);
-            } else {
-               datatype = this.PlainLiteralURI;
-               content = current.textContent;
-            }
          } else {
             datatype = this.PlainLiteralURI;
             content = current.textContent;
@@ -642,9 +642,9 @@ RDFaProcessor.prototype.process = function(node) {
                      this.addTriple(this.target,current,newSubject,predicate,{ type: this.XMLLiteralURI, value: current.childNodes});
                   } else {
                      this.addTriple(this.target,current,newSubject,predicate,{ type: datatype ? datatype : this.PlainLiteralURI, value: content, language: language});
+                     //console.log(newSubject+" "+predicate+"="+content);
                   }
                }
-               //alert(this.triples[this.triples.length-1].predicate+"="+this.triples[this.triples.length-1].object.value);
             }
          }
       }
