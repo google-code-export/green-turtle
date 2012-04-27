@@ -1,7 +1,6 @@
 ASK WHERE {
-	?a <http://xmlns.com/foaf/0.1/mbox> <mailto:manu.sporny@digitalbazaar.com> .
-	?b <http://xmlns.com/foaf/0.1/mbox> <mailto:gregg@kellogg-assoc.com> .
-	?a <http://xmlns.com/foaf/0.1/knows> ?b .
-	?b <http://xmlns.com/foaf/0.1/knows> ?a .
-	FILTER ( isBlank(?a) && isBlank(?b) )
+	<_:1> <http://xmlns.com/foaf/0.1/mbox> <mailto:manu.sporny@digitalbazaar.com> .
+	<_:2> <http://xmlns.com/foaf/0.1/mbox> <mailto:gregg@kellogg-assoc.com> .
+	<_:1> <http://xmlns.com/foaf/0.1/knows> <_:2> .
+	<_:2> <http://xmlns.com/foaf/0.1/knows> <_:1> .
 }
