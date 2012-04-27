@@ -1,8 +1,9 @@
-BASE <http://rdfa.info/test-suite/test-cases/rdfa1.1/xhtml1/0233.xhtml>
+BASE <http://localhost:8888/tests/xhtml1/0233.xhtml>
 PREFIX foaf: <http://xmlns.com/foaf/0.1/>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 
 ASK WHERE {
-  <> foaf:maker <http://www.example.org/#me> .
-  <http://www.example.org/#me> a foaf:Person;
-     foaf:name "John Doe" .
+  <http://localhost:8888/tests/xhtml1/0233.xhtml> foaf:maker <http://www.example.org/#me> .
+  <http://www.example.org/#me> rdf:type foaf:Person .
+  <http://www.example.org/#me> foaf:name "John Doe" .
 }
