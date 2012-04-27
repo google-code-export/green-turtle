@@ -1,5 +1,5 @@
 ASK WHERE {
- <_:1> <http://www.w3.org/1999/xhtml/vocab#definition> "a bi-pedal primate" .
- <_:1> <http://www.w3.org/1999/xhtml/vocab#note> "confused animal" .
- <_:1> <http://www.w3.org/1999/xhtml/vocab#foo> "Milky Way" .
+ <_:human> <http://www.w3.org/1999/xhtml/vocab#definition> "a bi-pedal primate" .
+ <_:human> <http://www.w3.org/1999/xhtml/vocab#note> "confused animal" .
+ <_:human> <http://www.w3.org/1999/xhtml/vocab#foo> "Milky Way" .
 }
