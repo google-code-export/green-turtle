@@ -23,6 +23,8 @@ function RDFaProcessor(targetObject) {
    this.XMLLiteralURI = "http://www.w3.org/1999/02/22-rdf-syntax-ns#XMLLiteral"; 
    this.PlainLiteralURI = "http://www.w3.org/1999/02/22-rdf-syntax-ns#PlainLiteral";
    this.blankCounter = 0;
+   this.langAttributes = [ { namespaceURI: "http://www.w3.org/XML/1998/namespace", localName: "lang" } ];
+   this.contentAttributes = [ "content" ];
 }
 
 RDFaProcessor.prototype.newBlankNode = function() {
@@ -134,16 +136,25 @@ RDFaProcessor.prototype.ancestorPath = function(node) {
 }
 
 RDFaProcessor.prototype.setContext = function(node) {
-   this.setXMLContext();
 
-   // We only recognized XHTML
-   if (node.namespaceURI=="http://www.w3.org/1999/xhtml") {
+   // We only recognized XHTML+RDFa 1.1 if the version is set propertyly
+   if (node.localName=="html" && node.getAttribute("version")=="XHTML+RDFa 1.1") {
       this.setXHTMLContext();
+   } else if (node.localName=="html" || node.namespaceURI=="http://www.w3.org/1999/xhtml") {
+      this.setHTMLContext();
+   } else {
+      this.setXMLContext();
    }
 
 }
 
-RDFaProcessor.prototype.setXMLContext = function() {
+RDFaProcessor.prototype.setInitialContext = function() {
+   this.vocabulary = null;
+   this.target.prefixes = {};
+   this.target.terms = {};
+   this.langAttributes = [ { namespaceURI: "http://www.w3.org/XML/1998/namespace", localName: "lang" } ];
+   this.contentAttributes = [ "content" ];
+   
    // w3c
    this.target.prefixes["grddl"] = "http://www.w3.org/2003/g/data-view#";
    this.target.prefixes["ma"] = "http://www.w3.org/ns/ma-ont#";
@@ -162,7 +173,10 @@ RDFaProcessor.prototype.setXMLContext = function() {
    this.target.prefixes["xsd"] = "http://www.w3.org/2001/XMLSchema#";
    // non-rec w3c
    this.target.prefixes["sd"] = "http://www.w3.org/ns/sparql-service-description#";
+   this.target.prefixes["org"] = "http://www.w3.org/ns/org#";
+   this.target.prefixes["gldp"] = "http://www.w3.org/ns/people#";
    this.target.prefixes["cnt"] = "http://www.w3.org/2008/content#";
+   this.target.prefixes["dcat"] = "http://www.w3.org/ns/dcat#";
    this.target.prefixes["earl"] = "http://www.w3.org/ns/earl#";
    this.target.prefixes["ht"] = "http://www.w3.org/2006/http#";
    this.target.prefixes["ptr"] = "http://www.w3.org/2009/pointers#";
@@ -180,13 +194,31 @@ RDFaProcessor.prototype.setXMLContext = function() {
    this.target.prefixes["v"] = "http://rdf.data-vocabulary.org/#";
    this.target.prefixes["vcard"] = "http://www.w3.org/2006/vcard/ns#";
    this.target.prefixes["schema"] = "http://schema.org/";
-
+   
+   // terms
    this.target.terms["describedby"] = "http://www.w3.org/2007/05/powder-s#describedby";
    this.target.terms["license"] = "http://www.w3.org/1999/xhtml/vocab#license";
    this.target.terms["role"] = "http://www.w3.org/1999/xhtml/vocab#role";
 }
 
+RDFaProcessor.prototype.setXMLContext = function() {
+   this.setInitialContext();
+}
+
+RDFaProcessor.prototype.setHTMLContext = function() {
+   this.setInitialContext();
+   this.langAttributes = [ { namespaceURI: "http://www.w3.org/XML/1998/namespace", localName: "lang" },
+                           { namespaceURI: null, localName: "lang" }];
+   this.contentAttributes = [ "value", "datetime", "content" ];
+}
+
 RDFaProcessor.prototype.setXHTMLContext = function() {
+
+   this.setInitialContext();
+   
+   this.langAttributes = [ { namespaceURI: "http://www.w3.org/XML/1998/namespace", localName: "lang" } ];
+   this.contentAttributes = [ "content" ];
+   
    this.target.prefixes[""] = "http://www.w3.org/1999/xhtml/vocab#";
 
    // From http://www.w3.org/2011/rdfa-context/xhtml-rdfa-1.1
@@ -345,7 +377,7 @@ RDFaProcessor.prototype.process = function(node) {
       var language = context.language;
       var vocabulary = context.vocabulary;
 
-      // TODO: is "base" the document base URI or the current elements base URI?
+      // TODO: the "base" element may be used for HTML+RDFa 1.1
       var base = this.parseURI(current.baseURI);
 
       // Sequence Step 2: set the default vocabulary
@@ -389,22 +421,14 @@ RDFaProcessor.prototype.process = function(node) {
       }
 
       // Sequence Step 4: language
-      // always use the xml:lang atribute
-      var xmlLangAtt = current.getAttributeNodeNS("http://www.w3.org/XML/1998/namespace","lang");
+      var xmlLangAtt = null;
+      for (var i=0; !xmlLangAtt && i<this.langAttributes.length; i++) {
+         xmlLangAtt = current.getAttributeNodeNS(this.langAttributes[i].namespaceURI,this.langAttributes[i].localName);
+      }
       if (xmlLangAtt) {
          var value = this.trim(xmlLangAtt.value);
          if (value.length>0) {
             language = value;
-         }
-      } else if ((current.namespaceURI=="http://www.w3.org/1999/xhtml" && current.localName=="html") ||
-                 ((!current.namespaceURI || current.namespaceURI=="") && current.localName=="html")) {
-         // For XHTML/HTML, the html/@lang attribute should be used
-         var langAtt = current.getAttributeNode("lang");
-         if (langAtt) {
-            var value = this.trim(langAtt.value);
-            if (value.length>0) {
-               language = value;
-            }
          }
       }
 
@@ -413,7 +437,10 @@ RDFaProcessor.prototype.process = function(node) {
       var typeofAtt = current.getAttributeNode("typeof");
       var propertyAtt = current.getAttributeNode("property");
       var datatypeAtt = current.getAttributeNode("datatype");
-      var contentAtt = current.getAttributeNode("content");
+      var contentAtt = null;
+      for (var i=0; !contentAtt && i<this.contentAttributes.length; i++) {
+         contentAtt = current.getAttributeNode(this.contentAttributes[i]);
+      }
       var aboutAtt = current.getAttributeNode("about");
       var srcAtt = current.getAttributeNode("src");
       var resourceAtt = current.getAttributeNode("resource");
@@ -601,6 +628,7 @@ RDFaProcessor.prototype.process = function(node) {
 
       // Step 11: Current property values
       if (propertyAtt) {
+         // TODO: for HTML+RDFa 1.1, the datatype must be set if the content comes from the datetime attribute
          //alert(current.baseURI+" "+newSubject+" "+propertyAtt.value);
          var datatype = null;
          var content = null; 
