@@ -100,11 +100,16 @@ TestHarness.prototype.runCurrentTest = function() {
       this.nextTest();
       return;
    }
-   this.totalCurrent++;
    var app = this;
    testContext.inputURL = "/tests/"+testContext.hostLanguage+"/"+testContext.info.num+"."+testContext.hostLanguage.replace(/\d+/,"");
    testContext.outputURL = "/tests/"+testContext.hostLanguage+"/"+testContext.info.num+".sparql";
    testContext.status = this.createTestResult(testContext);
+   if (testContext.info.queryParam) {
+      app.testResult(testContext,"success","SKIP","Skipped for queryParam "+testContext.info.queryParam);
+      this.nextTest();
+      return;
+   }
+   this.totalCurrent++;
    if (testContext.hostLanguage.indexOf("html")==0) {
       // html, use loader
       this.htmlLoader.onload = function() {
