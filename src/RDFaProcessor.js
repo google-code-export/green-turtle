@@ -598,7 +598,6 @@ RDFaProcessor.prototype.process = function(node) {
          }
       } else {
          // Sequence Step 10: incomplete triples
-         // TODO: Step 10 of the sequence algorithm shouldn't allow generation of a new bnode if the newSubject is already a bnode
          if (newSubject && !currentObjectResource && (relAtt || revAtt)) {
             currentObjectResource = this.newBlankNode();
             //alert(current.tagName+": generated blank node, newSubject="+newSubject+" currentObjectResource="+currentObjectResource);
