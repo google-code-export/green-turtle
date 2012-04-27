@@ -25,6 +25,7 @@ function RDFaProcessor(targetObject) {
    this.blankCounter = 0;
    this.langAttributes = [ { namespaceURI: "http://www.w3.org/XML/1998/namespace", localName: "lang" } ];
    this.contentAttributes = [ "content" ];
+   this.inXHTMLMode = false;
 }
 
 RDFaProcessor.prototype.newBlankNode = function() {
@@ -203,6 +204,7 @@ RDFaProcessor.prototype.setInitialContext = function() {
 
 RDFaProcessor.prototype.setXMLContext = function() {
    this.setInitialContext();
+   this.inXHTMLMode = false;
 }
 
 RDFaProcessor.prototype.setHTMLContext = function() {
@@ -210,11 +212,14 @@ RDFaProcessor.prototype.setHTMLContext = function() {
    this.langAttributes = [ { namespaceURI: "http://www.w3.org/XML/1998/namespace", localName: "lang" },
                            { namespaceURI: null, localName: "lang" }];
    this.contentAttributes = [ "value", "datetime", "content" ];
+   this.inXHTMLMode = false;
 }
 
 RDFaProcessor.prototype.setXHTMLContext = function() {
 
    this.setInitialContext();
+   
+   this.inXHTMLMode = true;
    
    this.langAttributes = [ { namespaceURI: "http://www.w3.org/XML/1998/namespace", localName: "lang" } ];
    this.contentAttributes = [ "content" ];
@@ -469,10 +474,12 @@ RDFaProcessor.prototype.process = function(node) {
             currentObjectResource = base.resolve(hrefAtt.value);
          } else if (srcAtt) {
             currentObjectResource = base.resolve(srcAtt.value);
-         } else if (typeofAtt && !aboutAtt) {
+         } else if (typeofAtt && !aboutAtt && !(this.inXHTMLMode && (current.localName=="head" || current.localName=="body"))) {
             currentObjectResource = this.newBlankNode();
          }
-         if (typeofAtt && !aboutAtt) {
+         if (typeofAtt && !aboutAtt && this.inXHTMLMode && (current.localName=="head" || current.localName=="body")) {
+            typedResource = newSubject;
+         } else if (typeofAtt && !aboutAtt) {
             typedResource = currentObjectResource;
          }
 
@@ -495,8 +502,11 @@ RDFaProcessor.prototype.process = function(node) {
                typedResource = base.resolve(srcAtt.value);
             } else if (aboutAtt) {
                typedResource = newSubject;
+            } else if (this.inXHTMLMode && (current.localName=="head" || current.localName=="body")) {
+               typedResource = newSubject;
             } else {
                typedResource = this.newBlankNode();
+               newSubject = typedResource;
             }
             currentObjectResource = typedResource;
          }
@@ -513,6 +523,8 @@ RDFaProcessor.prototype.process = function(node) {
             newSubject = base.resolve(srcAtt.value);
          } else if (current.parentNode.nodeType==Node.DOCUMENT_NODE) {
             newSubject = current.baseURI;
+         } else if (this.inXHTMLMode && (current.localName=="head" || current.localName=="body")) {
+            newSubject = current.parentNode.baseURI==context.parentObject ? current.baseURI : context.parentObject;
          } else if (typeofAtt) {
             newSubject = this.newBlankNode();
          } else if (context.parentObject) {
@@ -685,7 +697,7 @@ RDFaProcessor.prototype.process = function(node) {
                // TODO: it is unclear what to do here
                context.incomplete[i].list.push({ type: this.objectURI, value: newSubject });
             } else if (context.incomplete[i].forward) {
-               //alert(current.tagName+": completing forward triple with object="+context.subject);
+               //console.log(current.tagName+": completing forward triple "+context.incomplete[i].predicate+" with object="+newSubject);
                this.addTriple(this.target,current,context.subject,context.incomplete[i].predicate, { type: this.objectURI, value: newSubject});
             } else {
                //alert(current.tagName+": completing reverse triple with object="+context.subject);
