@@ -40,7 +40,7 @@ TestHarness.prototype.start = function() {
    this.results = {};
    this.totalCurrent = 0;
    this.totalCurrentPass = 0;
-   this.hostLanguages = ["html5"];
+   this.hostLanguages = ["xhtml1"];
    //this.hostLanguages = ["html5","xhtml5","xhtml1","xml"];
    this.host = 0;
    this.currentTest = -1;
@@ -89,6 +89,16 @@ TestHarness.prototype.runCurrentTest = function() {
       info: this.manifest["@graph"][this.currentTest],
       hostLanguage: this.hostLanguages[this.host]
    };
+   var rdfa_1_1 = false;
+   for (var i=0; !rdfa_1_1 && i<testContext.info.versions.length; i++) {
+      if (testContext.info.versions[i]=="rdfa1.1") {
+         rdfa_1_1 = true;
+      }
+   }
+   if (!rdfa_1_1) {
+      this.nextTest();
+      return;
+   }
    this.showMessage("Running test "+testContext.info.num+" for "+testContext.hostLanguage+" ...");
    var match = false;
    for (var i=0; !match && i<testContext.info.hostLanguages.length; i++) {
