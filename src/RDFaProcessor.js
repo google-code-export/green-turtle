@@ -169,7 +169,7 @@ RDFaProcessor.prototype.setInitialContext = function() {
    this.target.prefixes["wdr"] = "http://www.w3.org/2007/05/powder#";
    this.target.prefixes["void"] = "http://rdfs.org/ns/void#";
    this.target.prefixes["wdrs"] = "http://www.w3.org/2007/05/powder-s#";
-   this.target.prefixes["xhr"] = "http://www.w3.org/1999/xhtml/vocab#";
+   this.target.prefixes["xhv"] = "http://www.w3.org/1999/xhtml/vocab#";
    this.target.prefixes["xml"] = "http://www.w3.org/XML/1998/namespace";
    this.target.prefixes["xsd"] = "http://www.w3.org/2001/XMLSchema#";
    // non-rec w3c
@@ -244,7 +244,7 @@ RDFaProcessor.prototype.setXHTMLContext = function() {
    this.target.terms["meta"] = "http://www.w3.org/1999/xhtml/vocab#meta";
    this.target.terms["next"] = "http://www.w3.org/1999/xhtml/vocab#next";
    this.target.terms["prev"] = "http://www.w3.org/1999/xhtml/vocab#prev";
-   this.target.terms["previous"] = "http://www.w3.org/1999/xhtml/vocab#prev";
+   this.target.terms["previous"] = "http://www.w3.org/1999/xhtml/vocab#previous";
    this.target.terms["section"] = "http://www.w3.org/1999/xhtml/vocab#section";
    this.target.terms["stylesheet"] = "http://www.w3.org/1999/xhtml/vocab#stylesheet";
    this.target.terms["subsection"] = "http://www.w3.org/1999/xhtml/vocab#subsection";
