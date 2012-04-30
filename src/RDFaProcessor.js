@@ -71,6 +71,14 @@ RDFaProcessor.prototype.parseCURIEOrURI = function(value,prefixes,base) {
    return base.resolve(value);
 }
 
+RDFaProcessor.prototype.parsePredicate = function(value,defaultVocabulary,terms,prefixes,base) {
+   var predicate = this.parseTermOrCURIEOrURI(value,defaultVocabulary,terms,prefixes,base);
+   if (predicate.indexOf("_:")==0) {
+      return null;
+   }
+   return predicate;
+}
+
 RDFaProcessor.prototype.parseTermOrCURIEOrURI = function(value,defaultVocabulary,terms,prefixes,base) {
    //alert("Parsing "+value+" with default vocab "+defaultVocabulary);
    value = this.trim(value);
@@ -400,16 +408,6 @@ RDFaProcessor.prototype.process = function(node) {
       }
 
       // Sequence Step 3: IRI mappings
-      // Handle prefix mappings (@prefix)
-      var prefixAtt = current.getAttributeNode("prefix");
-      if (prefixAtt) {
-         if (!prefixesCopied) {
-            prefixes = this.copyMappings(prefixes);
-            prefixesCopied = true;
-         }
-         this.parsePrefixMappings(prefixAtt.value,prefixes);
-      }
-
       // handle xmlns attributes
       for (var i=0; i<current.attributes.length; i++) {
          var att = current.attributes[i];
@@ -424,6 +422,16 @@ RDFaProcessor.prototype.process = function(node) {
             prefixes[prefix] = this.trim(att.value);
          }
       }
+      // Handle prefix mappings (@prefix)
+      var prefixAtt = current.getAttributeNode("prefix");
+      if (prefixAtt) {
+         if (!prefixesCopied) {
+            prefixes = this.copyMappings(prefixes);
+            prefixesCopied = true;
+         }
+         this.parsePrefixMappings(prefixAtt.value,prefixes);
+      }
+
 
       // Sequence Step 4: language
       var xmlLangAtt = null;
@@ -567,7 +575,7 @@ RDFaProcessor.prototype.process = function(node) {
          if (relAtt && inlistAtt) {
             var values = this.tokenize(relAtt.value);
             for (var i=0; i<values.length; i++) {
-               var predicate = this.parseTermOrCURIEOrURI(values[i],vocabulary,context.terms,prefixes,base);
+               var predicate = this.parsePredicate(values[i],vocabulary,context.terms,prefixes,base);
                if (predicate) {
                   var list = listMapping[predicate];
                   if (!list) {
@@ -581,7 +589,7 @@ RDFaProcessor.prototype.process = function(node) {
             var values = this.tokenize(relAtt.value);
             //alert(newSubject+" "+relAtt.value+" "+currentObjectResource+" "+values.length);
             for (var i=0; i<values.length; i++) {
-               var predicate = this.parseTermOrCURIEOrURI(values[i],vocabulary,context.terms,prefixes,base);
+               var predicate = this.parsePredicate(values[i],vocabulary,context.terms,prefixes,base);
                if (predicate) {
                   this.addTriple(this.target,current,newSubject,predicate,{ type: this.objectURI, value: currentObjectResource});
                }
@@ -590,7 +598,7 @@ RDFaProcessor.prototype.process = function(node) {
          if (revAtt) {
             var values = this.tokenize(revAtt.value);
             for (var i=0; i<values.length; i++) {
-               var predicate = this.parseTermOrCURIEOrURI(values[i],vocabulary,context.terms,prefixes,base);
+               var predicate = this.parsePredicate(values[i],vocabulary,context.terms,prefixes,base);
                if (predicate) {
                   this.addTriple(this.target,current,currentObjectResource, predicate, { type: this.objectURI, value: newSubject});
                }
@@ -605,7 +613,7 @@ RDFaProcessor.prototype.process = function(node) {
          if (relAtt && inlistAtt) {
             var values = this.tokenize(relAtt.value);
             for (var i=0; i<values.length; i++) {
-               var predicate = this.parseTermOrCURIEOrURI(values[i],vocabulary,context.terms,prefixes,base);
+               var predicate = this.parsePredicate(values[i],vocabulary,context.terms,prefixes,base);
                if (predicate) {
                   var list = listMapping[predicate];
                   if (!list) {
@@ -619,7 +627,7 @@ RDFaProcessor.prototype.process = function(node) {
          } else if (relAtt) {
             var values = this.tokenize(relAtt.value);
             for (var i=0; i<values.length; i++) {
-               var predicate = this.parseTermOrCURIEOrURI(values[i],vocabulary,context.terms,prefixes,base);
+               var predicate = this.parsePredicate(values[i],vocabulary,context.terms,prefixes,base);
                if (predicate) {
                   incomplete.push({ predicate: predicate, forward: true });
                }
@@ -629,7 +637,7 @@ RDFaProcessor.prototype.process = function(node) {
          if (revAtt) {
             var values = this.tokenize(revAtt.value);
             for (var i=0; i<values.length; i++) {
-               var predicate = this.parseTermOrCURIEOrURI(values[i],vocabulary,context.terms,prefixes,base);
+               var predicate = this.parsePredicate(values[i],vocabulary,context.terms,prefixes,base);
                if (predicate) {
                   incomplete.push({ predicate: predicate, forward: false });
                }
@@ -667,7 +675,7 @@ RDFaProcessor.prototype.process = function(node) {
          }
          var values = this.tokenize(propertyAtt.value);
          for (var i=0; i<values.length; i++) {
-            var predicate = this.parseTermOrCURIEOrURI(values[i],vocabulary,context.terms,prefixes,base);
+            var predicate = this.parsePredicate(values[i],vocabulary,context.terms,prefixes,base);
             if (predicate) {
                if (inlistAtt) {
                   var list = listMapping[predicate];
