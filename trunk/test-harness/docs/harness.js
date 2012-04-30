@@ -577,24 +577,24 @@ TestHarness.prototype.compareTest = function(testContext,sparql) {
          }
          for (var i=0; i<testPnode.objects.length; i++) {
             var testO = testPnode.objects[i];
+            var value = testO.value;
+            if (testO.type=="http://www.w3.org/1999/02/22-rdf-syntax-ns#XMLLiteral") {
+               var serializer = new XMLSerializer();
+               var xml = "";
+               for (var i=0; i<value.length; i++) {
+                  xml = serializer.serializeToString(value[i]);
+               }
+               //console.log("Serialized: "+xml);
+               value = xml;
+            }
             var o = null;
             for (var j=0; !o && j<pnode.objects.length; j++) {
-               var value = testO.value;
-               if (testO.type=="http://www.w3.org/1999/02/22-rdf-syntax-ns#XMLLiteral") {
-                  var serializer = new XMLSerializer();
-                  var xml = "";
-                  for (var i=0; i<value.length; i++) {
-                     xml = serializer.serializeToString(value[i]);
-                  }
-                  //console.log("Serialized: "+xml);
-                  value = xml;
-               }
                if (pnode.objects[j].type==testO.type && pnode.objects[j].value==value) {
                   o = pnode.objects[j];
                }
             }
             if (!o) {
-               console.log("Extra object "+testO.value+" for subject "+subject+" predicate "+predicate);
+               console.log("Extra object "+value+" for subject "+subject+" predicate "+predicate);
                ok = false;
             }
          }
