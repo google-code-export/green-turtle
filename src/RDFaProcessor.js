@@ -358,7 +358,7 @@ RDFaProcessor.prototype.process = function(node) {
             }
             for (var i=0; i<bnodes.length; i++) {
                this.addTriple(this.target,item.parent,bnodes[i],"http://www.w3.org/1999/02/22-rdf-syntax-ns#first",list[i]);
-               this.addTriple(this.target,item.parent,bnodes[i],"http://www.w3.org/1999/02/22-rdf-syntax-ns#next",{ type: this.objectURI , value: (i+1)<bnodes.length ? bnodes[i+1] : "http://www.w3.org/1999/02/22-rdf-syntax-ns#nil" });
+               this.addTriple(this.target,item.parent,bnodes[i],"http://www.w3.org/1999/02/22-rdf-syntax-ns#rest",{ type: this.objectURI , value: (i+1)<bnodes.length ? bnodes[i+1] : "http://www.w3.org/1999/02/22-rdf-syntax-ns#nil" });
             }
             this.addTriple(this.target,item.parent,item.subject,predicate,{ type: this.objectURI, value: bnodes[0] });
          }
