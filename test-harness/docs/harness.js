@@ -212,12 +212,69 @@ TestHarness.prototype.executeTest = function(testContext) {
    })
 }
 
+TestHarness.prototype.parseLiteral = function(line) {
+   var quoteRE = /^"/;
+   var quoteTextRE = /^([^"\\]+)/;
+   var escapedBackslashRE = /^\\\\/;
+   var escapedNewlineRE = /^\\n/;
+   var escapedQuoteRE = /^\\"/;
+   var martch = null;
+   var literal = "";
+   do {
+      match = quoteRE.exec(line);
+      if (match) {
+         //console.log("Literal: \""+literal+"\"");
+         line = line.substring(match[0].length);
+         return {
+            line: line,
+            literal: literal
+         }
+      }
+      match = quoteTextRE.exec(line);
+      if (match) {
+         literal += match[1];
+         line = line.substring(match[0].length);
+      } else {
+         match = escapedQuoteRE.exec(line);
+         if (match) {
+             literal += "\"";
+             line = line.substring(match[0].length);
+         } else {
+            match = escapedBackslashRE.exec(line);
+            if (match) {
+                literal += "\\";
+                line = line.substring(match[0].length);
+            } else {
+               match = escapedNewlineRE.exec(line);
+               if (match) {
+                   literal += "\n";
+                   line = line.substring(match[0].length);
+               }
+            }
+         }
+      }
+   } while (match);
+   return {
+      line: line,
+      literal: literal,
+      error: "Bad end of quoted literal: "+line
+   }
+   
+}
+
+
 TestHarness.prototype.compareTest = function(testContext,sparql) {
    console.log("test: "+testContext.hostLanguage+"/"+testContext.info.num);
    
    var graph = {};
    var wsRE = /^\s+/;
    var uriRE = /^\<([^>]*)\>/;
+   var quoteRE = /^"/;
+   var multilineQuoteRE = /^"""/;
+   var endMultilineQuoteRE = /"""/;
+   var quoteTextRE = /^([^"]+)/;
+   var escapedQuoteRE = /^\\"/;
+   var tripleQuoteRE = /^""""/;
    var literalRE = /^"([^"]*)"/;
    var multilineRE = /^"""/;
    var typeRE = /^\^\^/;
@@ -358,49 +415,84 @@ TestHarness.prototype.compareTest = function(testContext,sparql) {
             }
             line = line.substring(match[0].length);
          } else {
+         /*
             match = literalRE.exec(line);
             if (match) {
                object = match[1];
                type = "http://www.w3.org/1999/02/22-rdf-syntax-ns#PlainLiteral";
                line = line.substring(match[0].length);
-               match = typeRE.exec(line);
+               */
+            match = multilineQuoteRE.exec(line);
+            if (match) {
+               var literal = line.substring(match[0].length)+"\n";
+               for (i++; i<lines.length; i++) {
+                  line = lines[i];
+                  match = endMultilineQuoteRE.exec(line);
+                  if (match) {
+                     literal += line.substring(0,match.index);
+                     line = line.substring(match.index+match[0].length);
+                     break;
+                  } else {
+                     literal += line + "\n";
+                  }
+               }
+               //console.log("Literal: \"\"\""+literal+"\"\"\"");
+               object = literal;
+               type = "http://www.w3.org/1999/02/22-rdf-syntax-ns#PlainLiteral";
+            } else {
+               match = quoteRE.exec(line);
                if (match) {
                   line = line.substring(match[0].length);
-                  match = uriRE.exec(line);
-                  if (match) {
-                     type = match[1];
-                     line = line.substring(match[0].length);
+                  var result = this.parseLiteral(line);
+                  if (result.error) {
+                     console.log("bad object, "+result.error);
+                     this.testResult(testContext,"fail","ERROR","Cannot parse statement (bad object): "+result.error);
+                     ok = false;
+                     break;
                   } else {
-                     match = curieRE.exec(line);
-                     if (match) {
-                        var base = prefixes[match[1]];
-                        if (base) {
-                           type = base+match[2];
-                        } else {
-                           console.log("undefined prefix: "+match[1]);
-                           this.testResult(testContext,"fail","ERROR","Cannot parse statement (undefined prefix): "+line);
-                           ok = false;
-                           break;
-                        }
-                        line = line.substring(match[0].length);
+                     line = result.line;
+                     object = result.literal;
+                     type = "http://www.w3.org/1999/02/22-rdf-syntax-ns#PlainLiteral";
+                  }
+               } else {
+                  console.log("bad object: "+line);
+                  this.testResult(testContext,"fail","ERROR","Cannot parse statement (bad object): "+line);
+                  ok = false;
+                  break;
+               }
+            }
+            match = typeRE.exec(line);
+            if (match) {
+               line = line.substring(match[0].length);
+               match = uriRE.exec(line);
+               if (match) {
+                  type = match[1];
+                  line = line.substring(match[0].length);
+               } else {
+                  match = curieRE.exec(line);
+                  if (match) {
+                     var base = prefixes[match[1]];
+                     if (base) {
+                        type = base+match[2];
                      } else {
-                        console.log("bad object: "+line);
-                        this.testResult(testContext,"fail","ERROR","Cannot parse statement (bad type on object): "+line);
+                        console.log("undefined prefix: "+match[1]);
+                        this.testResult(testContext,"fail","ERROR","Cannot parse statement (undefined prefix): "+line);
                         ok = false;
                         break;
                      }
+                     line = line.substring(match[0].length);
+                  } else {
+                     console.log("bad object: "+line);
+                     this.testResult(testContext,"fail","ERROR","Cannot parse statement (bad type on object): "+line);
+                     ok = false;
+                     break;
                   }
                }
-               match = langRE.exec(line);
-               if (match) {
-                  line = line.substring(match[0].length);
-                  language = match[1];
-               }
-            } else {
-               console.log("bad object: "+line);
-               this.testResult(testContext,"fail","ERROR","Cannot parse statement (bad object): "+line);
-               ok = false;
-               break;
+            }
+            match = langRE.exec(line);
+            if (match) {
+               line = line.substring(match[0].length);
+               language = match[1];
             }
          }
       }
@@ -471,7 +563,7 @@ TestHarness.prototype.compareTest = function(testContext,sparql) {
                   for (var i=0; i<value.length; i++) {
                      xml = serializer.serializeToString(value[i]);
                   }
-                  console.log("Serialized: "+xml);
+                  //console.log("Serialized: "+xml);
                   value = xml;
                }
                if (testPnode.objects[j].type==o.type && value==o.value) {
@@ -494,7 +586,7 @@ TestHarness.prototype.compareTest = function(testContext,sparql) {
                   for (var i=0; i<value.length; i++) {
                      xml = serializer.serializeToString(value[i]);
                   }
-                  console.log("Serialized: "+xml);
+                  //console.log("Serialized: "+xml);
                   value = xml;
                }
                if (pnode.objects[j].type==testO.type && pnode.objects[j].value==value) {
