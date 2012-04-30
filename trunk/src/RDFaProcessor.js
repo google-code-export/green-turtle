@@ -46,11 +46,21 @@ RDFaProcessor.prototype.tokenize = function(str) {
 }
 
 
-RDFaProcessor.prototype.parseCURIEOrURI = function(value,prefixes,base) {
+RDFaProcessor.prototype.parseSafeCURIEOrCURIEOrURI = function(value,prefixes,base) {
    value = this.trim(value);
    if (value.charAt(0)=='[' && value.charAt(value.length-1)==']') {
       value = value.substring(1,value.length-1);
+      value = value.trim(value);
+      if (value.length==0) {
+         return null;
+      }
+      return this.parseCURIE(value,prefixes,base);
+   } else {
+      return this.parseCURIEOrURI(value,prefixes,base);
    }
+}
+
+RDFaProcessor.prototype.parseCURIE = function(value,prefixes,base) {
    var colon = value.indexOf(":");
    if (colon>=0) {
       var prefix = value.substring(0,colon);
@@ -68,7 +78,12 @@ RDFaProcessor.prototype.parseCURIEOrURI = function(value,prefixes,base) {
          }
       }
    }
-   return base.resolve(value);
+   return null;
+}
+
+RDFaProcessor.prototype.parseCURIEOrURI = function(value,prefixes,base) {
+   var curie = this.parseCURIE(value,prefixes,base);
+   return curie ? curie : base.resolve(value);
 }
 
 RDFaProcessor.prototype.parsePredicate = function(value,defaultVocabulary,terms,prefixes,base) {
@@ -82,9 +97,8 @@ RDFaProcessor.prototype.parsePredicate = function(value,defaultVocabulary,terms,
 RDFaProcessor.prototype.parseTermOrCURIEOrURI = function(value,defaultVocabulary,terms,prefixes,base) {
    //alert("Parsing "+value+" with default vocab "+defaultVocabulary);
    value = this.trim(value);
-   if (value.charAt(0)=='[' && value.charAt(value.length-1)==']') {
-      value = value.substring(1,value.length-1);
-   }
+   var curie = this.parseCURIE(value,prefixes,base);
+   /*
    var colon = value.indexOf(":");
    if (colon>=0) {
       var prefix = value.substring(0,colon);
@@ -101,6 +115,10 @@ RDFaProcessor.prototype.parseTermOrCURIEOrURI = function(value,defaultVocabulary
             return uri+value.substring(colon+1);
          }
       }
+   } else {
+   */
+   if (curie) {
+      return curie;
    } else {
        var term = terms[value];
        if (term) {
@@ -463,7 +481,7 @@ RDFaProcessor.prototype.process = function(node) {
       if (relAtt || revAtt) {
          // Sequence Step 6: establish new subject and value
          if (aboutAtt) {
-            newSubject = this.parseCURIEOrURI(aboutAtt.value,prefixes,base);
+            newSubject = this.parseSafeCURIEOrCURIEOrURI(aboutAtt.value,prefixes,base);
          }
          if (typeofAtt) {
             typedResource = newSubject;
@@ -477,7 +495,7 @@ RDFaProcessor.prototype.process = function(node) {
             }
          }
          if (resourceAtt) {
-            currentObjectResource = this.parseCURIEOrURI(resourceAtt.value,prefixes,base);
+            currentObjectResource = this.parseSafeCURIEOrCURIEOrURI(resourceAtt.value,prefixes,base);
          } else if (hrefAtt) {
             currentObjectResource = base.resolve(hrefAtt.value);
          } else if (srcAtt) {
@@ -494,16 +512,19 @@ RDFaProcessor.prototype.process = function(node) {
       } else if (propertyAtt && !contentAtt && !datatypeAtt) {
          // Sequence Step 5.1: establish a new subject
          if (aboutAtt) {
-            newSubject = this.parseCURIEOrURI(aboutAtt.value,prefixes,base);
-         } else if (current.parentNode.nodeType==Node.DOCUMENT_NODE) {
+            newSubject = this.parseSafeCURIEOrCURIEOrURI(aboutAtt.value,prefixes,base);
+         }
+         // TODO: 5.1 doesn't explicitly allow the @about to resolve to no resource and the root/parent to take over
+         // as such, this doesn't 100% match
+         if (!newSubject && current.parentNode.nodeType==Node.DOCUMENT_NODE) {
             newSubject = current.baseURI;
-         } else if (context.parentObject) {
+         } else if (!newSubject && context.parentObject) {
             // TODO: Verify: If the xml:base has been set and the parentObject is the baseURI of the parent, then the subject needs to be the new base URI
             newSubject = current.parentNode.baseURI==context.parentObject ? current.baseURI : context.parentObject;
          }
          if (typeofAtt) {
             if (resourceAtt) {
-               typedResource = this.parseCURIEOrURI(resourceAtt.value,prefixes,base);
+               typedResource = this.parseSafeCURIEOrCURIEOrURI(resourceAtt.value,prefixes,base);
             } else if (hrefAtt) {
                typedResource = base.resolve(hrefAtt.value);
             } else if (srcAtt) {
@@ -520,26 +541,28 @@ RDFaProcessor.prototype.process = function(node) {
          }
       } else {
          // Sequence Step 5.2: establish a new subject
-         var aboutAtt = current.getAttributeNode("about");
          if (aboutAtt) {
-            newSubject = this.parseCURIEOrURI(aboutAtt.value,prefixes,base);
+            newSubject = this.parseSafeCURIEOrCURIEOrURI(aboutAtt.value,prefixes,base);
          } else if (resourceAtt) {
-            newSubject = this.parseCURIEOrURI(resourceAtt.value,prefixes,base);
+            newSubject = this.parseSafeCURIEOrCURIEOrURI(resourceAtt.value,prefixes,base);
          } else if (hrefAtt) {
             newSubject = base.resolve(hrefAtt.value);
          } else if (srcAtt) {
             newSubject = base.resolve(srcAtt.value);
-         } else if (current.parentNode.nodeType==Node.DOCUMENT_NODE) {
-            newSubject = current.baseURI;
-         } else if (this.inXHTMLMode && (current.localName=="head" || current.localName=="body")) {
-            newSubject = current.parentNode.baseURI==context.parentObject ? current.baseURI : context.parentObject;
-         } else if (typeofAtt) {
-            newSubject = this.newBlankNode();
-         } else if (context.parentObject) {
-            // TODO: Verify: If the xml:base has been set and the parentObject is the baseURI of the parent, then the subject needs to be the new base URI
-            newSubject = current.parentNode.baseURI==context.parentObject ? current.baseURI : context.parentObject;
-            if (!propertyAtt) {
-               skip = true;
+         }
+         if (!newSubject) {
+            if (current.parentNode.nodeType==Node.DOCUMENT_NODE) {
+               newSubject = current.baseURI;
+            } else if (this.inXHTMLMode && (current.localName=="head" || current.localName=="body")) {
+               newSubject = current.parentNode.baseURI==context.parentObject ? current.baseURI : context.parentObject;
+            } else if (typeofAtt) {
+               newSubject = this.newBlankNode();
+            } else if (context.parentObject) {
+               // TODO: Verify: If the xml:base has been set and the parentObject is the baseURI of the parent, then the subject needs to be the new base URI
+               newSubject = current.parentNode.baseURI==context.parentObject ? current.baseURI : context.parentObject;
+               if (!propertyAtt) {
+                  skip = true;
+               }
             }
          }
          if (typeofAtt) {
@@ -659,7 +682,7 @@ RDFaProcessor.prototype.process = function(node) {
             content = contentAtt.value;
          } else if (!relAtt && !revAtt && !contentAtt && resourceAtt) {
             datatype = this.objectURI;
-            content = this.parseCURIEOrURI(resourceAtt.value,prefixes,base);
+            content = this.parseSafeCURIEOrCURIEOrURI(resourceAtt.value,prefixes,base);
          } else if (!relAtt && !revAtt && !contentAtt && hrefAtt) {
             datatype = this.objectURI;
             content = base.resolve(hrefAtt.value);
