@@ -1,6 +1,6 @@
 ASK WHERE {
-	<_:1> <http://xmlns.com/foaf/0.1/mbox> <mailto:manu.sporny@digitalbazaar.com> .
-	<_:2> <http://xmlns.com/foaf/0.1/mbox> <mailto:gregg@kellogg-assoc.com> .
-	<_:1> <http://xmlns.com/foaf/0.1/knows> <_:2> .
-	<_:2> <http://xmlns.com/foaf/0.1/knows> <_:1> .
+	<_:manu> <http://xmlns.com/foaf/0.1/mbox> <mailto:manu.sporny@digitalbazaar.com> .
+	<_:gregg> <http://xmlns.com/foaf/0.1/mbox> <mailto:gregg@kellogg-assoc.com> .
+	<_:manu> <http://xmlns.com/foaf/0.1/knows> <_:gregg> .
+	<_:gregg> <http://xmlns.com/foaf/0.1/knows> <_:manu> .
 }
