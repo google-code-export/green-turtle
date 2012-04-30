@@ -464,7 +464,17 @@ TestHarness.prototype.compareTest = function(testContext,sparql) {
             var o = pnode.objects[i];
             var testO = null;
             for (var j=0; !testO && j<testPnode.objects.length; j++) {
-               if (testPnode.objects[j].type==o.type && testPnode.objects[j].value==o.value) {
+               var value = testPnode.objects[j].value;
+               if (testPnode.objects[j].type=="http://www.w3.org/1999/02/22-rdf-syntax-ns#XMLLiteral") {
+                  var serializer = new XMLSerializer();
+                  var xml = "";
+                  for (var i=0; i<value.length; i++) {
+                     xml = serializer.serializeToString(value[i]);
+                  }
+                  console.log("Serialized: "+xml);
+                  value = xml;
+               }
+               if (testPnode.objects[j].type==o.type && value==o.value) {
                   testO = testPnode.objects[j];
                }
             }
@@ -477,7 +487,17 @@ TestHarness.prototype.compareTest = function(testContext,sparql) {
             var testO = testPnode.objects[i];
             var o = null;
             for (var j=0; !o && j<pnode.objects.length; j++) {
-               if (pnode.objects[j].type==testO.type && pnode.objects[j].value==testO.value) {
+               var value = testO.value;
+               if (testO.type=="http://www.w3.org/1999/02/22-rdf-syntax-ns#XMLLiteral") {
+                  var serializer = new XMLSerializer();
+                  var xml = "";
+                  for (var i=0; i<value.length; i++) {
+                     xml = serializer.serializeToString(value[i]);
+                  }
+                  console.log("Serialized: "+xml);
+                  value = xml;
+               }
+               if (pnode.objects[j].type==testO.type && pnode.objects[j].value==value) {
                   o = pnode.objects[j];
                }
             }
