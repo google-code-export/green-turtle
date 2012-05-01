@@ -26,6 +26,7 @@ function RDFaProcessor(targetObject) {
    this.langAttributes = [ { namespaceURI: "http://www.w3.org/XML/1998/namespace", localName: "lang" } ];
    this.contentAttributes = [ "content" ];
    this.inXHTMLMode = false;
+   this.absURIRE = /[\w\_\-]+:\S+/;
 }
 
 RDFaProcessor.prototype.newBlankNode = function() {
@@ -87,8 +88,8 @@ RDFaProcessor.prototype.parseCURIEOrURI = function(value,prefixes,base) {
 }
 
 RDFaProcessor.prototype.parsePredicate = function(value,defaultVocabulary,terms,prefixes,base) {
-   var predicate = this.parseTermOrCURIEOrURI(value,defaultVocabulary,terms,prefixes,base);
-   if (predicate.indexOf("_:")==0) {
+   var predicate = this.parseTermOrCURIEOrAbsURI(value,defaultVocabulary,terms,prefixes,base);
+   if (predicate && predicate.indexOf("_:")==0) {
       return null;
    }
    return predicate;
@@ -117,6 +118,33 @@ RDFaProcessor.prototype.parseTermOrCURIEOrURI = function(value,defaultVocabulary
    return base.resolve(value);
 }
 
+RDFaProcessor.prototype.parseTermOrCURIEOrAbsURI = function(value,defaultVocabulary,terms,prefixes,base) {
+   //alert("Parsing "+value+" with default vocab "+defaultVocabulary);
+   value = this.trim(value);
+   var curie = this.parseCURIE(value,prefixes,base);
+   if (curie) {
+      return curie;
+   } else {
+       var term = terms[value];
+       if (term) {
+          return term;
+       }
+       var lcvalue = value.toLowerCase();
+       term = terms[lcvalue];
+       if (term) {
+          return term;
+       }
+       if (defaultVocabulary) {
+          return defaultVocabulary+value
+       }
+   }
+   if (this.absURIRE.exec(value)) {
+      return base.resolve(value);
+   } else {
+      console.log("Relative URI: "+value);
+   }
+   return null;
+}
 RDFaProcessor.prototype.parsePrefixMappings = function(str,target) {
    var values = this.tokenize(str);
    var prefix = null;
@@ -566,7 +594,7 @@ RDFaProcessor.prototype.process = function(node) {
       if (typedResource) {
          var values = this.tokenize(typeofAtt.value);
          for (var i=0; i<values.length; i++) {
-            var object = this.parseTermOrCURIEOrURI(values[i],vocabulary,context.terms,prefixes,base);
+            var object = this.parseTermOrCURIEOrAbsURI(values[i],vocabulary,context.terms,prefixes,base);
             if (object) {
                this.addTriple(this.target,current,typedResource,this.typeURI,{ type: this.objectURI , value: object});
             }
@@ -661,7 +689,7 @@ RDFaProcessor.prototype.process = function(node) {
          var datatype = null;
          var content = null; 
          if (datatypeAtt) {
-            datatype = datatypeAtt.value=="" ? this.PlainLiteralURI : this.parseTermOrCURIEOrURI(datatypeAtt.value,vocabulary,context.terms,prefixes,base);
+            datatype = datatypeAtt.value=="" ? this.PlainLiteralURI : this.parseTermOrCURIEOrAbsURI(datatypeAtt.value,vocabulary,context.terms,prefixes,base);
             content = datatype==this.XMLLiteralURI ? null : (contentAtt ? contentAtt.value : current.textContent);
          } else if (contentAtt) {
             datatype = this.PlainLiteralURI;
