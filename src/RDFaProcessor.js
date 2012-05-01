@@ -730,7 +730,7 @@ RDFaProcessor.prototype.process = function(node) {
                //console.log(current.tagName+": completing forward triple "+context.incomplete[i].predicate+" with object="+newSubject);
                this.addTriple(this.target,current,context.subject,context.incomplete[i].predicate, { type: this.objectURI, value: newSubject});
             } else {
-               //alert(current.tagName+": completing reverse triple with object="+context.subject);
+               //console.log(current.tagName+": completing reverse triple with object="+context.subject);
                this.addTriple(this.target,current,newSubject,context.incomplete[i].predicate,{ type: this.objectURI, value: context.subject});
             }
          }
@@ -743,6 +743,7 @@ RDFaProcessor.prototype.process = function(node) {
          // TODO: should the entObject be passed along?  If not, then intermediary children will keep properties from being associated with incomplete triples.
          // TODO: Verify: if the current baseURI has changed and the parentObject is the parent's base URI, then the baseURI should change
          childContext.parentObject = current.parentNode.baseURI==context.parentObject ? current.baseURI : context.parentObject;
+         childContext.incomplete = context.incomplete;
          childContext.language = language;
          childContext.prefixes = prefixes;
          childContext.vocabulary = vocabulary;
