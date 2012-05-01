@@ -128,6 +128,9 @@ RDFaProcessor.prototype.parseTermOrCURIEOrAbsURI = function(value,defaultVocabul
    if (curie) {
       return curie;
    } else {
+       if (defaultVocabulary) {
+          return defaultVocabulary+value
+       }
        var term = terms[value];
        if (term) {
           return term;
@@ -136,9 +139,6 @@ RDFaProcessor.prototype.parseTermOrCURIEOrAbsURI = function(value,defaultVocabul
        term = terms[lcvalue];
        if (term) {
           return term;
-       }
-       if (defaultVocabulary) {
-          return defaultVocabulary+value
        }
    }
    if (this.absURIRE.exec(value)) {
