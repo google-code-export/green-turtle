@@ -8,6 +8,8 @@
         <folder path="src/"/>
         <folder path="test-harness/"/>
         <file name="build.xml"/>
+        <file name="doap.ttt"/>
+        <file name="doap.xhtml"/>
         <file name="version.properties"/>
     </projectTree>
 </project>
