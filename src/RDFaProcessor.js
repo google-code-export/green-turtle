@@ -168,6 +168,8 @@ RDFaProcessor.prototype.setInitialContext = function() {
    this.langAttributes = [ { namespaceURI: "http://www.w3.org/XML/1998/namespace", localName: "lang" } ];
    this.contentAttributes = [ "content" ];
    
+   this.target.prefixes[""] = "http://www.w3.org/1999/xhtml/vocab#";
+
    // w3c
    this.target.prefixes["grddl"] = "http://www.w3.org/2003/g/data-view#";
    this.target.prefixes["ma"] = "http://www.w3.org/ns/ma-ont#";
@@ -236,8 +238,6 @@ RDFaProcessor.prototype.setXHTMLContext = function() {
    this.langAttributes = [ { namespaceURI: "http://www.w3.org/XML/1998/namespace", localName: "lang" } ];
    this.contentAttributes = [ "content" ];
    
-   this.target.prefixes[""] = "http://www.w3.org/1999/xhtml/vocab#";
-
    // From http://www.w3.org/2011/rdfa-context/xhtml-rdfa-1.1
    this.target.terms["alternate"] = "http://www.w3.org/1999/xhtml/vocab#alternate";
    this.target.terms["appendix"] = "http://www.w3.org/1999/xhtml/vocab#appendix";
