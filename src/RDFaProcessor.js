@@ -143,8 +143,6 @@ RDFaProcessor.prototype.parseTermOrCURIEOrAbsURI = function(value,defaultVocabul
    }
    if (this.absURIRE.exec(value)) {
       return base.resolve(value);
-   } else {
-      console.log("Relative URI: "+value);
    }
    return null;
 }

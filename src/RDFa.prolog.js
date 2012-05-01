@@ -1,4 +1,4 @@
 function RDFa() {
 }
-RDFa.attach = function(document) {
+RDFa.attach = function(document,update) {
 
