@@ -2,5 +2,5 @@
 PREFIX earl: <http://www.w3.org/ns/earl#>
 PREFIX ex: <http://example.org/>
 ASK WHERE {
-  <http://localhost:8888/tests/xml/0258.xml> ?p ex:test .
+  <http://localhost:8888/tests/xml/0258.xml> earl:testcase ex:test .
 }
