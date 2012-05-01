@@ -2,7 +2,7 @@
 <root>
    <head>
       <title>Test 0063</title>
-      <link rel=":next" href="http://rdfa.info/test-suite/test-cases/rdfa1.1/xml/0064.xml" />
+      <link rel=":next" href="0064.xml" />
    </head>
    <body>
       <p>This is the 63<sup>rd</sup> test. The next test is #64.</p>
