@@ -15,6 +15,51 @@ URIResolver.prototype.parseURI = function(uri) {
    } else {
       parsed.isGeneric = false;
    }
+   parsed.normalize = function() {
+      if (!this.isGeneric) {
+         return;
+      }
+      if (this.segments.length==0) {
+         return;
+      }
+      // edge case of ending in "/."
+      if (this.path.length>1 && this.path.substring(this.path.length-2)=="/.") {
+         this.path = this.path.substring(0,this.path.length-1);
+         this.segments.splice(this.segments.length-1,1);
+         this.schemeSpecificPart = "//"+this.authority+this.path;
+         if (typeof this.query != "undefined") {
+            this.schemeSpecificPart += "?" + this.query;
+         }
+         if (typeof this.fragment != "undefined") {
+            this.schemeSpecificPart += "#" + this.fragment;
+         }
+         this.spec = this.scheme+":"+this.schemeSpecificPart;
+         return;
+      }
+      var end = this.path.charAt(this.path.length-1);
+      if (end!="/") {
+         end = "";
+      }
+      for (var i=0; i<this.segments.length; i++) {
+         if (i>0 && this.segments[i]=="..") {
+            this.segments.splice(i-1,2);
+            i -= 2;
+         }
+         if (this.segments[i]==".") {
+            this.segments.splice(i,1);
+            i--;
+         }
+      }
+      this.path = this.segments.length==0 ? "/" : "/"+this.segments.join("/")+end;
+      this.schemeSpecificPart = "//"+this.authority+this.path;
+      if (typeof this.query != "undefined") {
+         this.schemeSpecificPart += "?" + this.query;
+      }
+      if (typeof this.fragment != "undefined") {
+         this.schemeSpecificPart += "#" + this.fragment;
+      }
+      this.spec = this.scheme+":"+this.schemeSpecificPart;
+   }
    parsed.resolve = function(href) {
       if (!href) {
          return this.spec;
@@ -38,6 +83,8 @@ URIResolver.prototype.parseURI = function(uri) {
          }
       } else if (URIResolver.SCHEME.test(href)) {
          return href;
+      } else if (href.charAt(0)=="?") {
+         return this.scheme+"://"+this.authority+this.path+href;
       } else {
          if (this.path.charAt(this.path.length-1)=='/') {
             return this.scheme+"://"+this.authority+this.path+href;

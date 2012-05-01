@@ -84,7 +84,10 @@ RDFaProcessor.prototype.parseCURIE = function(value,prefixes,base) {
 
 RDFaProcessor.prototype.parseCURIEOrURI = function(value,prefixes,base) {
    var curie = this.parseCURIE(value,prefixes,base);
-   return curie ? curie : base.resolve(value);
+   if (curie) {
+      return curie;
+   }
+   return this.resolveAndNormalize(base,value);
 }
 
 RDFaProcessor.prototype.parsePredicate = function(value,defaultVocabulary,terms,prefixes,base) {
@@ -115,7 +118,7 @@ RDFaProcessor.prototype.parseTermOrCURIEOrURI = function(value,defaultVocabulary
           return defaultVocabulary+value
        }
    }
-   return base.resolve(value);
+   return this.resolveAndNormalize(base,value);
 }
 
 RDFaProcessor.prototype.parseTermOrCURIEOrAbsURI = function(value,defaultVocabulary,terms,prefixes,base) {
@@ -145,6 +148,14 @@ RDFaProcessor.prototype.parseTermOrCURIEOrAbsURI = function(value,defaultVocabul
    }
    return null;
 }
+
+RDFaProcessor.prototype.resolveAndNormalize = function(base,href) {
+   var u = base.resolve(href);
+   var parsed = this.parseURI(u);
+   parsed.normalize();
+   return parsed.spec;
+}
+
 RDFaProcessor.prototype.parsePrefixMappings = function(str,target) {
    var values = this.tokenize(str);
    var prefix = null;
@@ -511,9 +522,9 @@ RDFaProcessor.prototype.process = function(node) {
          if (resourceAtt) {
             currentObjectResource = this.parseSafeCURIEOrCURIEOrURI(resourceAtt.value,prefixes,base);
          } else if (hrefAtt) {
-            currentObjectResource = base.resolve(hrefAtt.value);
+            currentObjectResource = this.resolveAndNormalize(base,hrefAtt.value);
          } else if (srcAtt) {
-            currentObjectResource = base.resolve(srcAtt.value);
+            currentObjectResource = this.resolveAndNormalize(base,srcAtt.value);
          } else if (typeofAtt && !aboutAtt && !(this.inXHTMLMode && (current.localName=="head" || current.localName=="body"))) {
             currentObjectResource = this.newBlankNode();
          }
@@ -540,9 +551,9 @@ RDFaProcessor.prototype.process = function(node) {
             if (resourceAtt) {
                typedResource = this.parseSafeCURIEOrCURIEOrURI(resourceAtt.value,prefixes,base);
             } else if (hrefAtt) {
-               typedResource = base.resolve(hrefAtt.value);
+               typedResource = this.resolveAndNormalize(base,hrefAtt.value);
             } else if (srcAtt) {
-               typedResource = base.resolve(srcAtt.value);
+               typedResource = this.resolveAndNormalize(base,srcAtt.value);
             } else if (aboutAtt) {
                typedResource = newSubject;
             } else if (this.inXHTMLMode && (current.localName=="head" || current.localName=="body")) {
@@ -560,9 +571,9 @@ RDFaProcessor.prototype.process = function(node) {
          } else if (resourceAtt) {
             newSubject = this.parseSafeCURIEOrCURIEOrURI(resourceAtt.value,prefixes,base);
          } else if (hrefAtt) {
-            newSubject = base.resolve(hrefAtt.value);
+            newSubject = this.resolveAndNormalize(base,hrefAtt.value);
          } else if (srcAtt) {
-            newSubject = base.resolve(srcAtt.value);
+            newSubject = this.resolveAndNormalize(base,srcAtt.value);
          }
          if (!newSubject) {
             if (current.parentNode.nodeType==Node.DOCUMENT_NODE) {
@@ -699,10 +710,10 @@ RDFaProcessor.prototype.process = function(node) {
             content = this.parseSafeCURIEOrCURIEOrURI(resourceAtt.value,prefixes,base);
          } else if (!relAtt && !revAtt && !contentAtt && hrefAtt) {
             datatype = this.objectURI;
-            content = base.resolve(hrefAtt.value);
+            content = this.resolveAndNormalize(base,hrefAtt.value);
          } else if (!relAtt && !revAtt && !contentAtt && srcAtt) {
             datatype = this.objectURI;
-            content = base.resolve(srcAtt.value);
+            content = this.resolveAndNormalize(base,srcAtt.value);
          } else if (typeofAtt && !aboutAtt) {
             datatype = this.objectURI;
             content = typedResource;
