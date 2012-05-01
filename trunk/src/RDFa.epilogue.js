@@ -62,8 +62,10 @@ if (document.head) {
    },false);
 }
 
-if (!document.data) {
-   DocumentData.attach(document);
+if (update || !document.data) {
+   if (!update) {
+      DocumentData.attach(document);
+   }
 
    var processor = new RDFaProcessor(document.data._data_);
    processor.process(document.documentElement);
