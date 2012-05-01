@@ -98,29 +98,15 @@ RDFaProcessor.prototype.parseTermOrCURIEOrURI = function(value,defaultVocabulary
    //alert("Parsing "+value+" with default vocab "+defaultVocabulary);
    value = this.trim(value);
    var curie = this.parseCURIE(value,prefixes,base);
-   /*
-   var colon = value.indexOf(":");
-   if (colon>=0) {
-      var prefix = value.substring(0,colon);
-      if (prefix=="") {
-         // default prefix
-         var uri = prefixes[""];
-         return uri ? uri+value.substring(colon+1) : null;
-      } else if (prefix=="_") {
-         // blank node
-         return "_:"+value.substring(colon+1);
-      } else if (RDFaProcessor.NCNAME.test(prefix)) {
-         var uri = prefixes[prefix];
-         if (uri) {
-            return uri+value.substring(colon+1);
-         }
-      }
-   } else {
-   */
    if (curie) {
       return curie;
    } else {
        var term = terms[value];
+       if (term) {
+          return term;
+       }
+       var lcvalue = value.toLowerCase();
+       term = terms[lcvalue];
        if (term) {
           return term;
        }
