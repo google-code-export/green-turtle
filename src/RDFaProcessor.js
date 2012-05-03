@@ -417,7 +417,7 @@ RDFaProcessor.prototype.process = function(node) {
       var current = item.current;
       var context = item.context;
 
-      //console.log("Tag: "+current.localName);
+      //console.log("Tag: "+current.localName+", listMapping="+JSON.stringify(context.listMapping));
 
       // Sequence Step 1
       var skip = false;
@@ -625,7 +625,9 @@ RDFaProcessor.prototype.process = function(node) {
       }
 
       // Sequence Step 8: new list mappings if there is a new subject
+      //console.log("Step 8: newSubject="+newSubject+", context.parentObject="+context.parentObject);
       if (newSubject && newSubject!=context.parentObject) {
+         //console.log("Generating new list mapping for "+newSubject);
          listMapping = {};
          listMappingDifferent = true;
       }
@@ -780,6 +782,7 @@ RDFaProcessor.prototype.process = function(node) {
       }
 
       var childContext = null;
+      var listSubject = newSubject;
       if (skip) {
          // TODO: should subject be null?
          childContext = this.push(context,context.subject);
@@ -795,13 +798,19 @@ RDFaProcessor.prototype.process = function(node) {
          childContext.parentObject = currentObjectResource ? currentObjectResource : (newSubject ? newSubject : context.subject);
          childContext.prefixes = prefixes;
          childContext.incomplete = incomplete;
+         if (currentObjectResource) {
+            //console.log("Generating new list mapping for "+currentObjectResource);
+            listSubject = currentObjectResource;
+            listMapping = {};
+            listMappingDifferent = true;
+         }
          childContext.listMapping = listMapping;
          childContext.language = language;
          childContext.vocabulary = vocabulary;
       }
       if (listMappingDifferent) {
-         //console.log("Pushing parent "+current.localName);
-         queue.unshift({ parent: current, context: context, subject: newSubject, listMapping: listMapping});
+         //console.log("Pushing list parent "+current.localName);
+         queue.unshift({ parent: current, context: context, subject: listSubject, listMapping: listMapping});
       }
       for (var child = current.lastChild; child; child = child.previousSibling) {
          if (child.nodeType==Node.ELEMENT_NODE) {
