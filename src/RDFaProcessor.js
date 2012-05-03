@@ -398,6 +398,7 @@ RDFaProcessor.prototype.process = function(node) {
          for (var predicate in item.listMapping) {
             var list = item.listMapping[predicate];
             if (list.length==0) {
+               this.addTriple(this.target,item.parent,item.subject,predicate,{ type: this.objectURI, value: "http://www.w3.org/1999/02/22-rdf-syntax-ns#nil" });
                continue;
             }
             var bnodes = [];
