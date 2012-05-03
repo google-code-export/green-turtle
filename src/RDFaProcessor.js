@@ -537,27 +537,33 @@ RDFaProcessor.prototype.process = function(node) {
          // Sequence Step 5.1: establish a new subject
          if (aboutAtt) {
             newSubject = this.parseSafeCURIEOrCURIEOrURI(aboutAtt.value,prefixes,base);
+            if (typeofAtt) {
+               typedResource = newSubject;
+            }
          }
-         // TODO: 5.1 doesn't explicitly allow the @about to resolve to no resource and the root/parent to take over
-         // as such, this doesn't 100% match
          if (!newSubject && current.parentNode.nodeType==Node.DOCUMENT_NODE) {
             newSubject = current.baseURI;
+            if (typeofAtt) {
+               typedResource = newSubject;
+            }
          } else if (!newSubject && context.parentObject) {
             // TODO: Verify: If the xml:base has been set and the parentObject is the baseURI of the parent, then the subject needs to be the new base URI
             newSubject = current.parentNode.baseURI==context.parentObject ? current.baseURI : context.parentObject;
          }
-         if (typeofAtt) {
+         if (typeofAtt && !typedResource) {
             if (resourceAtt) {
                typedResource = this.parseSafeCURIEOrCURIEOrURI(resourceAtt.value,prefixes,base);
-            } else if (hrefAtt) {
+            }
+            if (!typedResource &&hrefAtt) {
                typedResource = this.resolveAndNormalize(base,hrefAtt.value);
-            } else if (srcAtt) {
+            }
+            if (!typedResource && srcAtt) {
                typedResource = this.resolveAndNormalize(base,srcAtt.value);
-            } else if (aboutAtt) {
+            }
+            if (!typedResource && this.inXHTMLMode && (current.localName=="head" || current.localName=="body")) {
                typedResource = newSubject;
-            } else if (this.inXHTMLMode && (current.localName=="head" || current.localName=="body")) {
-               typedResource = newSubject;
-            } else {
+            }
+            if (!typedResource) {
                typedResource = this.newBlankNode();
                newSubject = typedResource;
             }
@@ -567,11 +573,14 @@ RDFaProcessor.prototype.process = function(node) {
          // Sequence Step 5.2: establish a new subject
          if (aboutAtt) {
             newSubject = this.parseSafeCURIEOrCURIEOrURI(aboutAtt.value,prefixes,base);
-         } else if (resourceAtt) {
+         }
+         if (!newSubject && resourceAtt) {
             newSubject = this.parseSafeCURIEOrCURIEOrURI(resourceAtt.value,prefixes,base);
-         } else if (hrefAtt) {
+         }
+         if (!newSubject && hrefAtt) {
             newSubject = this.resolveAndNormalize(base,hrefAtt.value);
-         } else if (srcAtt) {
+         }
+         if (!typedResource && srcAtt) {
             newSubject = this.resolveAndNormalize(base,srcAtt.value);
          }
          if (!newSubject) {
