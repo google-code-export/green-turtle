@@ -520,12 +520,16 @@ RDFaProcessor.prototype.process = function(node) {
          }
          if (resourceAtt) {
             currentObjectResource = this.parseSafeCURIEOrCURIEOrURI(resourceAtt.value,prefixes,base);
-         } else if (hrefAtt) {
-            currentObjectResource = this.resolveAndNormalize(base,hrefAtt.value);
-         } else if (srcAtt) {
-            currentObjectResource = this.resolveAndNormalize(base,srcAtt.value);
-         } else if (typeofAtt && !aboutAtt && !(this.inXHTMLMode && (current.localName=="head" || current.localName=="body"))) {
-            currentObjectResource = this.newBlankNode();
+         }
+         
+         if (!currentObjectResource) {
+            if (hrefAtt) {
+               currentObjectResource = this.resolveAndNormalize(base,hrefAtt.value);
+            } else if (srcAtt) {
+               currentObjectResource = this.resolveAndNormalize(base,srcAtt.value);
+            } else if (typeofAtt && !aboutAtt && !(this.inXHTMLMode && (current.localName=="head" || current.localName=="body"))) {
+               currentObjectResource = this.newBlankNode();
+            }
          }
          if (typeofAtt && !aboutAtt && this.inXHTMLMode && (current.localName=="head" || current.localName=="body")) {
             typedResource = newSubject;
