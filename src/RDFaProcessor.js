@@ -717,21 +717,27 @@ RDFaProcessor.prototype.process = function(node) {
          } else if (contentAtt) {
             datatype = this.PlainLiteralURI;
             content = contentAtt.value;
-         } else if (!relAtt && !revAtt && !contentAtt && resourceAtt) {
-            datatype = this.objectURI;
-            content = this.parseSafeCURIEOrCURIEOrURI(resourceAtt.value,prefixes,base);
-         } else if (!relAtt && !revAtt && !contentAtt && hrefAtt) {
-            datatype = this.objectURI;
-            content = this.resolveAndNormalize(base,hrefAtt.value);
-         } else if (!relAtt && !revAtt && !contentAtt && srcAtt) {
-            datatype = this.objectURI;
-            content = this.resolveAndNormalize(base,srcAtt.value);
-         } else if (typeofAtt && !aboutAtt) {
-            datatype = this.objectURI;
-            content = typedResource;
-         } else {
-            datatype = this.PlainLiteralURI;
-            content = current.textContent;
+         } else if (!relAtt && !revAtt && !contentAtt) {
+            if (resourceAtt) {
+               content = this.parseSafeCURIEOrCURIEOrURI(resourceAtt.value,prefixes,base);
+            }
+            if (!content && hrefAtt) {
+               content = this.resolveAndNormalize(base,hrefAtt.value);
+            } else if (!content && srcAtt) {
+               content = this.resolveAndNormalize(base,srcAtt.value);
+            }
+            if (content) {
+               datatype = this.objectURI;
+            }
+         }
+         if (!datatype) {
+            if (typeofAtt && !aboutAtt) {
+               datatype = this.objectURI;
+               content = typedResource;
+            } else {
+               datatype = this.PlainLiteralURI;
+               content = current.textContent;
+            }
          }
          var values = this.tokenize(propertyAtt.value);
          for (var i=0; i<values.length; i++) {
