@@ -569,10 +569,10 @@ RDFaProcessor.prototype.process = function(node) {
             }
             if (!typedResource) {
                typedResource = this.newBlankNode();
-               newSubject = typedResource;
             }
             currentObjectResource = typedResource;
          }
+         //console.log(current.localName+", newSubject="+newSubject+", typedResource="+typedResource+", currentObjectResource="+currentObjectResource);
       } else {
          // Sequence Step 5.2: establish a new subject
          if (aboutAtt) {
