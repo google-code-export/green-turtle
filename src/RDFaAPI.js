@@ -132,10 +132,10 @@ DocumentData.toProjection = function(owner,snode,template) {
       for (var key in template) {
          var predicate = template[key];
          predicate = owner._data_.curieParser.parse(predicate,true);
-         var values = projection.properties[predicate];
+         var values = projection._data_.properties[predicate];
          if (values) {
             // TODO: API issue: is this the first value or all values?
-            projection[key] = values[0];
+            projection[key] = values.length==1 ? values[0] : values;
          }
       }
    }
@@ -275,7 +275,7 @@ DocumentData.prototype.getValues = function(subject,property) {
 };
 
 DocumentData.prototype.setMapping = function(prefix,uri) {
-   this._data_.prefix[prefix] = uri;
+   this._data_.prefixes[prefix] = uri;
 };
 
 DocumentData.prototype.getSubjectTriples = function(subject) {
