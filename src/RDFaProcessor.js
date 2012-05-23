@@ -434,6 +434,7 @@ RDFaProcessor.prototype.process = function(node) {
 
       // TODO: the "base" element may be used for HTML+RDFa 1.1
       var base = this.parseURI(current.baseURI);
+      current.subject = null;
 
       // Sequence Step 2: set the default vocabulary
       var vocabAtt = current.getAttributeNode("vocab");
@@ -611,6 +612,7 @@ RDFaProcessor.prototype.process = function(node) {
 
       if (newSubject) {
          this.newSubject(this.target,current,newSubject);
+         current.subject = newSubject;
       }
 
       // Sequence Step 7: generate type triple
