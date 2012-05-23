@@ -178,12 +178,13 @@ DocumentData.prototype.getSubjects = function(property,value) {
       property = this._data_.curieParser.parse(property,true);
    }
    if (property && value) {
+      var expanded = this._data_.curieParser.parse(value,true);
       for (var subject in this._data_.triplesGraph) {
          var snode = this._data_.triplesGraph[subject];
          var pnode = snode.predicates[property];
          if (pnode) {
             for (var i=0; i<pnode.objects.length; i++) {
-               if (pnode.objects[i].value==value) {
+               if (pnode.objects[i].value==value || pnode.objects[i].value==expanded) {
                   subjects.push(subject);
                   break;
                }
@@ -199,6 +200,7 @@ DocumentData.prototype.getSubjects = function(property,value) {
          }
       }
    } else if (value) {
+      var expanded = this._data_.curieParser.parse(value,true);
       for (var subject in this._data_.triplesGraph) {
          var snode = this._data_.triplesGraph[subject];
          for (var predicate in snode.predicates) {
@@ -206,7 +208,7 @@ DocumentData.prototype.getSubjects = function(property,value) {
             if (pnode) {
                var object = null;
                for (var i=0; !object && i<pnode.objects.length; i++) {
-                  if (pnode.objects[i].value==value) {
+                  if (pnode.objects[i].value==value || node.objects[i].value==expanded) {
                      object = pnode.objects[i];
                   }
                }
@@ -329,17 +331,21 @@ DocumentData.prototype.getProjection = function(subject, template) {
 }
 
 DocumentData.prototype.getProjections = function(property, value, template) {
+   if (property) {
+      property = this._data_.curieParser.parse(property,true);
+   }
    var projections = [];
    if (typeof value == "undefined" && typeof template == "undefined") {
       template = property;
    }
    if (property && value) {
+      var expanded = this._data_.curieParser.parse(value,true);
       for (var subject in this._data_.triplesGraph) {
          var snode = this._data_.triplesGraph[subject];
          var pnode = snode.predicates[property];
          if (pnode) {
             for (var i=0; i<pnode.objects.length; i++) {
-               if (pnode.objects[i].value==value) {
+               if (pnode.objects[i].value==value || pnode.objects[i].value==expanded) {
                   projections.push(DocumentData.toProjection(this,snode,template));
                   break;
                }
@@ -372,6 +378,7 @@ DocumentData.attach = function(target) {
    });
 
    target.getElementsByType = function(type) {
+   /* TODO: should this return all the subject origins or just that which had the typeof on it?
       var nodes = [];
       nodes.item = function(index) {
          return this[index];
@@ -387,6 +394,8 @@ DocumentData.attach = function(target) {
          }
       }
       return nodes;
+      */
+      return this.getElementsByProperty("http://www.w3.org/1999/02/22-rdf-syntax-ns#type",type);
    };
 
    target.getElementsBySubject = function(subject) {
@@ -426,6 +435,21 @@ DocumentData.attach = function(target) {
          }
       }
       return nodes;
+   };
+   
+   target.getElementSubject = function(e) {
+      for (var subject in this.data._data_.triplesGraph) {
+         var snode = this.data._data_.triplesGraph[subject];
+         for (predicate in snode.predicates) {
+            var pnode = snode.predicates[predicate];
+            for (var i=0; i<pnode.objects.length; i++) {
+               if (pnode.objects[i].origin==e) {
+                  return subject;
+               }
+            }
+         }
+      }
+      return null;
    };
 }
 
