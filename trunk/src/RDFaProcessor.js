@@ -114,7 +114,7 @@ RDFaProcessor.prototype.parseTermOrCURIEOrURI = function(value,defaultVocabulary
        if (term) {
           return term;
        }
-       if (defaultVocabulary) {
+       if (defaultVocabulary && !this.absURIRE.exec(value)) {
           return defaultVocabulary+value
        }
    }
@@ -128,7 +128,7 @@ RDFaProcessor.prototype.parseTermOrCURIEOrAbsURI = function(value,defaultVocabul
    if (curie) {
       return curie;
    } else {
-       if (defaultVocabulary) {
+       if (defaultVocabulary && !this.absURIRE.exec(value)) {
           return defaultVocabulary+value
        }
        var term = terms[value];
@@ -142,7 +142,7 @@ RDFaProcessor.prototype.parseTermOrCURIEOrAbsURI = function(value,defaultVocabul
        }
    }
    if (this.absURIRE.exec(value)) {
-      return base.resolve(value);
+      return this.resolveAndNormalize(base,value);
    }
    return null;
 }
