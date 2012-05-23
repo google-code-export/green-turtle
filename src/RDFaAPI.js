@@ -54,13 +54,13 @@ Projection.prototype.getSubject = function() {
 }
 
 Projection.prototype.get = function(uriOrCurie) {
-   var property = this._data_.owner.curieParser.parse(uriOrCurie,true);
+   var property = this._data_.owner._data_.curieParser.parse(uriOrCurie,true);
    var objects = this._data_.properties[property];
    return objects ? objects[0] : null;
 }
 
 Projection.prototype.getAll = function(uriOrCurie) {
-   var property = this._data_.owner.curieParser.parse(uriOrCurie,true);
+   var property = this._data_.owner._data_.curieParser.parse(uriOrCurie,true);
    return this._data_.properties[property];
 }
 
