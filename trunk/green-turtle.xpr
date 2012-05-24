@@ -5,6 +5,7 @@
         <options/>
     </meta>
     <projectTree name="green-turtle.xpr">
+        <folder path="examples/"/>
         <folder path="src/"/>
         <folder path="test-harness/"/>
         <file name="build.xml"/>
