@@ -116,7 +116,7 @@
                 <p>The <code>ImageAnnotator</code> JavaScript looks for annotated images by type by
                     retrieving the <code>img</code> elements by type:</p>
                 <pre>
-    var targets =  context.document.getElementsByType("http://www.milowski.com/O/annotated");
+    var targets =  document.getElementsByType("http://www.milowski.com/O/annotated");
                 </pre>
                 <p>This returns an array of elements that have been typed via a <code>typeof</code>
                     attribute. Each typed element image element generates a subject of the URI of
@@ -132,10 +132,10 @@
                 <p>In the code, the blank node URI is used to get an object called a projection that
                     holds the actual annotation data. This process looks like:</p>
                 <pre>
-    var annotations = context.document.data.getValues(
+    var annotations = document.data.getValues(
        targets[0].subject,"http://www.milowski.com/O/annotation");
     for (var i=0; i&lt;annotations.length; i++) {
-       var annotation = context.document.data.getProjection(annotations[i]);
+       var annotation = document.data.getProjection(annotations[i]);
        var type = annotation.get("rdf:type");
        if (type=="http://www.milowski.com/O/box") {
           var x = parseInt(annotation.get("http://www.milowski.com/O/x"));
