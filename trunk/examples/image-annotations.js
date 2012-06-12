@@ -141,6 +141,10 @@ ImageAnnotator.prototype.addLink = function(element,link,x,y,width,height) {
 }
 
 var imageAnnotator = new ImageAnnotator();
-window.addEventListener("load",function() {
+if (document.readyState=="complete") {
    imageAnnotator.process(document);
-},false);
+} else {
+    window.addEventListener("load",function() {
+       imageAnnotator.process(document);
+    },false);
+}
