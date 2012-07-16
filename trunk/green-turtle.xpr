@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project version="13.2">
+<project version="14.0">
     <meta>
         <filters directoryPatterns="" filePatterns="" positiveFilePatterns="" showHiddenFiles="false"/>
         <options/>
@@ -8,6 +8,7 @@
         <folder path="examples/"/>
         <folder path="src/"/>
         <folder path="test-harness/"/>
+        <folder path="tests/"/>
         <file name="build.xml"/>
         <file name="doap.ttt"/>
         <file name="doap.xhtml"/>
