@@ -2,7 +2,7 @@
 var hasFeature = document.implementation.hasFeature;
 document.implementation.hasFeature = function(feature,version) {
    if (feature=="RDFaAPI" && version=="1.1") { return true; }
-   return hasFeature(feature,version);
+   return hasFeature.apply(this,arguments);
 }
 
 var loaded = document.data ? true : false;
