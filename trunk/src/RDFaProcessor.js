@@ -830,6 +830,12 @@ RDFaProcessor.prototype.process = function(node) {
          delete this.target.triplesGraph[subject];
       }
    }
+   
+   if (node.ownerDocument) {
+      var event = node.ownerDocument.createEvent("HTMLEvents");
+      event.initEvent("rdfa.loaded",true,true);
+      node.ownerDocument.dispatchEvent(event);
+   }
 }
 
 
