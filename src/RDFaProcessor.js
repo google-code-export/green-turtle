@@ -340,7 +340,7 @@ RDFaProcessor.prototype.getTransferGraph = function() {
    return graph;
 }
 
-RDFaProcessor.prototype.newSubject = function(data,origin,subject) {
+RDFaProcessor.prototype.newSubject = function(data,origin,subject,generateOrigin) {
    var snode = data.triplesGraph[subject];
    if (!snode) {
       snode = { subject: subject, predicates: {}, origins: [] };
@@ -351,7 +351,9 @@ RDFaProcessor.prototype.newSubject = function(data,origin,subject) {
          return snode;
       }
    }
-   snode.origins.push(origin);
+   if (generateOrigin) {
+      snode.origins.push(origin);
+   }
    return snode;
 }
 
@@ -611,7 +613,7 @@ RDFaProcessor.prototype.process = function(node) {
       //console.log(current.tagName+": newSubject="+newSubject+", currentObjectResource="+currentObjectResource+", typedResource="+typedResource+", skip="+skip);
 
       if (newSubject) {
-         this.newSubject(this.target,current,newSubject);
+         this.newSubject(this.target,current,newSubject,aboutAtt || hrefAtt || srcAtt || resourceAtt);
          current.subject = newSubject;
          if (typeofAtt && !aboutAtt && currentObjectResource) {
             current.subject = currentObjectResource;
