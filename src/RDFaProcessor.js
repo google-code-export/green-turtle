@@ -585,7 +585,7 @@ RDFaProcessor.prototype.process = function(node) {
          if (!newSubject && hrefAtt) {
             newSubject = this.resolveAndNormalize(base,hrefAtt.value);
          }
-         if (!typedResource && srcAtt) {
+         if (!newSubject && srcAtt) {
             newSubject = this.resolveAndNormalize(base,srcAtt.value);
          }
          if (!newSubject) {
@@ -608,11 +608,14 @@ RDFaProcessor.prototype.process = function(node) {
          }
       }
 
-      //console.log(current.tagName+": newSubject="+newSubject+", currentObjectResource="+currentObjectResource+", skip="+skip);
+      //console.log(current.tagName+": newSubject="+newSubject+", currentObjectResource="+currentObjectResource+", typedResource="+typedResource+", skip="+skip);
 
       if (newSubject) {
          this.newSubject(this.target,current,newSubject);
          current.subject = newSubject;
+         if (typeofAtt && !aboutAtt && currentObjectResource) {
+            current.subject = currentObjectResource;
+         }
       }
 
       // Sequence Step 7: generate type triple
