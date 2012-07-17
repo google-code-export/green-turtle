@@ -340,19 +340,21 @@ RDFaProcessor.prototype.getTransferGraph = function() {
    return graph;
 }
 
-RDFaProcessor.prototype.newSubject = function(data,origin,subject,generateOrigin) {
+RDFaProcessor.prototype.newSubjectOrigin = function(data,origin,subject) {
+   var snode = this.newSubject(data,null,subject);
+   for (var i=0; i<snode.origins.length; i++) {
+      if (snode.origins[i]==origin) {
+         return;
+      }
+   }
+   snode.origins.push(origin);
+}
+
+RDFaProcessor.prototype.newSubject = function(data,origin,subject) {
    var snode = data.triplesGraph[subject];
    if (!snode) {
       snode = { subject: subject, predicates: {}, origins: [] };
       data.triplesGraph[subject] = snode;
-   }
-   for (var i=0; i<snode.origins.length; i++) {
-      if (snode.origins[i]==origin) {
-         return snode;
-      }
-   }
-   if (generateOrigin) {
-      snode.origins.push(origin);
    }
    return snode;
 }
@@ -613,10 +615,14 @@ RDFaProcessor.prototype.process = function(node) {
       //console.log(current.tagName+": newSubject="+newSubject+", currentObjectResource="+currentObjectResource+", typedResource="+typedResource+", skip="+skip);
 
       if (newSubject) {
-         this.newSubject(this.target,current,newSubject,aboutAtt || hrefAtt || srcAtt || resourceAtt);
-         current.subject = newSubject;
+         this.newSubject(this.target,current,newSubject);
          if (typeofAtt && !aboutAtt && currentObjectResource) {
             current.subject = currentObjectResource;
+         } else {
+            current.subject = newSubject;
+         }
+         if (aboutAtt || typeofAtt && !aboutAtt && currentObjectResource) {
+            this.newSubjectOrigin(this.target,current,current.subject);
          }
       }
 
