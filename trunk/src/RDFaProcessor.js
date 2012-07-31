@@ -614,23 +614,40 @@ RDFaProcessor.prototype.process = function(node) {
 
       //console.log(current.tagName+": newSubject="+newSubject+", currentObjectResource="+currentObjectResource+", typedResource="+typedResource+", skip="+skip);
 
+      var rdfaData = null;
       if (newSubject) {
          this.newSubject(this.target,current,newSubject);
-         if (typeofAtt && !aboutAtt && currentObjectResource) {
-            current.subject = currentObjectResource;
-         } else {
-            current.subject = newSubject;
-         }
-         if (aboutAtt || typeofAtt && !aboutAtt && currentObjectResource) {
-            this.newSubjectOrigin(this.target,current,current.subject);
+         if (aboutAtt || typedResource) {
+            rdfaData = {
+               types: []
+            };
+            Object.defineProperty(current,"item", {
+                  value: rdfaData,
+                  writable: false,
+                  configurable: false,
+                  enumerable: true
+               });         
+            if (typeofAtt && !aboutAtt && currentObjectResource) {
+               rdfaData.id = currentObjectResource;
+            } else {
+               rdfaData.id = newSubject;
+            }
+            //console.log("Setting data attribute for "+current.localName+" for subject "+rdfaData.subject);
+            this.newSubjectOrigin(this.target,current,rdfaData.id);
          }
       }
+      
+      //console.log("rdfaData="+rdfaData);
 
       // Sequence Step 7: generate type triple
       if (typedResource) {
+         if (!newSubject) {
+            console.log("Typed resource: "+typedResource+" of type(s) "+typeofAtt.value);
+         }
          var values = this.tokenize(typeofAtt.value);
          for (var i=0; i<values.length; i++) {
             var object = this.parseTermOrCURIEOrAbsURI(values[i],vocabulary,context.terms,prefixes,base);
+            rdfaData.types.push(object);
             if (object) {
                this.addTriple(this.target,current,typedResource,this.typeURI,{ type: this.objectURI , value: object});
             }
