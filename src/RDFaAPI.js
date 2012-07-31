@@ -368,6 +368,63 @@ DocumentData.prototype.getProjections = function(property, value, template) {
    return projections;
 };
 
+Element.prototype.getElementsByType = function() {
+   var descendant = this.firstElementChild;
+   var results = [];
+   results.item = function(index) {
+      return this[index];
+   }
+   while (descendant && descendant!=this) {
+      if (descendant.item) {
+         for (var i=0; i<arguments.length; i++) {
+            if (descendant.item.types.indexOf(arguments[i])>=0) {
+               results.push(descendant);
+               break;
+            }
+         }
+      }
+      if (descendant.firstElementChild) {
+         descendant = descendant.firstElementChild;
+      } else if (descendant.nextElementSibling) {
+         descendant = descendant.nextElementSibling;
+      } else {
+         while (!descendant.parentNode.nextElementSibling && descendant!=this) {
+             descendant = descendant.parentNode;
+         }
+         if (descendant!=this) {
+            descendant = descendant.nextElementSibling;
+         }
+      }
+   }
+   return results;
+}
+
+Element.prototype.getFirstElementByType = function() {
+   var descendant = this.firstElementChild;
+   while (descendant && descendant!=this) {
+      if (descendant.item) {
+         for (var i=0; i<arguments.length; i++) {
+            if (descendant.item.types.indexOf(arguments[i])>=0) {
+               return descendant;
+            }
+         }
+      }
+      if (descendant.firstElementChild) {
+         descendant = descendant.firstElementChild;
+      } else if (descendant.nextElementSibling) {
+         descendant = descendant.nextElementSibling;
+      } else {
+         while (!descendant.parentNode.nextElementSibling && descendant!=this) {
+             descendant = descendant.parentNode;
+         }
+         if (descendant!=this) {
+            descendant = descendant.nextElementSibling;
+         }
+      }
+   }
+   return null;
+}
+
 DocumentData.attach = function(target) {
 
    Object.defineProperty(target,"data", {
