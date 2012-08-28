@@ -28,9 +28,9 @@ if (document.head) {
          setTimeout(function() { meta.dispatchEvent(event); },1);
       } else if (message.type=="get-subject") {
          var triples = null;
-         if (document.data.getSubjectTriples) {
+         if (document.data.getSubjectRelations) {
             // Use the Green Turtle triples extension
-            triples = document.data.getSubjectTriples(message.subject);
+            triples = document.data.getSubjectRelations(message.subject);
          } else {
             // Do it the hard way!
             var subjects = {};

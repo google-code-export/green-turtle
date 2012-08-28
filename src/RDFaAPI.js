@@ -280,7 +280,7 @@ DocumentData.prototype.setMapping = function(prefix,uri) {
    this._data_.prefixes[prefix] = uri;
 };
 
-DocumentData.prototype.getSubjectTriples = function(subject) {
+DocumentData.prototype.getSubjectRelations = function(subject,objectsOnly) {
    if (!subject) { return null; }
 
    subject = this._data_.curieParser.parse(subject,true);
@@ -297,7 +297,7 @@ DocumentData.prototype.getSubjectTriples = function(subject) {
       triples.predicates[predicate] = { predicate: predicate, objects: objects };
       for (var i=0; i<pnode.objects.length; i++) {
          var object = pnode.objects[i];
-         if (object.type==this.XMLLiteralURI) {
+         if (!objectsOnly && object.type==this.XMLLiteralURI) {
             var serializer = new XMLSerializer();
             var value = "";
             for (var x=0; x<object.value.length; x++) {
@@ -307,9 +307,9 @@ DocumentData.prototype.getSubjectTriples = function(subject) {
                   value += object.value[x].nodeValue;
                }
             } 
-            objects.push({ type: object.type, value: value });
+            objects.push({ type: object.type, value: value, language: object.language });
          } else {
-            objects.push({ type: object.type, value: object.value });
+            objects.push({ type: object.type, value: object.value, language: object.language });
          }
       }
    }
