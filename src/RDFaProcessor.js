@@ -618,15 +618,20 @@ RDFaProcessor.prototype.process = function(node) {
       if (newSubject) {
          this.newSubject(this.target,current,newSubject);
          if (aboutAtt || typedResource) {
-            rdfaData = {
-               types: []
-            };
-            Object.defineProperty(current,"item", {
-                  value: rdfaData,
-                  writable: true,
-                  configurable: true,
-                  enumerable: true
-               });         
+            if (!current.data) {
+               rdfaData = {
+                  types: []
+               };
+               Object.defineProperty(current,"data", {
+                     value: rdfaData,
+                     writable: false,
+                     configurable: true,
+                     enumerable: true
+                  });        
+            } else {
+               rdfaData = current.data;
+               rdfaData.types = [];
+            }
             if (typeofAtt && !aboutAtt && currentObjectResource) {
                rdfaData.id = currentObjectResource;
             } else {
