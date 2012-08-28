@@ -623,8 +623,8 @@ RDFaProcessor.prototype.process = function(node) {
             };
             Object.defineProperty(current,"item", {
                   value: rdfaData,
-                  writable: false,
-                  configurable: false,
+                  writable: true,
+                  configurable: true,
                   enumerable: true
                });         
             if (typeofAtt && !aboutAtt && currentObjectResource) {
