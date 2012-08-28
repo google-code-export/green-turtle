@@ -64,6 +64,9 @@ var rdfaHostPath = "s3.amazonaws.com/green-turtle/RDFa.${version.label}.js";
 <target name="web">
 <delete file="${dist.dir}/RDFa.js"/>
 <concat destfile="${dist.dir}/RDFa.js">
+<string>
+// green-turtle version ${version.label}
+</string>
 <file file="${src.dir}/license.js"/>
 <file file="${src.dir}/RDFa.prolog.js"/>
 <file file="${src.dir}/URI.js"/>
