@@ -375,9 +375,9 @@ Element.prototype.getElementsByType = function() {
       return this[index];
    }
    while (descendant && descendant!=this) {
-      if (descendant.item) {
+      if (descendant.data) {
          for (var i=0; i<arguments.length; i++) {
-            if (descendant.item.types.indexOf(arguments[i])>=0) {
+            if (descendant.data.types.indexOf(arguments[i])>=0) {
                results.push(descendant);
                break;
             }
@@ -402,9 +402,9 @@ Element.prototype.getElementsByType = function() {
 Element.prototype.getFirstElementByType = function() {
    var descendant = this.firstElementChild;
    while (descendant && descendant!=this) {
-      if (descendant.item) {
+      if (descendant.data) {
          for (var i=0; i<arguments.length; i++) {
-            if (descendant.item.types.indexOf(arguments[i])>=0) {
+            if (descendant.data.types.indexOf(arguments[i])>=0) {
                return descendant;
             }
          }
@@ -435,23 +435,6 @@ DocumentData.attach = function(target) {
    });
 
    target.getElementsByType = function(type) {
-   /* TODO: should this return all the subject origins or just that which had the typeof on it?
-      var nodes = [];
-      nodes.item = function(index) {
-         return this[index];
-      };
-      type = this.data._data_.curieParser.parse(type,true);
-      for (var subject in this.data._data_.triplesGraph) {
-         var snode = this.data._data_.triplesGraph[subject];
-         var pnode = snode.predicates["http://www.w3.org/1999/02/22-rdf-syntax-ns#type"];
-         if (pnode && pnode.objects.length>0 && pnode.objects[0].value==type) {
-            for (var i=0; i<snode.origins.length; i++) {
-               nodes.push(snode.origins[i]);
-            }
-         }
-      }
-      return nodes;
-      */
       return this.getElementsByProperty("http://www.w3.org/1999/02/22-rdf-syntax-ns#type",type);
    };
 
