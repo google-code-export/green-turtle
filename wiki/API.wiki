@@ -1,6 +1,6 @@
 #summary API Documentation
 
-= Include Scripts =
+= Including Scripts =
 
 There are three main scripts:
 
