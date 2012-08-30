@@ -310,38 +310,6 @@ RDFaProcessor.prototype.setXHTMLContext = function() {
    this.target.terms["transformation"] = "http://www.w3.org/1999/xhtml/vocab#transformation";
 }
 
-RDFaProcessor.prototype.getTransferGraph = function() {
-   var graph = {};
-   for (var subject in this.target.triplesGraph) {
-      var snode = this.target.triplesGraph[subject];
-      var tsnode = { subject: subject, predicates: {} };
-      graph[subject] = tsnode;
-      for (var predicate in snode.predicates) {
-         var pnode = snode.predicates[predicate];
-         var tpnode = { predicate: predicate, objects: [] };
-         tsnode.predicates[predicate] = tpnode;
-         for (var i=0; i<pnode.objects.length; i++) {
-            var object = pnode.objects[i];
-            if (object.type==this.XMLLiteralURI) {
-               var serializer = new XMLSerializer();
-               var value = "";
-               for (var x=0; x<object.value.length; x++) {
-                  if (object.value[x].nodeType==Node.ELEMENT_NODE) {
-                     value += serializer.serializeToString(object.value[x]);
-                  } else if (object.value[x].nodeType==Node.TEXT_NODE) {
-                     value += object.value[x].nodeValue;
-                  }
-               } 
-               tpnode.objects.push({ type: object.type, value: value});
-            } else {
-               tpnode.objects.push({ type: object.type, value: object.value});
-            }
-         }
-      }
-   }
-   return graph;
-}
-
 RDFaProcessor.prototype.newSubjectOrigin = function(origin,subject) {
    var snode = this.newSubject(null,subject);
    for (var i=0; i<snode.origins.length; i++) {

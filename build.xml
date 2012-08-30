@@ -23,8 +23,11 @@
 {
    "name": "Green Turtle RDFa",
    "version": "${version.label}",
+   "manifest_version": 2,
    "description": "An implementation of RDFa processing in the browser.",
-   "background_page": "background.xhtml",
+   "background": {
+      "scripts": ["background.js"]
+   },
    "page_action" : {
       "default_icon": "turtle-32x32.png",
       "default_title": "Show Triples"
@@ -41,7 +44,7 @@
 
 }
 </echo>
-<copy file="${src.dir}/chrome/background.xhtml" todir="${install.dir}"/>
+<copy file="${src.dir}/chrome/background.js" todir="${install.dir}"/>
 <copy file="${src.dir}/chrome/viewer.xhtml" todir="${install.dir}"/>
 <copy file="${src.dir}/chrome/viewer.js" todir="${install.dir}"/>
 <copy file="${src.dir}/chrome/viewer.css" todir="${install.dir}"/>
