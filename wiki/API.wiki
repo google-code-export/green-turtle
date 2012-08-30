@@ -1,5 +1,14 @@
 #summary API Documentation
 
+= Include Scripts =
+
+There are three main scripts:
+
+  *`URI.js` - provides the URIResolver base class for RDFaProcessor
+  * `RDFaProcessor.js` - provides the RDFaProcessor class
+  * `GraphRDFaProcessor.js` - provides the GraphRDFaProcessor class
+
+
 = RDFaProcessor =
 
 The `RDFaProcessor` class is the main implementation of the [http://www.w3.org/TR/rdfa-core/#s_sequence RDFa 1.1 Sequence Algorithm].  It provides the ability to process any DOM node into a set of triples (subject, predicate, and object).
@@ -78,3 +87,20 @@ The object value is a object with three, possibly empty, properties:
 
 
 = GraphRDFaProcessor =
+
+The GraphRDFaProcess is a subclass of RDFaProcessor that constructs a graph of the triples.  Any subclass of GraphRDFaProcessor must preserve the semantics of the `init()`, `newSubjectOrigin()`, and `addTriple()` methods implemented on this class.
+
+This class also adds a finished handler that must be preserved.  You may add your own handlers as well as long as you do not remove the one added by this class during the `init()` method call.
+
+== Constructing == 
+
+{{{
+new GraphRDFaProcessor(targetObject)
+}}}
+
+The `targetObject` parameter is an optional object use to store data (i.e. the graph) during the processing of the document.  This parameter may be omitted and an instance will be created for you.  
+
+On the target object, two properties are created:
+
+  * `tripleCount` - a count of the number of triples generated,
+  * `triplesGraph` - a graph containing the triples generated.
