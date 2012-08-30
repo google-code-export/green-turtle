@@ -8,7 +8,7 @@ If you are not using the packaged all-in-one script or want to use the internal 
 
 There are three main scripts:
 
-  *`URI.js` - provides the URIResolver base class for RDFaProcessor
+  *`URI.jl` - provides the URIResolver base class for RDFaProcessor
   * `RDFaProcessor.js` - provides the RDFaProcessor class
   * `GraphRDFaProcessor.js` - provides the GraphRDFaProcessor class
 
