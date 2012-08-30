@@ -92,6 +92,23 @@ The GraphRDFaProcess is a subclass of RDFaProcessor that constructs a graph of t
 
 This class also adds a finished handler that must be preserved.  You may add your own handlers as well as long as you do not remove the one added by this class during the `init()` method call.
 
+The `triplesGraph` is an associative array whose key values are the subject URI values.  Each subject URI maps to an object with the following properties:
+
+ * `subject` - the subject URI,
+  * `predicates` - an associative list of predicates.
+
+The value return by accessing a predicate is another object with properties:
+
+  * `predicate` - the predicate URI,
+  * `objects` - an array of values.
+
+Each object has the following, possible empty, properties:
+
+  * `value` - the literal value or node,
+  * `language` - the language associated with the value,
+  * `type` - the datatype associated with the value.
+
+
 == Constructing == 
 
 {{{
