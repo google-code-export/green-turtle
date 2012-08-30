@@ -16,7 +16,13 @@ There are three main scripts:
 
 == RDFa.attach() ==
 
-RD
+{{{
+RDFa.attach(node,update)
+}}}
+
+The `RDFa.attach()` function is an instance-less function that is used to run the RDFa processor on a node and added the RDFa API to the document.  The `node` argument is the node to be processed and typically is the document.  
+
+The `update` argument is optional and defaults to false.  A value of `true` indicated that the document is being updated after changes.  A value of true should only be used when you know the document has already been processed.
 
 = Classes =
 
