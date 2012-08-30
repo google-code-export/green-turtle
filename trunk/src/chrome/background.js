@@ -1,12 +1,9 @@
-<html xmlns='http://www.w3.org/1999/xhtml'>
-<head>
-<script>
 try {
   chrome.extension.onRequest.addListener(
   function(request, sender, sendResponse) {
      console.log(sender.tab ? "from a content script: " + sender.tab.id+", "+sender.tab.url : "from the extension" );
      if (request.harvestedTriples) {
-         console.log("Notified of triples, enabling page action.");
+         //console.log("Notified of triples, enabling page action.");
          chrome.pageAction.show(sender.tab.id);
          sendResponse({});
      } else if (request.getTriples) {
@@ -17,7 +14,6 @@ try {
   });
   chrome.pageAction.onClicked.addListener(function(tab) {
      chrome.tabs.sendRequest(tab.id,{ getTriples: true},function(response) {
-         console.log(response.triples);
          var url = chrome.extension.getURL("viewer.xhtml");
          chrome.tabs.create({"url": url, "selected": true},
             function(viewerTab) {
@@ -30,6 +26,3 @@ try {
 } catch (ex) {
    console.log("Error setting up rdfa extension: "+ex);
 }
-</script>
-</head>
-</html>

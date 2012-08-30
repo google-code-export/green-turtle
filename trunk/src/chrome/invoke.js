@@ -1,3 +1,37 @@
+function getTransferGraph(triplesGraph) {
+   var graph = {};
+   for (var subject in triplesGraph) {
+      var snode = triplesGraph[subject];
+      var tsnode = { subject: subject, predicates: {} };
+      graph[subject] = tsnode;
+      for (var predicate in snode.predicates) {
+         var pnode = snode.predicates[predicate];
+         var tpnode = { predicate: predicate, objects: [] };
+         tsnode.predicates[predicate] = tpnode;
+         for (var i=0; i<pnode.objects.length; i++) {
+            var object = pnode.objects[i];
+            if (object.type==this.XMLLiteralURI) {
+               var serializer = new XMLSerializer();
+               var value = "";
+               for (var x=0; x<object.value.length; x++) {
+                  if (object.value[x].nodeType==Node.ELEMENT_NODE) {
+                     value += serializer.serializeToString(object.value[x]);
+                  } else if (object.value[x].nodeType==Node.TEXT_NODE) {
+                     value += object.value[x].nodeValue;
+                  }
+               } 
+               tpnode.objects.push({ type: object.type, value: value});
+            } else {
+               tpnode.objects.push({ type: object.type, value: object.value});
+            }
+         }
+      }
+   }
+   return graph;
+}
+
+
+
 var treeSource = document.getElementById("webkit-xml-viewer-source-xml");
 if (!treeSource && document.head) {
    var script = null;
@@ -80,11 +114,11 @@ if (!treeSource && document.head) {
          // script load failed (probably offline)
          console.log("Green turtle script load failed, harvesting for extension only (i.e. no document.data)");
          document.head.removeChild(script);
-         var rdfaProcessor = new RDFaProcessor(document.documentElement);
+         var rdfaProcessor = new RDFaProcessor({});
          chrome.extension.onRequest.addListener(
             function(request,sender,sendResponse) {
                if (request.getTriples) {
-                  sendResponse({ setTriples: true, triples: rdfaProcessor.getTransferGraph() });
+                  sendResponse({ setTriples: true, triples: getTransferGraph(rdfaProcessor.target.triplesGraph) });
                }
             });
          rdfaProcessor.process(document.documentElement);
@@ -101,7 +135,7 @@ if (!treeSource && document.head) {
    chrome.extension.onRequest.addListener(
       function(request,sender,sendResponse) {
          if (request.getTriples) {
-            sendResponse({ setTriples: true, triples: rdfaProcessor.getTransferGraph() });
+            sendResponse({ setTriples: true, triples: getTransferGraph(rdfaProcessor.target.triplesGraph) });
          }
       });
    rdfaProcessor.process(treeSource.firstChild);
@@ -114,7 +148,7 @@ if (!treeSource && document.head) {
    chrome.extension.onRequest.addListener(
       function(request,sender,sendResponse) {
          if (request.getTriples) {
-            sendResponse({ setTriples: true, triples: rdfaProcessor.getTransferGraph() });
+            sendResponse({ setTriples: true, triples: getTransferGraph(rdfaProcessor.target.triplesGraph) });
          }
       });
    rdfaProcessor.process(document.documentElement);
