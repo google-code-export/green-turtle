@@ -30,6 +30,8 @@ The `update` argument is optional and defaults to false.  A value of `true` indi
 
 The `RDFaProcessor` class is the main implementation of the [http://www.w3.org/TR/rdfa-core/#s_sequence RDFa 1.1 Sequence Algorithm].  It provides the ability to process any DOM node into a set of triples (subject, predicate, and object).
 
+The default implementation of the `init()`, `newSubjectOrigin()`, and `addTriple()` methods do not do anything.  This class must be subclassed to receive the RDFa triples.
+
 A simple use of this class:
 
 {{{
