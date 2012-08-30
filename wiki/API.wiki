@@ -94,7 +94,7 @@ This class also adds a finished handler that must be preserved.  You may add you
 
 The `triplesGraph` is an associative array whose key values are the subject URI values.  Each subject URI maps to an object with the following properties:
 
- * `subject` - the subject URI,
+  * `subject` - the subject URI,
   * `predicates` - an associative list of predicates.
 
 The value return by accessing a predicate is another object with properties:
