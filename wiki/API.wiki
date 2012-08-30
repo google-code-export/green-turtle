@@ -2,8 +2,79 @@
 
 = RDFaProcessor =
 
-== Constructor ==
+The `RDFaProcessor` class is the main implementation of the [http://www.w3.org/TR/rdfa-core/#s_sequence RDFa 1.1 Sequence Algorithm].  It provides the ability to process any DOM node into a set of triples (subject, predicate, and object).
 
-== Completion Handlers == 
+A simple use of this class:
+
+{{{
+
+var processor = new RDFaProcessor();
+processor.finishedHandlers.push(
+   function(node) {
+      alert("Done!");
+   }
+);
+processor.process(document);
+}}}
+
+== Constructing ==
+
+{{{
+new RDFaProcessor(targetObject)
+}}}
+
+The `targetObject` parameter is an optional object use to store data (e.g. prefixes, terms, triples) during the processing of the document.  This object is typically used by subclasses and may be omitted.  If omitted, an object will be created for use by the instance.  This target object is available via the "target" property on the instance.
+
+Processor instances may be reused but, depending on the subclass, the target object may need to be reset.
+
+== RDFaProcessor.finishedHandlers ==
+
+An instance property that is an array of handlers to call upon completion of processing a node.  The handlers  are a function whose only argument is the node that was processed.
+
+== RDFaProcessor.process ==
+
+{{{
+process(node)
+}}}
+
+Performs the [http://www.w3.org/TR/rdfa-core/#s_sequence RDFa 1.1 Sequence algorithm] to harvest triples from the given node.
+
+Upon completion, a set of handlers are called with the node passed as the argument to the method. 
+
+== RDFaProcessor.init ==
+
+{{{
+init()
+}}}
+
+Called after construction for further customization.  The default implementation does nothing.  Subclasses may override this method to further initialize the target object.
+
+== RDFaProcessor.newSubjectOrigin ==
+
+{{{
+newSubjectOrigin(origin,subject)
+}}}
+
+A method called to notify when a new subject is generated from a particular node.  The `origin` argument is the node from the document which generated the subject.
+
+== RDFaProcessor.addTriple ==
+
+{{{
+addTriple(origin,subject,predicate,object)
+}}}
+
+A method called to notify when a new triple is generated.
+
+  * `origin` - the node that generated the triple (node)
+  * `subject` - the subject URI (string)
+  * `predicate` - the predicate URI (string)
+  * `object` - the object value (an object)
+
+The object value is a object with three, possibly empty, properties:
+
+  * `value` - the string value or node
+  * `type` - the datatype (string)
+  * `language` - the language (string)
+
 
 = GraphRDFaProcessor =
