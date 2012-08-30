@@ -121,3 +121,51 @@ On the target object, two properties are created:
 
   * `tripleCount` - a count of the number of triples generated,
   * `triplesGraph` - a graph containing the triples generated.
+
+= URIResolver = 
+
+The `URIResolver` class provides the ability to parse URI values into an object.  That object can then be used normalize, resolve relative URIs, or turn the URI into a relative value.
+
+== Constructing ==
+
+{{{
+new URIResolver()
+}}}
+
+== URIResolver.SCHEME ==
+
+A regular expression for testing for a URI scheme at the start of a string.
+
+== URIResolver.parseURI ==
+
+{{{
+parseURI(uri)
+}}}
+
+Parses a URI string value into a URI object.
+
+== URI Objects ==
+
+=== scheme ===
+
+A property containing the URI's scheme.
+
+=== schemeSpecificPart ===
+
+A property containing the URI's scheme specific part (that which is after the colon).
+
+=== isGeneric ===
+
+A flag indicating whether the URI is a generic URI.
+
+=== normalize() ===
+
+A method that will normalize a generic URI and remove redundant path components, slashes, etc.
+
+=== resolve(href) ===
+
+Resolves the `href` string argument against the URI as a base URI.
+
+=== relativeTo(URI) ===
+
+Returns a string value of the URI relative to another URI object.
