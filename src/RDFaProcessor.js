@@ -12,10 +12,12 @@ RDFaProcessor.prototype = new URIResolver();
 RDFaProcessor.prototype.constructor=RDFaProcessor;
 function RDFaProcessor(targetObject) {
    this.target = targetObject;
-   this.target.tripleCount = 0;
-   this.target.triplesGraph = {};
-   this.target.prefixes = {};
-   this.target.terms = {};
+   if (this.target) {
+      this.target.tripleCount = 0;
+      this.target.triplesGraph = {};
+      this.target.prefixes = {};
+      this.target.terms = {};
+   }
    this.language = null;
    this.vocabulary = null;
    this.typeURI = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
@@ -340,8 +342,8 @@ RDFaProcessor.prototype.getTransferGraph = function() {
    return graph;
 }
 
-RDFaProcessor.prototype.newSubjectOrigin = function(data,origin,subject) {
-   var snode = this.newSubject(data,null,subject);
+RDFaProcessor.prototype.newSubjectOrigin = function(origin,subject) {
+   var snode = this.newSubject(null,subject);
    for (var i=0; i<snode.origins.length; i++) {
       if (snode.origins[i]==origin) {
          return;
@@ -350,18 +352,18 @@ RDFaProcessor.prototype.newSubjectOrigin = function(data,origin,subject) {
    snode.origins.push(origin);
 }
 
-RDFaProcessor.prototype.newSubject = function(data,origin,subject) {
-   var snode = data.triplesGraph[subject];
+RDFaProcessor.prototype.newSubject = function(origin,subject) {
+   var snode = this.target.triplesGraph[subject];
    if (!snode) {
       snode = { subject: subject, predicates: {}, origins: [] };
-      data.triplesGraph[subject] = snode;
+      this.target.triplesGraph[subject] = snode;
    }
    return snode;
 }
 
-RDFaProcessor.prototype.addTriple = function(data,origin,subject,predicate,object) {
-   var graph = data.triplesGraph;
-   var snode = this.newSubject(data,origin,subject);
+RDFaProcessor.prototype.addTriple = function(origin,subject,predicate,object) {
+   var graph = this.target.triplesGraph;
+   var snode = this.newSubject(origin,subject);
    var pnode = snode.predicates[predicate];
    if (!pnode) {
       pnode = { predicate: predicate, objects: [] };
@@ -373,7 +375,7 @@ RDFaProcessor.prototype.addTriple = function(data,origin,subject,predicate,objec
          return;
       }
    }
-   data.tripleCount++;
+   this.target.tripleCount++;
    pnode.objects.push(object);
    object.origin = origin;
    //console.log("Added triple.");
@@ -385,9 +387,12 @@ RDFaProcessor.prototype.process = function(node) {
    if (!window.console) {
       window.console = { log: function() {} };
    }*/
-   if (node.parentNode.nodeType==Node.DOCUMENT_NODE) {
+   if (node.nodeType==Node.DOCUMENT_NODE) {
+      node = node.documentElement;
       this.setContext(node);
-   }
+   } else if (node.parentNode.nodeType==Node.DOCUMENT_NODE) {
+      this.setContext(node);
+   } 
    var queue = [];
    queue.push({ current: node, context: this.push(null,node.baseURI)});
    while (queue.length>0) {
@@ -402,19 +407,19 @@ RDFaProcessor.prototype.process = function(node) {
          for (var predicate in item.listMapping) {
             var list = item.listMapping[predicate];
             if (list.length==0) {
-               this.addTriple(this.target,item.parent,item.subject,predicate,{ type: this.objectURI, value: "http://www.w3.org/1999/02/22-rdf-syntax-ns#nil" });
+               this.addTriple(item.parent,item.subject,predicate,{ type: this.objectURI, value: "http://www.w3.org/1999/02/22-rdf-syntax-ns#nil" });
                continue;
             }
             var bnodes = [];
             for (var i=0; i<list.length; i++) {
                bnodes.push(this.newBlankNode());
-               this.newSubject(this.target,item.parent,bnodes[i]);
+               //this.newSubject(item.parent,bnodes[i]);
             }
             for (var i=0; i<bnodes.length; i++) {
-               this.addTriple(this.target,item.parent,bnodes[i],"http://www.w3.org/1999/02/22-rdf-syntax-ns#first",list[i]);
-               this.addTriple(this.target,item.parent,bnodes[i],"http://www.w3.org/1999/02/22-rdf-syntax-ns#rest",{ type: this.objectURI , value: (i+1)<bnodes.length ? bnodes[i+1] : "http://www.w3.org/1999/02/22-rdf-syntax-ns#nil" });
+               this.addTriple(item.parent,bnodes[i],"http://www.w3.org/1999/02/22-rdf-syntax-ns#first",list[i]);
+               this.addTriple(item.parent,bnodes[i],"http://www.w3.org/1999/02/22-rdf-syntax-ns#rest",{ type: this.objectURI , value: (i+1)<bnodes.length ? bnodes[i+1] : "http://www.w3.org/1999/02/22-rdf-syntax-ns#nil" });
             }
-            this.addTriple(this.target,item.parent,item.subject,predicate,{ type: this.objectURI, value: bnodes[0] });
+            this.addTriple(item.parent,item.subject,predicate,{ type: this.objectURI, value: bnodes[0] });
          }
          continue;
       }
@@ -447,8 +452,8 @@ RDFaProcessor.prototype.process = function(node) {
          if (value.length>0) {
             vocabulary = value;
             var baseSubject = base.spec;
-            this.newSubject(this.target,current,baseSubject);
-            this.addTriple(this.target,current,baseSubject,"http://www.w3.org/ns/rdfa#usesVocabulary",{ type: this.objectURI , value: vocabulary});
+            //this.newSubject(current,baseSubject);
+            this.addTriple(current,baseSubject,"http://www.w3.org/ns/rdfa#usesVocabulary",{ type: this.objectURI , value: vocabulary});
          } else {
             vocabulary = this.vocabulary;
          }
@@ -616,7 +621,7 @@ RDFaProcessor.prototype.process = function(node) {
 
       var rdfaData = null;
       if (newSubject) {
-         this.newSubject(this.target,current,newSubject);
+         //this.newSubject(current,newSubject);
          if (aboutAtt || typedResource) {
             if (!current.data) {
                rdfaData = {
@@ -638,7 +643,7 @@ RDFaProcessor.prototype.process = function(node) {
                rdfaData.id = newSubject;
             }
             //console.log("Setting data attribute for "+current.localName+" for subject "+rdfaData.subject);
-            this.newSubjectOrigin(this.target,current,rdfaData.id);
+            this.newSubjectOrigin(current,rdfaData.id);
          }
       }
       
@@ -654,7 +659,7 @@ RDFaProcessor.prototype.process = function(node) {
             var object = this.parseTermOrCURIEOrAbsURI(values[i],vocabulary,context.terms,prefixes,base);
             rdfaData.types.push(object);
             if (object) {
-               this.addTriple(this.target,current,typedResource,this.typeURI,{ type: this.objectURI , value: object});
+               this.addTriple(current,typedResource,this.typeURI,{ type: this.objectURI , value: object});
             }
          }
       }
@@ -688,7 +693,7 @@ RDFaProcessor.prototype.process = function(node) {
             for (var i=0; i<values.length; i++) {
                var predicate = this.parsePredicate(values[i],vocabulary,context.terms,prefixes,base);
                if (predicate) {
-                  this.addTriple(this.target,current,newSubject,predicate,{ type: this.objectURI, value: currentObjectResource});
+                  this.addTriple(current,newSubject,predicate,{ type: this.objectURI, value: currentObjectResource});
                }
             }
          }
@@ -697,7 +702,7 @@ RDFaProcessor.prototype.process = function(node) {
             for (var i=0; i<values.length; i++) {
                var predicate = this.parsePredicate(values[i],vocabulary,context.terms,prefixes,base);
                if (predicate) {
-                  this.addTriple(this.target,current,currentObjectResource, predicate, { type: this.objectURI, value: newSubject});
+                  this.addTriple(current,currentObjectResource, predicate, { type: this.objectURI, value: newSubject});
                }
             }
          }
@@ -789,9 +794,9 @@ RDFaProcessor.prototype.process = function(node) {
                   list.push(datatype==this.XMLLiteralURI ? { type: this.XMLLiteralURI, value: current.childNodes} : { type: datatype ? datatype : this.PlainLiteralURI, value: content, language: language});
                } else {
                   if (datatype==this.XMLLiteralURI) {
-                     this.addTriple(this.target,current,newSubject,predicate,{ type: this.XMLLiteralURI, value: current.childNodes});
+                     this.addTriple(current,newSubject,predicate,{ type: this.XMLLiteralURI, value: current.childNodes});
                   } else {
-                     this.addTriple(this.target,current,newSubject,predicate,{ type: datatype ? datatype : this.PlainLiteralURI, value: content, language: language});
+                     this.addTriple(current,newSubject,predicate,{ type: datatype ? datatype : this.PlainLiteralURI, value: content, language: language});
                      //console.log(newSubject+" "+predicate+"="+content);
                   }
                }
@@ -808,10 +813,10 @@ RDFaProcessor.prototype.process = function(node) {
                context.incomplete[i].list.push({ type: this.objectURI, value: newSubject });
             } else if (context.incomplete[i].forward) {
                //console.log(current.tagName+": completing forward triple "+context.incomplete[i].predicate+" with object="+newSubject);
-               this.addTriple(this.target,current,context.subject,context.incomplete[i].predicate, { type: this.objectURI, value: newSubject});
+               this.addTriple(current,context.subject,context.incomplete[i].predicate, { type: this.objectURI, value: newSubject});
             } else {
                //console.log(current.tagName+": completing reverse triple with object="+context.subject);
-               this.addTriple(this.target,current,newSubject,context.incomplete[i].predicate,{ type: this.objectURI, value: context.subject});
+               this.addTriple(current,newSubject,context.incomplete[i].predicate,{ type: this.objectURI, value: context.subject});
             }
          }
       }
