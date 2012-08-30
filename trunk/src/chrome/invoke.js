@@ -114,7 +114,7 @@ if (!treeSource && document.head) {
          // script load failed (probably offline)
          console.log("Green turtle script load failed, harvesting for extension only (i.e. no document.data)");
          document.head.removeChild(script);
-         var rdfaProcessor = new RDFaProcessor({});
+         var rdfaProcessor = new GraphRDFaProcessor({});
          chrome.extension.onRequest.addListener(
             function(request,sender,sendResponse) {
                if (request.getTriples) {
@@ -131,7 +131,7 @@ if (!treeSource && document.head) {
    searchForMeta();
 } else if (treeSource) {
    console.log("Extracting data from XML embedded in rendered tree view...");
-   var rdfaProcessor = new RDFaProcessor({});
+   var rdfaProcessor = new GraphRDFaProcessor({});
    chrome.extension.onRequest.addListener(
       function(request,sender,sendResponse) {
          if (request.getTriples) {
@@ -144,7 +144,7 @@ if (!treeSource && document.head) {
       console.log("Found "+rdfaProcessor.target.tripleCount+" triples");
    }
 } else {
-   var rdfaProcessor = new RDFaProcessor({});
+   var rdfaProcessor = new GraphRDFaProcessor({});
    chrome.extension.onRequest.addListener(
       function(request,sender,sendResponse) {
          if (request.getTriples) {

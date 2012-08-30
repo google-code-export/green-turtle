@@ -1,23 +1,10 @@
-Object.size = function(obj) {
-   var size = 0;
-   for (var key in obj) {
-      if (obj.hasOwnProperty(key)) {
-         size++;
-      }
-   }
-   return size;
-};
 
 RDFaProcessor.prototype = new URIResolver();
 RDFaProcessor.prototype.constructor=RDFaProcessor;
 function RDFaProcessor(targetObject) {
-   this.target = targetObject;
-   if (this.target) {
-      this.target.tripleCount = 0;
-      this.target.triplesGraph = {};
-      this.target.prefixes = {};
-      this.target.terms = {};
-   }
+   this.target = targetObject ? targetObject : {};
+   this.target.prefixes = {};
+   this.target.terms = {};
    this.language = null;
    this.vocabulary = null;
    this.typeURI = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
@@ -29,6 +16,8 @@ function RDFaProcessor(targetObject) {
    this.contentAttributes = [ "content" ];
    this.inXHTMLMode = false;
    this.absURIRE = /[\w\_\-]+:\S+/;
+   this.finishedHandlers = [];
+   this.init();
 }
 
 RDFaProcessor.prototype.newBlankNode = function() {
@@ -310,43 +299,13 @@ RDFaProcessor.prototype.setXHTMLContext = function() {
    this.target.terms["transformation"] = "http://www.w3.org/1999/xhtml/vocab#transformation";
 }
 
-RDFaProcessor.prototype.newSubjectOrigin = function(origin,subject) {
-   var snode = this.newSubject(null,subject);
-   for (var i=0; i<snode.origins.length; i++) {
-      if (snode.origins[i]==origin) {
-         return;
-      }
-   }
-   snode.origins.push(origin);
+RDFaProcessor.prototype.init = function() {
 }
 
-RDFaProcessor.prototype.newSubject = function(origin,subject) {
-   var snode = this.target.triplesGraph[subject];
-   if (!snode) {
-      snode = { subject: subject, predicates: {}, origins: [] };
-      this.target.triplesGraph[subject] = snode;
-   }
-   return snode;
+RDFaProcessor.prototype.newSubjectOrigin = function(origin,subject) {
 }
 
 RDFaProcessor.prototype.addTriple = function(origin,subject,predicate,object) {
-   var graph = this.target.triplesGraph;
-   var snode = this.newSubject(origin,subject);
-   var pnode = snode.predicates[predicate];
-   if (!pnode) {
-      pnode = { predicate: predicate, objects: [] };
-      snode.predicates[predicate] = pnode;
-   }
-
-   for (var i=0; i<pnode.objects.length; i++) {
-      if (pnode.objects[i].type==object.type && pnode.objects[i].value==object.value) {
-         return;
-      }
-   }
-   this.target.tripleCount++;
-   pnode.objects.push(object);
-   object.origin = origin;
-   //console.log("Added triple.");
 }
 
 RDFaProcessor.prototype.process = function(node) {
@@ -827,17 +786,9 @@ RDFaProcessor.prototype.process = function(node) {
          }
       }
    }
-   for (var subject in this.target.triplesGraph) {
-      var snode = this.target.triplesGraph[subject];
-      if (Object.size(snode.predicates)==0) {
-         delete this.target.triplesGraph[subject];
-      }
-   }
-   
-   if (node.ownerDocument) {
-      var event = node.ownerDocument.createEvent("HTMLEvents");
-      event.initEvent("rdfa.loaded",true,true);
-      node.ownerDocument.dispatchEvent(event);
+
+   for (var i=0; i<this.finishedHandlers.length; i++) {
+      this.finishedHandlers[i](node);
    }
 }
 
