@@ -1,7 +1,7 @@
 CallbackProcessor.prototype = new RDFaProcessor();
 CallbackProcessor.prototype.constructor=RDFaProcessor;
 function CallbackProcessor() {
-   RDFaProcessor.call(this,{});
+   RDFaProcessor.call(this);
 }
 
 CallbackProcessor.prototype.newSubjectOrigin = function(origin,subject) {

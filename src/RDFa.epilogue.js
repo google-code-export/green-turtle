@@ -62,12 +62,20 @@ if (document.head) {
    },false);
 }
 
+
 if (update || !document.data) {
    if (!update) {
       DocumentData.attach(document);
    }
 
-   var processor = new RDFaProcessor(document.data._data_);
+   var processor = new GraphRDFaProcessor(document.data._data_);
+   processor.finishedHandlers.push(function(node) {
+      if (node.ownerDocument) {
+         var event = node.ownerDocument.createEvent("HTMLEvents");
+         event.initEvent("rdfa.loaded",true,true);
+         node.ownerDocument.dispatchEvent(event);
+      }
+   });
    processor.process(document.documentElement);
    loaded = true;
 }
