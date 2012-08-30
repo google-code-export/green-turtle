@@ -2,14 +2,25 @@
 
 = Including Scripts =
 
+If you want to use the RDFa API, just include the RDF.js script.
+
+If you are not using the packaged all-in-one script or want to use the internal classes, you need to include the separate source files or package them together.
+
 There are three main scripts:
 
   *`URI.js` - provides the URIResolver base class for RDFaProcessor
   * `RDFaProcessor.js` - provides the RDFaProcessor class
   * `GraphRDFaProcessor.js` - provides the GraphRDFaProcessor class
 
+= RDFa API =
 
-= RDFaProcessor =
+== RDFa.attach() ==
+
+RD
+
+= Classes =
+
+== RDFaProcessor ==
 
 The `RDFaProcessor` class is the main implementation of the [http://www.w3.org/TR/rdfa-core/#s_sequence RDFa 1.1 Sequence Algorithm].  It provides the ability to process any DOM node into a set of triples (subject, predicate, and object).
 
@@ -26,7 +37,7 @@ processor.finishedHandlers.push(
 processor.process(document);
 }}}
 
-== Constructing ==
+=== Constructing ===
 
 {{{
 new RDFaProcessor(targetObject)
@@ -36,11 +47,11 @@ The `targetObject` parameter is an optional object use to store data (e.g. prefi
 
 Processor instances may be reused but, depending on the subclass, the target object may need to be reset.
 
-== RDFaProcessor.finishedHandlers ==
+=== RDFaProcessor.finishedHandlers ===
 
 An instance property that is an array of handlers to call upon completion of processing a node.  The handlers  are a function whose only argument is the node that was processed.
 
-== RDFaProcessor.process ==
+=== RDFaProcessor.process ===
 
 {{{
 process(node)
@@ -50,7 +61,7 @@ Performs the [http://www.w3.org/TR/rdfa-core/#s_sequence RDFa 1.1 Sequence algor
 
 Upon completion, a set of handlers are called with the node passed as the argument to the method. 
 
-== RDFaProcessor.init ==
+=== RDFaProcessor.init ===
 
 {{{
 init()
@@ -58,7 +69,7 @@ init()
 
 Called after construction for further customization.  The default implementation does nothing.  Subclasses may override this method to further initialize the target object.
 
-== RDFaProcessor.newSubjectOrigin ==
+=== RDFaProcessor.newSubjectOrigin ===
 
 {{{
 newSubjectOrigin(origin,subject)
@@ -66,7 +77,7 @@ newSubjectOrigin(origin,subject)
 
 A method called to notify when a new subject is generated from a particular node.  The `origin` argument is the node from the document which generated the subject.
 
-== RDFaProcessor.addTriple ==
+=== RDFaProcessor.addTriple ===
 
 {{{
 addTriple(origin,subject,predicate,object)
@@ -86,7 +97,7 @@ The object value is a object with three, possibly empty, properties:
   * `language` - the language (string)
 
 
-= GraphRDFaProcessor =
+== GraphRDFaProcessor ==
 
 The GraphRDFaProcess is a subclass of RDFaProcessor that constructs a graph of the triples.  Any subclass of GraphRDFaProcessor must preserve the semantics of the `init()`, `newSubjectOrigin()`, and `addTriple()` methods implemented on this class.
 
@@ -109,7 +120,7 @@ Each object has the following, possible empty, properties:
   * `type` - the datatype associated with the value.
 
 
-== Constructing == 
+=== Constructing === 
 
 {{{
 new GraphRDFaProcessor(targetObject)
@@ -122,21 +133,21 @@ On the target object, two properties are created:
   * `tripleCount` - a count of the number of triples generated,
   * `triplesGraph` - a graph containing the triples generated.
 
-= URIResolver = 
+== URIResolver == 
 
 The `URIResolver` class provides the ability to parse URI values into an object.  That object can then be used normalize, resolve relative URIs, or turn the URI into a relative value.
 
-== Constructing ==
+=== Constructing ===
 
 {{{
 new URIResolver()
 }}}
 
-== URIResolver.SCHEME ==
+=== URIResolver.SCHEME ===
 
 A regular expression for testing for a URI scheme at the start of a string.
 
-== URIResolver.parseURI ==
+=== URIResolver.parseURI ===
 
 {{{
 parseURI(uri)
