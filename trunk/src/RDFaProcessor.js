@@ -82,6 +82,9 @@ RDFaProcessor.prototype.parseCURIEOrURI = function(value,prefixes,base) {
 }
 
 RDFaProcessor.prototype.parsePredicate = function(value,defaultVocabulary,terms,prefixes,base) {
+   if (value=="") {
+      return null;
+   }
    var predicate = this.parseTermOrCURIEOrAbsURI(value,defaultVocabulary,terms,prefixes,base);
    if (predicate && predicate.indexOf("_:")==0) {
       return null;
