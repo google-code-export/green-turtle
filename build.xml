@@ -14,11 +14,16 @@
 <target name="build" depends="chrome,web"/>
 
 <target name="chrome">
-<delete file="${dist.dir}/${product.label}.zip"/>
-<property name="install.dir" location="${dist.dir}/${product.label}"/>
-<delete dir="${install.dir}"/>
-<mkdir dir="${install.dir}"/>
-<copy file="${src.dir}/license.txt" todir="${install.dir}"/>
+   <delete file="${dist.dir}/${product.label}.zip"/>
+   <property name="install.dir" location="${dist.dir}/${product.label}"/>
+   <delete dir="${install.dir}"/>
+   <mkdir dir="${install.dir}"/>
+   <concat destfile="${install.dir}/license.txt">
+      <string>green-turtle version ${version.label} 
+Copyright (c) 2011-2012, R. Alexander Milowski &lt;alex@milowski.com> All rights reserved.
+</string>
+      <file file="${src.dir}/license.txt"/>
+   </concat>
 <echo file="${install.dir}/manifest.json">
 {
    "name": "Green Turtle RDFa",
@@ -66,20 +71,56 @@ var rdfaHostPath = "s3.amazonaws.com/green-turtle/RDFa.${version.label}.js";
 </target>
 
 <target name="web">
-<delete file="${dist.dir}/RDFa.js"/>
-<concat destfile="${dist.dir}/RDFa.js">
-<string>
-// green-turtle version ${version.label}
+   <delete file="${dist.dir}/RDFa.js"/>
+   <concat destfile="${dist.dir}/RDFa.js">
+   <string>/** @preserve green-turtle version ${version.label} Copyright (c) 2011-2012, R. Alexander Milowski &lt;alex@milowski.com> All rights reserved. */
+/**         
 </string>
-<file file="${src.dir}/license.js"/>
-<file file="${src.dir}/RDFa.prolog.js"/>
-<file file="${src.dir}/URI.js"/>
-<file file="${src.dir}/RDFaProcessor.js"/>
-<file file="${src.dir}/GraphRDFaProcessor.js"/>
-<file file="${src.dir}/RDFaAPI.js"/>
-<file file="${src.dir}/RDFa.epilogue.js"/>
-</concat>
-<copy file="${dist.dir}/RDFa.js" tofile="${dist.dir}/RDFa.${version.label}.js"/>
+      <file file="${src.dir}/license.txt"/>
+      <string>*/
+</string>
+   <file file="${src.dir}/RDFa.prolog.js"/>
+   <file file="${src.dir}/URI.js"/>
+   <file file="${src.dir}/RDFaProcessor.js"/>
+   <file file="${src.dir}/GraphRDFaProcessor.js"/>
+   <file file="${src.dir}/RDFaAPI.js"/>
+   <file file="${src.dir}/RDFa.epilogue.js"/>
+   </concat>
+
+   <delete file="${dist.dir}/RDFaProcessor.js"/>
+   <concat destfile="${dist.dir}/RDFaProcessor.js">
+      <string>/** @preserve green-turtle version ${version.label} Copyright (c) 2011-2012, R. Alexander Milowski &lt;alex@milowski.com> All rights reserved. */
+/**         
+</string>
+      <file file="${src.dir}/license.txt"/>
+      <string>*/
+</string>
+      <file file="${src.dir}/URI.js"/>
+      <file file="${src.dir}/RDFaProcessor.js"/>
+      <file file="${src.dir}/GraphRDFaProcessor.js"/>
+   </concat>
+   
+   <copy file="${dist.dir}/RDFa.js" tofile="${dist.dir}/RDFa.${version.label}.js"/>
+   <copy file="${dist.dir}/RDFaProcessor.js" tofile="${dist.dir}/RDFaProcessor.${version.label}.js"/>
+   
+   <echo>Minifying RDFa.js ...</echo>
+   <java jar="tools/closure-compiler-20120917.jar" fork="true">
+      <arg value="--js"/>
+      <arg file="${dist.dir}/RDFa.js"/>
+      <arg value="--js_output_file"/>
+      <arg file="${dist.dir}/RDFa.min.js"/>
+   </java>
+   
+   <echo>Minifying RDFaProcessor.js ...</echo>
+   <java jar="tools/closure-compiler-20120917.jar" fork="true">
+      <arg value="--js"/>
+      <arg file="${dist.dir}/RDFaProcessor.js"/>
+      <arg value="--js_output_file"/>
+      <arg file="${dist.dir}/RDFaProcessor.min.js"/>
+   </java>
+   
+   <copy file="${dist.dir}/RDFa.min.js" tofile="${dist.dir}/RDFa.min.${version.label}.js"/>
+   <copy file="${dist.dir}/RDFaProcessor.min.js" tofile="${dist.dir}/RDFaProcessor.min.${version.label}.js"/>
 </target>
 
 </project>
