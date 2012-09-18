@@ -1,5 +1,7 @@
 #summary API Documentation
 
+<wiki:toc />
+
 = Including Scripts =
 
 If you want to use the RDFa API, just include the built RDF.js script.
