@@ -2,7 +2,9 @@
 
 = Including Scripts =
 
-If you want to use the RDFa API, just include the RDF.js script.
+If you want to use the RDFa API, just include the built RDF.js script.
+
+If you want to use just the RDFa processor, just include the built RDFaProcessor.js script.
 
 If you are not using the packaged all-in-one script or want to use the internal classes, you need to include the separate source files or package them together.
 
