@@ -806,7 +806,7 @@ RDFaProcessor.prototype.push = function(parent,subject) {
       language: parent ? parent.language : this.language,
       prefixes: parent ? parent.prefixes : this.target.prefixes,
       terms: parent ? parent.terms : this.target.terms,
-      vocabulary: parent ? parent.voabulary : this.vocabulary
+      vocabulary: parent ? parent.vocabulary : this.vocabulary
    };
 };
 
