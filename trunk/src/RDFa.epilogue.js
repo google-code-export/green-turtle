@@ -63,11 +63,11 @@ if (document.head) {
 }
 
 
-if (update || !document.data) {
-   if (!update) {
-      DocumentData.attach(document);
-   }
+if (!document.data) {
+   DocumentData.attach(document);
+}
 
+var processDoc = function() {
    var processor = new GraphRDFaProcessor(document.data._data_);
    processor.finishedHandlers.push(function(node) {
       if (node.ownerDocument) {
@@ -78,14 +78,18 @@ if (update || !document.data) {
    });
    processor.process(document.documentElement);
    loaded = true;
+   
+}
+
+if (document.readyState=="loading") {
+   window.addEventListener("load",function() {
+      processDoc();
+   },false);
+} else {
+   processDoc();
 }
 
 };
 
-if (document.readyState=="loading") {
-   window.addEventListener("load",function() {
-      RDFa.attach(document);
-   },false);
-} else {
-   RDFa.attach(document);
-}
+RDFa.attach(document);
+
