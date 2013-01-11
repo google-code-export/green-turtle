@@ -227,6 +227,55 @@ DocumentData.prototype.getSubjects = function(property,value) {
    return subjects;
 };
 
+// TODO: is there a way to merge this with getValueOrigin ?  The code is almost the same
+DocumentData.prototype.getValueOrigins = function(subject,property) {
+   var values = [];
+   if (property) {
+      property = this._data_.curieParser.parse(property,true);
+   }
+   if (subject) {
+      subject = this._data_.curieParser.parse(subject,true);
+      var snode = this._data_.triplesGraph[subject];
+      if (snode) {
+         if (property) {
+            var pnode = snode.predicates[property];
+            if (pnode) {
+               for (var i=0; i<pnode.objects.length; i++) {
+                  values.push({ origin: pnode.objects[i].origin, value: pnode.objects[i].value });
+               }
+            }
+         } else {
+            for (var predicate in snode.predicates) {
+               var pnode = snode.predicates[predicate];
+               for (var i=0; i<pnode.objects.length; i++) {
+                  values.push({ origin: pnode.objects[i].origin, value: pnode.objects[i].value });
+               }
+            }
+         }
+      }
+   } else if (property) {
+      for (var subject in this._data_.triplesGraph) {
+         var snode = this._data_.triplesGraph[subject];
+         var pnode = snode.predicates[property];
+         if (pnode) {
+            for (var i=0; i<pnode.objects.length; i++) {
+               values.push({ origin: pnode.objects[i].origin, value: pnode.objects[i].value });
+            }
+         }
+      }
+   } else {
+      for (var subject in this._data_.triplesGraph) {
+         var snode = this._data_.triplesGraph[subject];
+         for (var predicate in snode.predicates) {
+            var pnode = snode.predicates[predicate];
+            for (var i=0; i<pnode.objects.length; i++) {
+               values.push({ origin: pnode.objects[i].origin, value: pnode.objects[i].value });
+            }
+         }
+      }
+   }
+   return values;
+}
 DocumentData.prototype.getValues = function(subject,property) {
    var values = [];
    if (property) {
