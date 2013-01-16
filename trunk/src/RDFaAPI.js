@@ -424,8 +424,10 @@ Element.prototype.getElementsByType = function() {
       return this[index];
    }
    while (descendant && descendant!=this) {
+      //console.log("At: "+descendant.tagName);
       if (descendant.data) {
          for (var i=0; i<arguments.length; i++) {
+            //console.log("Types: "+descendant.data.types+" checking for "+arguments[i]);
             if (descendant.data.types.indexOf(arguments[i])>=0) {
                results.push(descendant);
                break;
@@ -441,7 +443,7 @@ Element.prototype.getElementsByType = function() {
              descendant = descendant.parentNode;
          }
          if (descendant!=this) {
-            descendant = descendant.nextElementSibling;
+            descendant = descendant.parentNode.nextElementSibling;
          }
       }
    }
