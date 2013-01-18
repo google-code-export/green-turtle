@@ -13,12 +13,13 @@
   <button id="s3">800 x 800</button>
 </p>
 <div id="visualization"><div id="log"/></div>
-  <div id="info"><p>Select a node to view the triples...</p></div>
+  <div id="info"></div>
 </div>
 <div id="no-graphviz">
-  <p>There were many triples harvested from this document.  Rendering them may take awhile!</p>
+  <p>There were too many triples harvested from this document to render.</p>
   <button id="visualize">Render Visualization</button>
 </div>
+   <p id="status"><span id="wait">Waiting for triples from document...</span><button id="stop">Stop</button></p>   
 <div id="inspector">
 <div id="table">
 <table>
