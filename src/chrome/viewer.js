@@ -39,6 +39,7 @@ Viewer.prototype.init = function(url,id) {
       document.getElementById("graphviz").style.display = "block";
       document.getElementById("no-graphviz").style.display = "none";
       setTimeout(function() {
+         current.graph = current.constructGraph();
          current.renderGraph()
       },10);
    };
