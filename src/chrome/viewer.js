@@ -42,12 +42,26 @@ Viewer.prototype.init = function(url,id) {
          current.renderGraph()
       },10);
    };
-   /*
-   chrome.extension.sendRequest(
-      { getTriples: true, id: id},
-      function(response) { current.setTriples(response.triples) }
-   );
-   */
+   
+   var stopButton = document.getElementById("stop");
+   stopButton.onclick = function() {
+      if (current.inprogressGraph) {
+         if (stopButton.textContent=="Stop") {
+            current.inprogressGraph.continueLoading = false;
+            stopButton.innerHTML = "Continue";
+         } else {
+            current.inprogressGraph.continueLoading = true;
+            stopButton.innerHTML = "Stop";
+            current.loadSubjects();
+         }
+      }
+   }
+
+   chrome.tabs.sendRequest(id,{getSubjects: true, id: this.id},function(response) {
+      if (response.setSubjects) {
+         current.loadSubjects(response.subjects);
+      } 
+   });
 }
 
 Viewer.prototype.clear = function(parent) {
@@ -56,13 +70,60 @@ Viewer.prototype.clear = function(parent) {
    }
 }
 
-Viewer.prototype.setTriples = function(graph) {
-   this.triplesGraph = graph;
-   var app = this;
-   setTimeout(function() { app.update(); },1);
+Viewer.prototype.loadSubjects = function(subjects) {
+   if (subjects) {
+      this.inprogressGraph = {
+         continueLoading: true,
+         index: 0,
+         subjects: subjects,
+         graph: {}
+      };
+   }
+   var current = this;
+   var getSubject = function() {
+      document.getElementById("wait").innerHTML = "Getting subject "+(current.inprogressGraph.index+1)+" of "+current.inprogressGraph.subjects.length+" "+current.inprogressGraph.subjects[current.inprogressGraph.index];
+      document.getElementById("inspector").style.display = "block";
+      chrome.tabs.sendRequest(current.id,{getSubject: true, subject: current.inprogressGraph.subjects[current.inprogressGraph.index]},function(response) {
+         if (response.setSubject) {
+            current.inprogressGraph.graph[response.subject.subject] = response.subject;
+            current.addTriplesToTable(response.subject);
+            current.inprogressGraph.index++;
+            if (current.inprogressGraph.index<current.inprogressGraph.subjects.length) {
+               if (current.inprogressGraph.continueLoading) {
+                  getSubject();
+               }
+            } else {
+               current.triplesGraph = current.inprogressGraph.graph;
+               current.inprogressGraph = null;
+               document.getElementById("status").style.display = "none";
+               setTimeout(function() {
+                  current.updateGraph();
+               },1);
+            }
+         }
+      });
+   }
+   getSubject();
+   
 }
 
-Viewer.prototype.tripleGraph = function() {
+Viewer.prototype.addTriplesToTable = function(snode) {
+   for (var predicate in snode.predicates) {
+      var pnode = snode.predicates[predicate];
+      for (var i=0; i<pnode.objects.length; i++) {
+         var object = pnode.objects[i];
+         this.addTriple(snode,pnode,object);
+      }
+   }
+}
+
+Viewer.prototype.setTriples = function(graph,doneHandler) {
+   this.triplesGraph = graph;
+   var app = this;
+   setTimeout(function() { app.update(); if (doneHandler) doneHandler(); },1);
+}
+
+Viewer.prototype.constructGraph = function() {
    var map = {};
    var graph = [];
    var p = 0;
@@ -138,35 +199,30 @@ Viewer.prototype.tripleGraph = function() {
                subjectNode.adjacencies.push(predicateNode.id);
                predicateNode.adjacencies.push(literalNode.id);
 	    }            
-            this.addTriple(snode,pnode,object);
          }
       }
    }
    return graph;
 }
 
-Viewer.prototype.update = function() {
-   var infoDiv = document.getElementById("info");
-
-   Log.write("Constructing graph...");
-   this.graph = this.tripleGraph();
-   
+Viewer.prototype.updateGraph = function() {
    var graphVizDiv = document.getElementById("graphviz");
    var nographVizDiv = document.getElementById("no-graphviz");
    if (this.table.childNodes.length>100) {
       graphVizDiv.style.display = "none";
       nographVizDiv.style.display = "block";
    } else {
+      Log.write("Constructing graph...");
+      this.graph = this.constructGraph();
       graphVizDiv.style.display = "block";
       nographVizDiv.style.display = "none";
-      var app = this;
-      setTimeout(function() {
-         app.renderGraph()
-      },10);
+      this.renderGraph();
    }
+
 }
 
 Viewer.prototype.renderGraph = function() {
+   var infoDiv = document.getElementById("info");
    var app = this;
    Log.write("Constructing graph renderer...");
    var fd = new $jit.ForceDirected({
@@ -342,31 +398,22 @@ Viewer.prototype.selectObject = function(subject,predicate,object) {
 
 Viewer.prototype.addTriple = function(snode,pnode,object) {
    var row = document.createElement("tr");
-   var subjectCell = document.createElement("td");
-   row.appendChild(subjectCell);
-   var predicateCell = document.createElement("td");
-   row.appendChild(predicateCell);
-   var valueCell = document.createElement("td");
-   row.appendChild(valueCell);
-   subjectCell.appendChild(document.createTextNode("<"+snode.subject+">"));
-   subjectCell.setAttribute("content",snode.subject);
-   predicateCell.appendChild(document.createTextNode("<"+pnode.predicate+">"));
-   predicateCell.setAttribute("content",pnode.predicate);
-   
+   var markup = "<td>&lt;"+snode.subject+"></td><td>&lt;"+pnode.predicate+"></td><td>";
    if (object.type==this.PlainLiteralURI) {
       var literal = '"'+object.value+'"';
       if (object.language) {
          literal += '@'+object.language;
       }
-      valueCell.appendChild(document.createTextNode(literal));
+      markup += literal;
    } else if (object.type==this.XMLLiteralURI) {
-      valueCell.appendChild(document.createTextNode(object.value));
+      markup += object.value;
    } else if (object.type==this.objectURI) {
-      valueCell.appendChild(document.createTextNode("<"+object.value+">"));
+      markup += "&lt;"+object.value+">";
    } else {
-      valueCell.appendChild(document.createTextNode('"'+object.value+'"^^<'+object.type+'>'));
+      markup += '"'+object.value+'"^^&lt;'+object.type+'>';
    }
-   valueCell.setAttribute("content",object.value);
+   markup += "</td>";
+   row.innerHTML = markup;
    this.table.appendChild(row);
    var odd = this.table.childNodes.length % 2;
    if (odd) {
@@ -374,6 +421,9 @@ Viewer.prototype.addTriple = function(snode,pnode,object) {
    } else {
       row.className = "even";
    }
+   row.firstChild.setAttribute("content",snode.subject);
+   row.firstChild.nextSibling.setAttribute("content",pnode.predicate);
+   row.firstChild.nextSibling.nextSibling.setAttribute("content",object.value);
 }
 
 var viewer = new Viewer();
@@ -385,8 +435,6 @@ window.addEventListener(
          function(request, sender, sendResponse) {
             if (request.viewerInit) {
                viewer.init(request.url,request.id);
-            } else if (request.setTriples) {
-               viewer.setTriples(request.triples);
             }
          }
       );

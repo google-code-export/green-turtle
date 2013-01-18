@@ -13,7 +13,6 @@ tbody {
 }
 
 .toolbar {
-   width:800px;
    text-align: right;
    margin: 0px;
    padding: 0px;
@@ -28,16 +27,19 @@ tbody {
 }
 
 #visualization {
-    //position:relative;
-    width:800px;
-    height:300px;
     border: 1px solid rgb(200,200,200);
+    min-height: 300px;
     padding: 5px;
-    //margin:auto;
     overflow:hidden;
 }
 
+#visualization-canvaswidget {
+    margin-left: auto;
+    margin-right: auto;
+}
+
 #inspector {
+   display: none;
    margin-top: 10px;
    border-top: 2px solid rgb(100,100,100);
    font-size: 10pt;   
@@ -50,6 +52,8 @@ tbody {
 
 #graphviz {
     display: none;
+    margin-left: auto;
+    margin-right: auto;
 }
 
 #no-graphviz {
@@ -74,4 +78,8 @@ tbody {
 
 #table tbody .selected.even {
    background-color: rgb(255,100,100);
+}
+
+#status #stop {
+   margin-left: 1em;
 }
