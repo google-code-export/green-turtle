@@ -346,7 +346,7 @@ DocumentData.prototype.getSubjectRelations = function(subject,objectsOnly) {
       triples.predicates[predicate] = { predicate: predicate, objects: objects };
       for (var i=0; i<pnode.objects.length; i++) {
          var object = pnode.objects[i];
-         if (!objectsOnly && object.type==this.XMLLiteralURI) {
+         if (!objectsOnly && object.type==RDFaProcessor.XMLLiteralURI) {
             var serializer = new XMLSerializer();
             var value = "";
             for (var x=0; x<object.value.length; x++) {
