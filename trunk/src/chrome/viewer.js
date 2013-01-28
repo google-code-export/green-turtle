@@ -397,21 +397,26 @@ Viewer.prototype.selectObject = function(subject,predicate,object) {
    }
 }
 
+Viewer.prototype.escapeMarkup = function(value) {
+   value = value.replace(/&/g,'&amp;');
+   return value.replace(/</g,'&lt;');
+}
+
 Viewer.prototype.addTriple = function(snode,pnode,object) {
    var row = document.createElement("tr");
    var markup = "<td>&lt;"+snode.subject+"></td><td>&lt;"+pnode.predicate+"></td><td>";
    if (object.type==this.PlainLiteralURI) {
-      var literal = '"'+object.value+'"';
+      var literal = '"'+this.escapeMarkup(object.value)+'"';
       if (object.language) {
          literal += '@'+object.language;
       }
       markup += literal;
    } else if (object.type==this.XMLLiteralURI) {
-      markup += object.value;
+      markup += this.escapeMarkup(object.value);
    } else if (object.type==this.objectURI) {
-      markup += "&lt;"+object.value+">";
+      markup += "&lt;"+this.escapeMarkup(object.value)+">";
    } else {
-      markup += '"'+object.value+'"^^&lt;'+object.type+'>';
+      markup += '"'+this.escapeMarkup(object.value)+'"^^&lt;'+object.type+'>';
    }
    markup += "</td>";
    row.innerHTML = markup;
