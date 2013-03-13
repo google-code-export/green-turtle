@@ -1,0 +1,47 @@
+#summary A Minimally Useful API for RDFa
+
+= Introduction =
+
+This is an attempt to document a usable subset of the RDFa API and extensions that could simplify use.
+
+
+= Summary =
+
+Document level operations:
+
+|| `document.getElementsByType(uri)` || Returns a list of elements who are typed with the given URI || 
+|| `document.getElementsBySubject(uri)` || Returns a list of elements that originate a given subject URI || 
+|| `document.data.getSubjects()` || Returns a list of subjects within the document. ||
+|| `document.data.getSubject(uri)` || Returns a subject object (extension) ||
+
+Element operations (extension):
+
+|| `element.data` || The subject object for an element, if any. ||
+|| `element.data.id` || The subject URI. ||
+|| `element.data.types` || The list of types associated with the subject. ||
+|| `element.data.getValues(curieOrTerm ...)` || Returns a list of property values that matches the CURIE or TERM arguments. ||
+
+House keeping:
+
+|| `document.data.prefixes` || An array of prefixes currently defined (extension). ||
+|| `document.data.getMapping(prefix)` || Returns the prefix mapping, if any (extension). ||
+|| `document.data.setMapping(prefix,uri)` || Sets a prefix mapping. ||
+|| `document.data.expand(curieOrTerm)` || Expands a CURIE or Term to a URI  (extension). ||
+|| `document.data.shorten(URI)` || Shortens a URI to a CURIE or Term (extension). ||
+
+= Element Descendant Operations =
+
+There are plenty of subtree operations that can be useful.  For example, finding the first descendant that has a particular subject:
+
+{{{
+var subject = "http://www.example.com/id";
+var filter = { 
+   acceptNode: function(e) {
+        return e.data && e.data.id==id ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT;
+   }        
+}
+var walker = document.createTreeWalker(parent,NodeFilter.SHOW_ELEMENT,filter,false);
+var descendant = walker.nextNode() ? walker.currentNode : null;
+}}}
+
+As such, these probably don't need to be added to the API.
