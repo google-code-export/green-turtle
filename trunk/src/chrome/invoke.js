@@ -120,38 +120,48 @@ function manualTransfer() {
 
 var treeSource = document.getElementById("webkit-xml-viewer-source-xml");
 if (!treeSource && document.head) {
-   var checkTimer = {
-      count: 0,
-      timer: null,
-      check: function() {
-         var current = document.head.firstChild;
-         while (current) {
-            if (current.localName=="meta" && current.getAttribute("name")=="green-turtle-rdfa-message") {
-               return;
-            }
-            current = current.nextSibling;
-         }
-         if (this.count>5) {
-            console.log("No load RDFa implementation found.  Manually transfering triples.");
-            manualTransfer();
-         } else {
-            //console.log("Waiting for RDFa implementation: "+this.count);
-            this.timer = setTimeout(function() { checkTimer.check() },500);
-         }
-         this.count++;
-      }
-   };
-   checkTimer.check();
-
-   document.addEventListener("rdfa.loaded",function() {
-      //console.log("RDFa loaded!");
-      if (checkTimer.timer) {
-         //console.log("Clearing checkTimer");
-         clearTimeout(checkTimer.timer);
-      }
-      console.log("Attempting to use browser/document RDFa implementation.");
+   if (document.readyState=="complete") {
       setupDocumentTransfer();
-   },false);
+   } else {
+      document.addEventListener("rdfa.loaded",function() {
+         //console.log("RDFa loaded!");
+         if (checkTimer.timer) {
+            //console.log("Clearing checkTimer");
+            clearTimeout(checkTimer.timer);
+         }
+         console.log("Attempting to use browser/document RDFa implementation.");
+         setupDocumentTransfer();
+      },false);
+      var checkTimer = {
+         count: 0,
+         timer: null,
+         check: function() {
+            var current = document.head.firstChild;
+            while (current) {
+               if (current.localName=="meta" && current.getAttribute("name")=="green-turtle-rdfa-message") {
+                  console.log("Green Turtle detected, document.readyState="+document.readyState);
+                  return;
+               }
+               current = current.nextSibling;
+            }
+            if (this.count>5) {
+               console.log("No load RDFa implementation found.  Manually transfering triples.");
+               manualTransfer();
+            } else {
+               console.log("Waiting for RDFa implementation: "+this.count);
+               this.timer = setTimeout(function() { checkTimer.check() },500);
+            }
+            this.count++;
+         }
+      };
+      try {
+         checkTimer.check();
+      } catch (ex) {
+         console.log(ex);
+      }
+      
+   }
+
 } else {
    manualTransfer();
 }
