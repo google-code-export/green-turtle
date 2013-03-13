@@ -230,6 +230,19 @@ DocumentData.prototype.getSubjects = function(property,value) {
 // TODO: is there a way to merge this with getValueOrigin ?  The code is almost the same
 DocumentData.prototype.getValueOrigins = function(subject,property) {
    var values = [];
+   var convert = function(pnode) {
+      if (pnode) {
+         for (var i=0; i<pnode.objects.length; i++) {
+            if (Array.isArray(pnode.objects[i].origin)) {
+               for (var j=0; j<pnode.objects[i].origin.length; j++) {
+                  values.push({ origin: pnode.objects[i].origin[j], value: pnode.objects[i].value });
+               }
+            } else {
+               values.push({ origin: pnode.objects[i].origin, value: pnode.objects[i].value });
+            }
+         }
+      }
+   }
    if (property) {
       property = this._data_.curieParser.parse(property,true);
    }
@@ -238,39 +251,23 @@ DocumentData.prototype.getValueOrigins = function(subject,property) {
       var snode = this._data_.triplesGraph[subject];
       if (snode) {
          if (property) {
-            var pnode = snode.predicates[property];
-            if (pnode) {
-               for (var i=0; i<pnode.objects.length; i++) {
-                  values.push({ origin: pnode.objects[i].origin, value: pnode.objects[i].value });
-               }
-            }
+            convert(snode.predicates[property]);
          } else {
             for (var predicate in snode.predicates) {
-               var pnode = snode.predicates[predicate];
-               for (var i=0; i<pnode.objects.length; i++) {
-                  values.push({ origin: pnode.objects[i].origin, value: pnode.objects[i].value });
-               }
+               convert(snode.predicates[predicate]);
             }
          }
       }
    } else if (property) {
       for (var subject in this._data_.triplesGraph) {
          var snode = this._data_.triplesGraph[subject];
-         var pnode = snode.predicates[property];
-         if (pnode) {
-            for (var i=0; i<pnode.objects.length; i++) {
-               values.push({ origin: pnode.objects[i].origin, value: pnode.objects[i].value });
-            }
-         }
+         convert(snode.predicates[property]);
       }
    } else {
       for (var subject in this._data_.triplesGraph) {
          var snode = this._data_.triplesGraph[subject];
          for (var predicate in snode.predicates) {
-            var pnode = snode.predicates[predicate];
-            for (var i=0; i<pnode.objects.length; i++) {
-               values.push({ origin: pnode.objects[i].origin, value: pnode.objects[i].value });
-            }
+            convert(snode.predicates[predicate]);
          }
       }
    }
@@ -520,7 +517,11 @@ DocumentData.attach = function(target) {
          if (pnode) {
             for (var i=0; i<pnode.objects.length; i++) {
                if (noValue || pnode.objects[i].value==value) {
-                  nodes.push(pnode.objects[i].origin);
+                  if (Array.isArray(pnode.objects[i].origin)) {
+                     nodes.push.apply(nodes,pnode.objects[i].origin);
+                  } else {
+                     nodes.push(pnode.objects[i].origin);
+                  }
                }
             }
          }
@@ -531,13 +532,8 @@ DocumentData.attach = function(target) {
    target.getElementSubject = function(e) {
       for (var subject in this.data._data_.triplesGraph) {
          var snode = this.data._data_.triplesGraph[subject];
-         for (predicate in snode.predicates) {
-            var pnode = snode.predicates[predicate];
-            for (var i=0; i<pnode.objects.length; i++) {
-               if (pnode.objects[i].origin==e) {
-                  return subject;
-               }
-            }
+         if (snode.origins.indexOf(e)>=0) {
+            return subject;
          }
       }
       return null;
