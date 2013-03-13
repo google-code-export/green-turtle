@@ -32,7 +32,7 @@ GraphRDFaProcessor.prototype.init = function() {
 GraphRDFaProcessor.prototype.newSubjectOrigin = function(origin,subject) {
    var snode = this.newSubject(null,subject);
    for (var i=0; i<snode.origins.length; i++) {
-      if (snode.origins[i]==origin) {
+      if (snode.origins[i]===origin) {
          return;
       }
    }
@@ -60,6 +60,14 @@ GraphRDFaProcessor.prototype.addTriple = function(origin,subject,predicate,objec
 
    for (var i=0; i<pnode.objects.length; i++) {
       if (pnode.objects[i].type==object.type && pnode.objects[i].value==object.value) {
+         if (pnode.objects[i].origin!==origin) {
+            if (!Array.isArray(pnode.objects[i].origin)) {
+               var origins = [];
+               origins.push(pnode.objects[i].origin);
+               pnode.objects[i].origin = origins;
+            }
+            pnode.objects[i].origin.push(origin);
+         }
          return;
       }
    }
