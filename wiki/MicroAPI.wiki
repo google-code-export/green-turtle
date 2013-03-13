@@ -2,7 +2,7 @@
 
 = Introduction =
 
-This is an attempt to document a usable subset of the RDFa API and extensions that could simplify use.
+This is an attempt to document a usable subset of the RDFa API and extensions that could simplify use and is completely compatible with the [http://www.w3.org/TR/rdfa-api/ RDFa API] as specified.
 
 
 = Summary =
