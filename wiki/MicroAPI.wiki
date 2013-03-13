@@ -50,6 +50,8 @@ The `getValues()` method of the subject returns the object values for specific p
 
 The subject object also provides full access to the triples for the subject via the properties.  The keys for properties are full URIs and `document.data.expand()` should be used to convert CURIE or Term values into URIs.
 
+The `toString()` method returns Turtle representations for both subjects and predicates.
+
 The subject object has the following properties:
 
 || `id` || The subject URI ||
