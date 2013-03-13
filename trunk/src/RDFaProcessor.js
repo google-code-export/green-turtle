@@ -553,7 +553,7 @@ RDFaProcessor.prototype.process = function(node) {
       var rdfaData = null;
       if (newSubject) {
          //this.newSubject(current,newSubject);
-         if (aboutAtt || typedResource) {
+         if (aboutAtt || resourceAtt || typedResource) {
             if (!current.data) {
                rdfaData = {
                   types: []
@@ -568,7 +568,7 @@ RDFaProcessor.prototype.process = function(node) {
                rdfaData = current.data;
                rdfaData.types = [];
             }
-            if (typeofAtt && !aboutAtt && currentObjectResource) {
+            if (typeofAtt && !aboutAtt && !resourceAtt && currentObjectResource) {
                rdfaData.id = currentObjectResource;
             } else {
                rdfaData.id = newSubject;
@@ -578,13 +578,8 @@ RDFaProcessor.prototype.process = function(node) {
          }
       }
       
-      //console.log("rdfaData="+rdfaData);
-
       // Sequence Step 7: generate type triple
       if (typedResource) {
-         if (!newSubject) {
-            console.log("Typed resource: "+typedResource+" of type(s) "+typeofAtt.value);
-         }
          var values = this.tokenize(typeofAtt.value);
          for (var i=0; i<values.length; i++) {
             var object = this.parseTermOrCURIEOrAbsURI(values[i],vocabulary,context.terms,prefixes,base);
