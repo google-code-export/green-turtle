@@ -325,7 +325,15 @@ RDFaProcessor.prototype.process = function(node) {
       this.setContext(node);
    } 
    var queue = [];
-   queue.push({ current: node, context: this.push(null,node.baseURI)});
+   // Fix for Firefox that includes the hash in the base URI
+   var removeHash = function(baseURI) {
+      var hash = baseURI.indexOf("#");
+      if (hash>=0) {
+         baseURI = baseURI.substring(0,hash);
+      }
+      return baseURI;
+   }
+   queue.push({ current: node, context: this.push(null,removeHash(node.baseURI))});
    while (queue.length>0) {
       var item = queue.shift();
       if (item.parent) {
@@ -373,7 +381,7 @@ RDFaProcessor.prototype.process = function(node) {
       var vocabulary = context.vocabulary;
 
       // TODO: the "base" element may be used for HTML+RDFa 1.1
-      var base = this.parseURI(current.baseURI);
+      var base = this.parseURI(removeHash(current.baseURI));
       current.item = null;
 
       // Sequence Step 2: set the default vocabulary
@@ -453,10 +461,10 @@ RDFaProcessor.prototype.process = function(node) {
          }
          if (!newSubject) {
             if (current.parentNode.nodeType==Node.DOCUMENT_NODE) {
-               newSubject = current.baseURI;
+               newSubject = removeHash(current.baseURI);
             } else if (context.parentObject) {
                // TODO: Verify: If the xml:base has been set and the parentObject is the baseURI of the parent, then the subject needs to be the new base URI
-               newSubject = current.parentNode.baseURI==context.parentObject ? current.baseURI : context.parentObject;
+               newSubject = removeHash(current.parentNode.baseURI)==context.parentObject ? removeHash(current.baseURI) : context.parentObject;
             }
          }
          if (resourceAtt) {
@@ -487,13 +495,13 @@ RDFaProcessor.prototype.process = function(node) {
             }
          }
          if (!newSubject && current.parentNode.nodeType==Node.DOCUMENT_NODE) {
-            newSubject = current.baseURI;
+            newSubject = removeHash(current.baseURI);
             if (typeofAtt) {
                typedResource = newSubject;
             }
          } else if (!newSubject && context.parentObject) {
             // TODO: Verify: If the xml:base has been set and the parentObject is the baseURI of the parent, then the subject needs to be the new base URI
-            newSubject = current.parentNode.baseURI==context.parentObject ? current.baseURI : context.parentObject;
+            newSubject = removeHash(current.parentNode.baseURI)==context.parentObject ? removeHash(current.baseURI) : context.parentObject;
          }
          if (typeofAtt && !typedResource) {
             if (resourceAtt) {
@@ -530,14 +538,14 @@ RDFaProcessor.prototype.process = function(node) {
          }
          if (!newSubject) {
             if (current.parentNode.nodeType==Node.DOCUMENT_NODE) {
-               newSubject = current.baseURI;
+               newSubject = removeHash(current.baseURI);
             } else if (this.inXHTMLMode && (current.localName=="head" || current.localName=="body")) {
-               newSubject = current.parentNode.baseURI==context.parentObject ? current.baseURI : context.parentObject;
+               newSubject = removeHash(current.parentNode.baseURI)==context.parentObject ? removeHash(current.baseURI) : context.parentObject;
             } else if (typeofAtt) {
                newSubject = this.newBlankNode();
             } else if (context.parentObject) {
                // TODO: Verify: If the xml:base has been set and the parentObject is the baseURI of the parent, then the subject needs to be the new base URI
-               newSubject = current.parentNode.baseURI==context.parentObject ? current.baseURI : context.parentObject;
+               newSubject = removeHash(current.parentNode.baseURI)==context.parentObject ? removeHash(current.baseURI) : context.parentObject;
                if (!propertyAtt) {
                   skip = true;
                }
@@ -554,27 +562,12 @@ RDFaProcessor.prototype.process = function(node) {
       if (newSubject) {
          //this.newSubject(current,newSubject);
          if (aboutAtt || resourceAtt || typedResource) {
-            if (!current.data) {
-               rdfaData = {
-                  types: []
-               };
-               Object.defineProperty(current,"data", {
-                     value: rdfaData,
-                     writable: false,
-                     configurable: true,
-                     enumerable: true
-                  });        
-            } else {
-               rdfaData = current.data;
-               rdfaData.types = [];
-            }
+            var id = newSubject;
             if (typeofAtt && !aboutAtt && !resourceAtt && currentObjectResource) {
-               rdfaData.id = currentObjectResource;
-            } else {
-               rdfaData.id = newSubject;
+               id = currentObjectResource;
             }
-            //console.log("Setting data attribute for "+current.localName+" for subject "+rdfaData.subject);
-            this.newSubjectOrigin(current,rdfaData.id);
+            //console.log("Setting data attribute for "+current.localName+" for subject "+id);
+            this.newSubjectOrigin(current,id);
          }
       }
       
@@ -583,7 +576,6 @@ RDFaProcessor.prototype.process = function(node) {
          var values = this.tokenize(typeofAtt.value);
          for (var i=0; i<values.length; i++) {
             var object = this.parseTermOrCURIEOrAbsURI(values[i],vocabulary,context.terms,prefixes,base);
-            rdfaData.types.push(object);
             if (object) {
                this.addTriple(current,typedResource,RDFaProcessor.typeURI,{ type: RDFaProcessor.objectURI , value: object});
             }
@@ -754,7 +746,7 @@ RDFaProcessor.prototype.process = function(node) {
          childContext = this.push(context,context.subject);
          // TODO: should the entObject be passed along?  If not, then intermediary children will keep properties from being associated with incomplete triples.
          // TODO: Verify: if the current baseURI has changed and the parentObject is the parent's base URI, then the baseURI should change
-         childContext.parentObject = current.parentNode.baseURI==context.parentObject ? current.baseURI : context.parentObject;
+         childContext.parentObject = removeHash(current.parentNode.baseURI)==context.parentObject ? removeHash(current.baseURI) : context.parentObject;
          childContext.incomplete = context.incomplete;
          childContext.language = language;
          childContext.prefixes = prefixes;

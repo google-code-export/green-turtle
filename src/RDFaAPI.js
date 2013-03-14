@@ -322,45 +322,41 @@ DocumentData.prototype.getValues = function(subject,property) {
    return values;
 };
 
+Object.defineProperty(DocumentData.prototype,"prefixes",{
+   enumerable: true,
+   get: function() {
+      return Object.keys(this._data_.prefixes);
+   }
+});
+
 DocumentData.prototype.setMapping = function(prefix,uri) {
    this._data_.prefixes[prefix] = uri;
 };
 
-DocumentData.prototype.getSubjectRelations = function(subject,objectsOnly) {
+DocumentData.prototype.getMapping = function(prefix) {
+   return this._data_.prefixes[prefix];
+};
+
+DocumentData.prototype.expand = function(curie) {
+   return this._data_.curieParser.parse(curie,true);  
+}
+
+DocumentData.prototype.shorten = function(uri) {
+   for (prefix in this._data_.prefixes) {
+      var mapped = this._data_.prefixes[prefix];
+      if (uri.indexOf(mapped)==0) {
+         return prefix+":"+uri.substring(mapped.length);
+      }
+   }
+   return uri;
+}
+
+DocumentData.prototype.getSubject = function(subject) {
    if (!subject) { return null; }
 
    subject = this._data_.curieParser.parse(subject,true);
-   var triples = { subject: subject, predicates: {} };
  
-   var snode = this._data_.triplesGraph[subject];
-   if (!snode) {
-      return null;
-   }
-
-   for (var predicate in snode.predicates) {
-      var pnode = snode.predicates[predicate];
-      var objects = [];
-      triples.predicates[predicate] = { predicate: predicate, objects: objects };
-      for (var i=0; i<pnode.objects.length; i++) {
-         var object = pnode.objects[i];
-         if (!objectsOnly && object.type==RDFaProcessor.XMLLiteralURI) {
-            var serializer = new XMLSerializer();
-            var value = "";
-            for (var x=0; x<object.value.length; x++) {
-               if (object.value[x].nodeType==Node.ELEMENT_NODE) {
-                  value += serializer.serializeToString(object.value[x]);
-               } else if (object.value[x].nodeType==Node.TEXT_NODE) {
-                  value += object.value[x].nodeValue;
-               }
-            } 
-            objects.push({ type: object.type, value: value, language: object.language });
-         } else {
-            objects.push({ type: object.type, value: object.value, language: object.language });
-         }
-      }
-   }
-
-   return triples;
+   return this._data_.triplesGraph[subject];
 }
 
 DocumentData.prototype.getProjection = function(subject, template) {
@@ -415,62 +411,44 @@ DocumentData.prototype.getProjections = function(property, value, template) {
 };
 
 Element.prototype.getElementsByType = function() {
-   var descendant = this.firstElementChild;
+   var typeList = arguments;
+   var walker = this.ownerDocument.createTreeWalker(this,NodeFilter.SHOW_ELEMENT,
+     { acceptNode: function(e) {
+          if (!e.data) { return NodeFilter.FILTER_REJECT; }
+          for (var i=0; i<typeList.length; i++) {
+             if (e.data.types.indexOf(typeList[i])>=0) {
+                return NodeFilter.FILTER_ACCEPT;
+             }
+          }
+          return NodeFilter.FILTER_REJECT;
+       }        
+     },
+     false);
    var results = [];
    results.item = function(index) {
       return this[index];
    }
-   while (descendant && descendant!=this) {
-      //console.log("At: "+descendant.tagName);
-      if (descendant.data) {
-         for (var i=0; i<arguments.length; i++) {
-            //console.log("Types: "+descendant.data.types+" checking for "+arguments[i]);
-            if (descendant.data.types.indexOf(arguments[i])>=0) {
-               results.push(descendant);
-               break;
-            }
-         }
-      }
-      if (descendant.firstElementChild) {
-         descendant = descendant.firstElementChild;
-      } else if (descendant.nextElementSibling) {
-         descendant = descendant.nextElementSibling;
-      } else {
-         while (!descendant.parentNode.nextElementSibling && descendant!=this) {
-             descendant = descendant.parentNode;
-         }
-         if (descendant!=this) {
-            descendant = descendant.parentNode.nextElementSibling;
-         }
-      }
+   while (walker.nextNode()) {
+      results.push(walker.currentNode); 
    }
    return results;
 }
 
 Element.prototype.getFirstElementByType = function() {
-   var descendant = this.firstElementChild;
-   while (descendant && descendant!=this) {
-      if (descendant.data) {
-         for (var i=0; i<arguments.length; i++) {
-            if (descendant.data.types.indexOf(arguments[i])>=0) {
-               return descendant;
-            }
-         }
-      }
-      if (descendant.firstElementChild) {
-         descendant = descendant.firstElementChild;
-      } else if (descendant.nextElementSibling) {
-         descendant = descendant.nextElementSibling;
-      } else {
-         while (!descendant.parentNode.nextElementSibling && descendant!=this) {
-             descendant = descendant.parentNode;
-         }
-         if (descendant!=this) {
-            descendant = descendant.nextElementSibling;
-         }
-      }
-   }
-   return null;
+   var typeList = arguments;
+   var walker = this.ownerDocument.createTreeWalker(this,NodeFilter.SHOW_ELEMENT,
+     { acceptNode: function(e) {
+          if (!e.data) { return NodeFilter.FILTER_REJECT; }
+          for (var i=0; i<typeList.length; i++) {
+             if (e.data.types.indexOf(typeList[i])>=0) {
+                return NodeFilter.FILTER_ACCEPT;
+             }
+          }
+          return NodeFilter.FILTER_REJECT;
+       }        
+     },
+     false);
+   return walker.nextNode() ? walker.currentNode : null;
 }
 
 DocumentData.attach = function(target) {
