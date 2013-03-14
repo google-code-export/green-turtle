@@ -28,16 +28,11 @@ if (document.head) {
          setTimeout(function() { meta.dispatchEvent(event); },1);
       } else if (message.type=="get-subject") {
          var triples = null;
-         if (document.data.getSubjectRelations) {
+         if (document.data.getSubject) {
             // Use the Green Turtle triples extension
-            triples = document.data.getSubjectRelations(message.subject);
+            triples = document.data.getSubject(message.subject).toObject();
          } else {
             // Do it the hard way!
-            var subjects = {};
-            var subjectList = document.data.getSubjects();
-            for (var i=0; i<subjectList.length; i++) {
-               subjects[subjectList[i]] = true;
-            }
             triples = { subject: message.subject, predicates: {} };
             var projection = document.data.getProjection(message.subject);
             var properties = projection.getProperties();
