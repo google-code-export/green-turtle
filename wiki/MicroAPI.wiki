@@ -1,4 +1,4 @@
-#summary A Minimally Useful API for RDFa
+#summary A Useful and Minimal API for RDFa
 
 = Introduction =
 
