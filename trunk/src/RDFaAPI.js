@@ -414,13 +414,13 @@ Element.prototype.getElementsByType = function() {
    var typeList = arguments;
    var walker = this.ownerDocument.createTreeWalker(this,NodeFilter.SHOW_ELEMENT,
      { acceptNode: function(e) {
-          if (!e.data) { return NodeFilter.FILTER_REJECT; }
+          if (!e.data) { return NodeFilter.FILTER_SKIP; }
           for (var i=0; i<typeList.length; i++) {
              if (e.data.types.indexOf(typeList[i])>=0) {
                 return NodeFilter.FILTER_ACCEPT;
              }
           }
-          return NodeFilter.FILTER_REJECT;
+          return NodeFilter.FILTER_SKIP;
        }        
      },
      false);
@@ -438,13 +438,13 @@ Element.prototype.getFirstElementByType = function() {
    var typeList = arguments;
    var walker = this.ownerDocument.createTreeWalker(this,NodeFilter.SHOW_ELEMENT,
      { acceptNode: function(e) {
-          if (!e.data) { return NodeFilter.FILTER_REJECT; }
+          if (!e.data) { return NodeFilter.FILTER_SKIP; }
           for (var i=0; i<typeList.length; i++) {
              if (e.data.types.indexOf(typeList[i])>=0) {
                 return NodeFilter.FILTER_ACCEPT;
              }
           }
-          return NodeFilter.FILTER_REJECT;
+          return NodeFilter.FILTER_SKIP;
        }        
      },
      false);
