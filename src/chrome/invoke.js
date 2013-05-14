@@ -8,7 +8,7 @@ function getTransferSubject(triplesGraph,subject) {
       tsnode.predicates[predicate] = tpnode;
       for (var i=0; i<pnode.objects.length; i++) {
          var object = pnode.objects[i];
-         if (object.type==RDFaProcessor.XMLLiteralURI) {
+         if (object.type==RDFaProcessor.XMLLiteralURI || object.type==RDFaProcessor.HTMLLiteralURI) {
             var serializer = new XMLSerializer();
             var value = "";
             for (var x=0; x<object.value.length; x++) {

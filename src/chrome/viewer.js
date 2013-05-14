@@ -14,6 +14,7 @@ function Viewer() {
    this.typeURI = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
    this.objectURI = "http://www.w3.org/1999/02/22-rdf-syntax-ns#object";
    this.XMLLiteralURI = "http://www.w3.org/1999/02/22-rdf-syntax-ns#XMLLiteral"; 
+   this.HTMLLiteralURI = "http://www.w3.org/1999/02/22-rdf-syntax-ns#HTML"; 
    this.PlainLiteralURI = "http://www.w3.org/1999/02/22-rdf-syntax-ns#PlainLiteral";
 }
 
@@ -412,6 +413,8 @@ Viewer.prototype.addTriple = function(snode,pnode,object) {
       }
       markup += literal;
    } else if (object.type==this.XMLLiteralURI) {
+      markup += this.escapeMarkup(object.value);
+   } else if (object.type==this.HTMLLiteralURI) {
       markup += this.escapeMarkup(object.value);
    } else if (object.type==this.objectURI) {
       markup += "&lt;"+this.escapeMarkup(object.value)+">";
