@@ -186,7 +186,18 @@ RDFaProcessor.prototype.setContext = function(node) {
    if (node.localName=="html" && node.getAttribute("version")=="XHTML+RDFa 1.1") {
       this.setXHTMLContext();
    } else if (node.localName=="html" || node.namespaceURI=="http://www.w3.org/1999/xhtml") {
-      this.setHTMLContext();
+      if (document.doctype) {
+         if (document.doctype.publicId=="-//W3C//DTD XHTML+RDFa 1.0//EN" && document.doctype.systemId=="http://www.w3.org/MarkUp/DTD/xhtml-rdfa-1.dtd") {
+            console.log("WARNING: RDF 1.0 is not supported.  Defaulting to HTML5 mode.");
+            this.setHTMLContext();
+         } else if (document.doctype.publicId=="-//W3C//DTD XHTML+RDFa 1.1//EN" && document.doctype.systemId=="http://www.w3.org/MarkUp/DTD/xhtml-rdfa-2.dtd") {
+            this.setXHTMLContext();
+         } else {
+            this.setHTMLContext();
+         }
+      } else {
+         this.setHTMLContext();
+      }
    } else {
       this.setXMLContext();
    }
