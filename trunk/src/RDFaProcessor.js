@@ -22,6 +22,7 @@ RDFaProcessor.prototype.newBlankNode = function() {
 }
 
 RDFaProcessor.XMLLiteralURI = "http://www.w3.org/1999/02/22-rdf-syntax-ns#XMLLiteral"; 
+RDFaProcessor.HTMLLiteralURI = "http://www.w3.org/1999/02/22-rdf-syntax-ns#HTML"; 
 RDFaProcessor.PlainLiteralURI = "http://www.w3.org/1999/02/22-rdf-syntax-ns#PlainLiteral";
 RDFaProcessor.objectURI = "http://www.w3.org/1999/02/22-rdf-syntax-ns#object";
 RDFaProcessor.typeURI = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
@@ -692,7 +693,7 @@ RDFaProcessor.prototype.process = function(node) {
          var content = null; 
          if (datatypeAtt) {
             datatype = datatypeAtt.value=="" ? RDFaProcessor.PlainLiteralURI : this.parseTermOrCURIEOrAbsURI(datatypeAtt.value,vocabulary,context.terms,prefixes,base);
-            content = datatype==RDFaProcessor.XMLLiteralURI ? null : (contentAtt ? contentAtt.value : current.textContent);
+            content = datatype==RDFaProcessor.XMLLiteralURI || datatype==RDFaProcessor.HTMLLiteralURI ? null : (contentAtt ? contentAtt.value : current.textContent);
          } else if (contentAtt) {
             datatype = RDFaProcessor.PlainLiteralURI;
             content = contentAtt.value;
@@ -728,10 +729,10 @@ RDFaProcessor.prototype.process = function(node) {
                      list = [];
                      listMapping[predicate] = list;
                   }
-                  list.push(datatype==RDFaProcessor.XMLLiteralURI ? { type: RDFaProcessor.XMLLiteralURI, value: current.childNodes} : { type: datatype ? datatype : RDFaProcessor.PlainLiteralURI, value: content, language: language});
+                  list.push((datatype==RDFaProcessor.XMLLiteralURI || datatype==RDFaProcessor.HTMLLiteralURI) ? { type: datatype, value: current.childNodes} : { type: datatype ? datatype : RDFaProcessor.PlainLiteralURI, value: content, language: language});
                } else {
-                  if (datatype==RDFaProcessor.XMLLiteralURI) {
-                     this.addTriple(current,newSubject,predicate,{ type: RDFaProcessor.XMLLiteralURI, value: current.childNodes});
+                  if (datatype==RDFaProcessor.XMLLiteralURI || datatype==RDFaProcessor.HTMLLiteralURI) {
+                     this.addTriple(current,newSubject,predicate,{ type: datatype, value: current.childNodes});
                   } else {
                      this.addTriple(current,newSubject,predicate,{ type: datatype ? datatype : RDFaProcessor.PlainLiteralURI, value: content, language: language});
                      //console.log(newSubject+" "+predicate+"="+content);
