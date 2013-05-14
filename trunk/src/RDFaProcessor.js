@@ -262,6 +262,7 @@ RDFaProcessor.prototype.setInitialContext = function() {
 RDFaProcessor.prototype.setXMLContext = function() {
    this.setInitialContext();
    this.inXHTMLMode = false;
+   this.inHTMLMode = false;
 }
 
 RDFaProcessor.prototype.setHTMLContext = function() {
@@ -270,6 +271,7 @@ RDFaProcessor.prototype.setHTMLContext = function() {
                            { namespaceURI: null, localName: "lang" }];
    this.contentAttributes = [ "value", "datetime", "content" ];
    this.inXHTMLMode = false;
+   this.inHTMLMode = true;
 }
 
 RDFaProcessor.prototype.setXHTMLContext = function() {
@@ -277,6 +279,7 @@ RDFaProcessor.prototype.setXHTMLContext = function() {
    this.setInitialContext();
    
    this.inXHTMLMode = true;
+   this.inHTMLMode = false;
    
    this.langAttributes = [ { namespaceURI: "http://www.w3.org/XML/1998/namespace", localName: "lang" } ];
    this.contentAttributes = [ "content" ];
@@ -461,6 +464,37 @@ RDFaProcessor.prototype.process = function(node) {
       var resourceAtt = current.getAttributeNode("resource");
       var hrefAtt = current.getAttributeNode("href");
       var inlistAtt = current.getAttributeNode("inlist");
+      
+      var relAttPredicates = [];
+      if (relAtt) {
+         var values = this.tokenize(relAtt.value);
+         for (var i=0; i<values.length; i++) {
+            var predicate = this.parsePredicate(values[i],vocabulary,context.terms,prefixes,base);
+            if (predicate) {
+               relAttPredicates.push(predicate);
+            }
+         }
+      }
+      var revAttPredicates = [];
+      if (revAtt) {
+         var values = this.tokenize(revAtt.value);
+         for (var i=0; i<values.length; i++) {
+            var predicate = this.parsePredicate(values[i],vocabulary,context.terms,prefixes,base);
+            if (predicate) {
+               revAttPredicates.push(predicate);
+            }
+         }
+      }
+      
+      // Section 3.1, bullet 7
+      if (this.inHTMLMode) {
+         if (relAttPredicates.length==0) {
+            relAtt = null;
+         }
+         if (revAttPredicates.length==0) {
+            revAtt = null;
+         }
+      }
 
       if (relAtt || revAtt) {
          // Sequence Step 6: establish new subject and value
@@ -604,35 +638,22 @@ RDFaProcessor.prototype.process = function(node) {
       // Sequence Step 9: generate object triple
       if (currentObjectResource) {
          if (relAtt && inlistAtt) {
-            var values = this.tokenize(relAtt.value);
-            for (var i=0; i<values.length; i++) {
-               var predicate = this.parsePredicate(values[i],vocabulary,context.terms,prefixes,base);
-               if (predicate) {
-                  var list = listMapping[predicate];
-                  if (!list) {
-                     list = [];
-                     listMapping[predicate] = list;
-                  }
-                  list.push({ type: RDFaProcessor.objectURI, value: currentObjectResource });
+            for (var i=0; i<relAttPredicates.length; i++) {
+               var list = listMapping[relAttPredicates[i]];
+               if (!list) {
+                  list = [];
+                  listMapping[relAttPredicates[i]] = list;
                }
+               list.push({ type: RDFaProcessor.objectURI, value: currentObjectResource });
             }
          } else if (relAtt) {
-            var values = this.tokenize(relAtt.value);
-            //alert(newSubject+" "+relAtt.value+" "+currentObjectResource+" "+values.length);
-            for (var i=0; i<values.length; i++) {
-               var predicate = this.parsePredicate(values[i],vocabulary,context.terms,prefixes,base);
-               if (predicate) {
-                  this.addTriple(current,newSubject,predicate,{ type: RDFaProcessor.objectURI, value: currentObjectResource});
-               }
+            for (var i=0; i<relAttPredicates.length; i++) {
+               this.addTriple(current,newSubject,relAttPredicates[i],{ type: RDFaProcessor.objectURI, value: currentObjectResource});
             }
          }
          if (revAtt) {
-            var values = this.tokenize(revAtt.value);
-            for (var i=0; i<values.length; i++) {
-               var predicate = this.parsePredicate(values[i],vocabulary,context.terms,prefixes,base);
-               if (predicate) {
-                  this.addTriple(current,currentObjectResource, predicate, { type: RDFaProcessor.objectURI, value: newSubject});
-               }
+            for (var i=0; i<revAttPredicates.length; i++) {
+               this.addTriple(current,currentObjectResource, revAttPredicates[i], { type: RDFaProcessor.objectURI, value: newSubject});
             }
          }
       } else {
@@ -642,36 +663,23 @@ RDFaProcessor.prototype.process = function(node) {
             //alert(current.tagName+": generated blank node, newSubject="+newSubject+" currentObjectResource="+currentObjectResource);
          }
          if (relAtt && inlistAtt) {
-            var values = this.tokenize(relAtt.value);
-            for (var i=0; i<values.length; i++) {
-               var predicate = this.parsePredicate(values[i],vocabulary,context.terms,prefixes,base);
-               if (predicate) {
-                  var list = listMapping[predicate];
-                  if (!list) {
-                     list = [];
-                     listMapping[predicate] = list;
-                  }
-                  //console.log("Adding incomplete list for "+predicate);
-                  incomplete.push({ predicate: predicate, list: list });
+            for (var i=0; i<relAttPredicates.length; i++) {
+               var list = listMapping[relAttPredicates[i]];
+               if (!list) {
+                  list = [];
+                  listMapping[predicate] = list;
                }
+               //console.log("Adding incomplete list for "+predicate);
+               incomplete.push({ predicate: relAttPredicates[i], list: list });
             }
          } else if (relAtt) {
-            var values = this.tokenize(relAtt.value);
-            for (var i=0; i<values.length; i++) {
-               var predicate = this.parsePredicate(values[i],vocabulary,context.terms,prefixes,base);
-               if (predicate) {
-                  incomplete.push({ predicate: predicate, forward: true });
-               }
-         
+            for (var i=0; i<relAttPredicates.length; i++) {
+               incomplete.push({ predicate: relAttPredicates[i], forward: true });
             }
          }
          if (revAtt) {
-            var values = this.tokenize(revAtt.value);
-            for (var i=0; i<values.length; i++) {
-               var predicate = this.parsePredicate(values[i],vocabulary,context.terms,prefixes,base);
-               if (predicate) {
-                  incomplete.push({ predicate: predicate, forward: false });
-               }
+            for (var i=0; i<revAttPredicates.length; i++) {
+               incomplete.push({ predicate: revAttPredicates[i], forward: false });
             }
          }
       }
