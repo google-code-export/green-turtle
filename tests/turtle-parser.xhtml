@@ -12,6 +12,11 @@ window.addEventListener("load",function() {
       var text = document.getElementById("turtle").value;
       window.parser = new TurtleParser();
       window.parser.parse(text);
+      if (window.parser.errorCount>0) {
+         alert("There were "+window.parser.errorCount+" errors encountered during the parse.");
+      } else {
+         alert("Parsed successfully!");
+      }
    }
 },false);
        </script>
