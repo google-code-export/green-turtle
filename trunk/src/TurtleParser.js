@@ -7,8 +7,8 @@ function TurtleParser() {
 
 TurtleParser.wsRE = /^\s+/;
 TurtleParser.uriRE = /^\<([^>]*)\>/;
-TurtleParser.singleQuoteLiteralRE = /'([^'\n\r]*)'/;
-TurtleParser.doubleQuoteLiteralRE = /"([^""\n\r]*)"/;
+TurtleParser.singleQuoteLiteralRE = /^'([^'\n\r]*)'/;
+TurtleParser.doubleQuoteLiteralRE = /^\"([^"\n\r]*)\"/;
 /*
 TurtleParser.quoteRE = /^"/;
 TurtleParser.multilineQuoteRE = /^"""/;
@@ -33,7 +33,7 @@ TurtleParser.baseRE = /^@base/;
 TurtleParser.sparqlPrefixRE = /^PREFIX/;
 TurtleParser.sparqlBaseRE = /^BASE/;
 TurtleParser.semicolonRE = /^;/;
-TurtleParser.commaRE = /^;/;
+TurtleParser.commaRE = /^,/;
 TurtleParser.aRE = /^a/;
 TurtleParser.openParenRE = /^\(/;
 TurtleParser.closeParenRE = /^\)/;
@@ -76,7 +76,7 @@ TurtleParser.prototype.reset = function() {
       },
       graph: {},
       prefixes: {},
-      base: {}
+      base: null
    };
    this.blankNodeCounter = 0;
 }
@@ -129,7 +129,7 @@ TurtleParser.prototype.parseStatement = function(text) {
          console.log("Cannot parse IRI after @prefix: "+remaining.substring(20)+"...");
          return remaining;
       }
-      this.context.prefixes[prefix] = this.context.base ? this.context.base.resolve(match.iri) : this.parseURI(match.iri);
+      this.context.prefixes[prefix] = this.context.base ? this.context.base.resolve(match.iri) : match.iri;
       
       remaining = this._trim(match.remaining);
       match = this._match(TurtleParser.dotRE,remaining);
@@ -177,7 +177,7 @@ TurtleParser.prototype.parseStatement = function(text) {
          console.log("Cannot parse IRI after PREFIX: "+remaining.substring(0,20)+"...");
          return remaining;
       }
-      this.context.prefixes[prefix] = this.context.base ? this.context.base.resolve(match.iri) : this.parseURI(match.iri);
+      this.context.prefixes[prefix] = this.context.base ? this.context.base.resolve(match.iri) : match.iri;
       return match.remaining;
    }
    match = this._match(TurtleParser.sparqlBaseRE,text);
@@ -298,7 +298,7 @@ TurtleParser.prototype.parseBlankNode = function(text) {
       match =  this._match(TurtleParser.closeSquareBracketRE,remaining);
       if (match) {
          match.iri = this.newBlankNode();
-         return;
+         return match;
       } else {
          console.log("Missing close square bracket ']': "+remaining(0,20)+" ...");
          // attempt to recover
@@ -380,6 +380,7 @@ TurtleParser.prototype.parseLiteral = function(text) {
             return { literal: literal, remaining: remaining}
          }
       }
+      return { literal: literal, remaining: remaining};
    }
    // TODO: handle long quotes
    
