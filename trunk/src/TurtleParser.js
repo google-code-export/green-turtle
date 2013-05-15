@@ -480,7 +480,7 @@ TurtleParser.prototype.parseLiteral = function(text) {
    }
    
    if (match) {
-      var literal = match.values[0];
+      var literal = TurtleParser.expandLiteral(match.values[0]);
       var remaining = match.remaining;
       match = this._match(TurtleParser.langRE,remaining);
       if (match) {
@@ -541,6 +541,42 @@ TurtleParser.prototype.newSubject = function(subject) {
       this.context.graph[subject] = snode;
    }
    return snode;
+}
+
+TurtleParser.escapedSequenceRE = /(\\t|\\b|\\n|\\r|\\f|\\"|\\'|\\\\|\\[uU][0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f])/;
+
+TurtleParser.expandLiteral = function(literal) {
+   var parts = literal.split(TurtleParser.escapedSequenceRE);
+   var s = "";
+   for (var i=0; i<parts.length; i++) {
+      if (parts[i].length==0) {
+         continue;
+      }
+      if (parts[i]=="\\t") {
+         s += "\t";
+      } else if (parts[i]=="\\t") {
+         s += "\t";
+      } else if (parts[i]=="\\b") {
+         s += "\b";
+      } else if (parts[i]=="\\n") {
+         s += "\n";
+      } else if (parts[i]=="\\r") {
+         s += "\r";
+      } else if (parts[i]=="\\f") {
+         s += "\f";
+      } else if (parts[i]=="\\\"") {
+         s += "\"";
+      } else if (parts[i]=="\\'") {
+         s += "'";
+      } else if (parts[i]=="\\\\") {
+         s += "\\";
+      } else if (parts[i].charAt(0)== '\\' && (parts[i].charAt(1)=="u" || parts[i].charAt(1)=="U")) {
+         s += String.fromCharCode(parseInt(parts[i].substring(2),16));
+      } else {
+         s += parts[i];
+      }
+   }
+   return s;
 }
 
 
