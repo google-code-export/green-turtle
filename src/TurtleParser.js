@@ -90,6 +90,13 @@ TurtleParser.prototype.reset = function() {
    this.lineNumber = 1;
 }
 
+TurtleParser.dumpGraph = function(graph) {
+   for (var subject in graph) {
+      var snode = graph[subject];
+      console.log(snode.toString());
+   }
+}
+
 TurtleParser.prototype.getGraph = function() {
    return this.context.graph;
 }
@@ -238,6 +245,45 @@ TurtleParser.prototype.parseTriples = function(text) {
    if (!match) {
       match = this.parseBlankNode(text);
    }
+   if (match) {
+      return this.parsePredicateObjectList(match.iri,this._trim(match.remaining));
+   }
+   // collection as subject
+   match = this._match(TurtleParser.openParenRE,text);
+   if (match) {
+      // collection
+      var subject = null;
+      var remaining = match.remaining;
+      var currentSubject = null;
+      do {
+      
+         remaining = this._trim(remaining);
+         
+         // try closing the collection
+         match = this._match(TurtleParser.closeParenRE,remaining);
+         if (match) {
+            remaining = match.remaining;
+            if (currentSubject) {
+               this.addTriple(currentSubject,TurtleParser.restURI,{ type: TurtleParser.objectURI, value: TurtleParser.nilURI});
+            } else {
+               subject = this.newBlankNode();
+            }
+            break;
+         }
+         
+         var nextSubject = this.newBlankNode();
+         if (!currentSubject) {
+            subject = nextSubject;
+         } else {
+            this.addTriple(currentSubject,TurtleParser.restURI,{ type: TurtleParser.objectURI, value: nextSubject});
+         }
+         currentSubject = nextSubject;
+         remaining = this.parseObject(currentSubject,TurtleParser.firstURI,remaining);
+      } while (remaining.length>0);
+      
+      return this.parsePredicateObjectList(subject,this._trim(remaining));
+   }
+   
    if (!match) {
       // end the parse
       this.reportError("Terminating: Cannot parse at "+text.substring(0,20)+" ...");
@@ -308,7 +354,7 @@ TurtleParser.prototype.parseObject = function(subject,predicate,text) {
       var remaining = match.remaining;
       do {
       
-         var remaining = this._trim(remaining);
+         remaining = this._trim(remaining);
          
          // try closing the collection
          match = this._match(TurtleParser.closeParenRE,remaining);
@@ -326,7 +372,7 @@ TurtleParser.prototype.parseObject = function(subject,predicate,text) {
          }
          collectionSubject = nextSubject;
          collectionPredicate = TurtleParser.firstURI;
-         var remaining = this.parseObject(collectionSubject,collectionPredicate,remaining);
+         remaining = this.parseObject(collectionSubject,collectionPredicate,remaining);
       } while (remaining.length>0);
    }
    match = this._match(TurtleParser.openSquareBracketRE,text);
