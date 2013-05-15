@@ -29,6 +29,9 @@ TurtleParser.commaRE = /^,/;
 TurtleParser.aRE = /^a/;
 TurtleParser.openParenRE = /^\(/;
 TurtleParser.closeParenRE = /^\)/;
+TurtleParser.integerRE = /^([+-]?[0-9]+)/;
+TurtleParser.decimalRE = /^([+-]?[0-9]*\.[0-9]+)/;
+TurtleParser.doubleRE = /^([+-]?(?:[0-9]+\.[0-9]*[eE][+-]?[0-9]+|\.[0-9]+[eE][+-]?[0-9]+|[0-9]+[eE][+-]?[0-9]+))/;
 
 TurtleParser.typeURI = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 TurtleParser.objectURI = "http://www.w3.org/1999/02/22-rdf-syntax-ns#object";
@@ -36,6 +39,10 @@ TurtleParser.plainLiteralURI = "http://www.w3.org/1999/02/22-rdf-syntax-ns#Plain
 TurtleParser.nilURI = "http://www.w3.org/1999/02/22-rdf-syntax-ns#nil";
 TurtleParser.firstURI = "http://www.w3.org/1999/02/22-rdf-syntax-ns#first";
 TurtleParser.restURI = "http://www.w3.org/1999/02/22-rdf-syntax-ns#rest";
+TurtleParser.xsdStringURI = "http://www.w3.org/2001/XMLSchema#string";
+TurtleParser.xsdIntegerURI = "http://www.w3.org/2001/XMLSchema#integer";
+TurtleParser.xsdDecimalURI = "http://www.w3.org/2001/XMLSchema#decimal";
+TurtleParser.xsdDoubleURI = "http://www.w3.org/2001/XMLSchema#double";
 
 TurtleParser.prototype.reset = function() {
    this.context = {
@@ -423,8 +430,26 @@ TurtleParser.prototype.parseLiteral = function(text) {
       }
       return { literal: literal, remaining: remaining};
    }
-   // TODO: handle long quotes
    
+   match = this._match(TurtleParser.doubleRE,text);
+   if (match) {
+      match.literal = match.values[0];
+      match.type = TurtleParser.xsdDoubleURI;
+      return match;
+   }
+   
+   match = this._match(TurtleParser.decimalRE,text);
+   if (match) {
+      match.literal = match.values[0];
+      match.type = TurtleParser.xsdDecimalURI;
+      return match;
+   }
+   match = this._match(TurtleParser.integerRE,text);
+   if (match) {
+      match.literal = match.values[0];
+      match.type = TurtleParser.xsdIntegerURI;
+      return match;
+   }
    return null;
    
 }
