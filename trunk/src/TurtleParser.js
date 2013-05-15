@@ -32,6 +32,7 @@ TurtleParser.closeParenRE = /^\)/;
 TurtleParser.integerRE = /^([+-]?[0-9]+)/;
 TurtleParser.decimalRE = /^([+-]?[0-9]*\.[0-9]+)/;
 TurtleParser.doubleRE = /^([+-]?(?:[0-9]+\.[0-9]*[eE][+-]?[0-9]+|\.[0-9]+[eE][+-]?[0-9]+|[0-9]+[eE][+-]?[0-9]+))/;
+TurtleParser.booleanRE = /^(true|false)/;
 
 TurtleParser.typeURI = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 TurtleParser.objectURI = "http://www.w3.org/1999/02/22-rdf-syntax-ns#object";
@@ -43,6 +44,7 @@ TurtleParser.xsdStringURI = "http://www.w3.org/2001/XMLSchema#string";
 TurtleParser.xsdIntegerURI = "http://www.w3.org/2001/XMLSchema#integer";
 TurtleParser.xsdDecimalURI = "http://www.w3.org/2001/XMLSchema#decimal";
 TurtleParser.xsdDoubleURI = "http://www.w3.org/2001/XMLSchema#double";
+TurtleParser.xsdBooleanURI = "http://www.w3.org/2001/XMLSchema#boolean";
 
 TurtleParser.prototype.reset = function() {
    this.context = {
@@ -448,6 +450,12 @@ TurtleParser.prototype.parseLiteral = function(text) {
    if (match) {
       match.literal = match.values[0];
       match.type = TurtleParser.xsdIntegerURI;
+      return match;
+   }
+   match = this._match(TurtleParser.booleanRE,text);
+   if (match) {
+      match.literal = match.values[0];
+      match.type = TurtleParser.xsdBooleanURI;
       return match;
    }
    return null;
