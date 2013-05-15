@@ -10,8 +10,14 @@ function RDFaSubject(context,subject) {
 
 RDFaSubject.prototype.toString = function() {
    var s = "<" + this.subject + ">";
+   var first = true;
    for (var predicate in this.predicates) {
-      s += " " + this.predicates[predicate] + ";";
+      if (!first) {
+         s += ";\n";
+      } else {
+         first = false;
+      }
+      s += " " + this.predicates[predicate];
    }
    s += " .";
    return s;
@@ -71,7 +77,22 @@ RDFaPredicate.prototype.toString = function() {
       if (i>0) {
          s += ", ";
       }
-      s += '"' + this.objects[i].value.split('"').join('\"') + '"';
+      if (this.objects[i].type=="http://www.w3.org/1999/02/22-rdf-syntax-ns#object") {
+         s += "<" + this.objects[i].value+">";
+      } else if (this.objects[i].type=="http://www.w3.org/2001/XMLSchema#integer" ||
+                 this.objects[i].type=="http://www.w3.org/2001/XMLSchema#decimal" ||
+                 this.objects[i].type=="http://www.w3.org/2001/XMLSchema#double" ||
+                 this.objects[i].type=="http://www.w3.org/2001/XMLSchema#boolean") {
+         s += this.objects[i].value;
+      } else {
+         s += '"' + this.objects[i].value.split('"').join('\"') + '"';
+         if (this.objects[i].type!="http://www.w3.org/1999/02/22-rdf-syntax-ns#PlainLiteral") {
+             s += "^^<"+this.objects[i].type+">";
+         }
+         if (this.objects[i].language) {
+             s += "@"+this.objects[i].language;
+         }
+      }
    }
    return s;
 }
