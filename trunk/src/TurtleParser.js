@@ -3,14 +3,17 @@ TurtleParser.prototype.constructor=TurtleParser;
 
 function TurtleParser() {
    this.reset();
+   this.onError = function(lineNumber,msg) {
+      console.log(lineNumber+": "+msg);
+   };
 }
 
 TurtleParser.wsRE = /^\s+/;
 TurtleParser.uriRE = /^\<([^>]*)\>/;
 TurtleParser.singleQuoteLiteralRE = /^'([^'\n\r]*)'/;
 TurtleParser.doubleQuoteLiteralRE = /^\"([^"\n\r]*)\"/;
-TurtleParser.longDoubleQuoteLiteralRE = /^\"\"\"((?:[^"]*|\"(?!\")|\"\"(?!\"))*)\"\"\"/;
-TurtleParser.longSingleQuoteLiteralRE = /^'''((?:[^']*|'(?!')|''(?!'))*)'''/;
+TurtleParser.longDoubleQuoteLiteralRE = /^\"\"\"((?:[^"\\]*|\\"|\\|\"(?!\")|\"\"(?!\"))*)\"\"\"/;
+TurtleParser.longSingleQuoteLiteralRE = /^'''((?:[^'\\]*|\\'|\\|'(?!')|''(?!'))*)'''/;
 TurtleParser.typeRE = /^\^\^/;
 TurtleParser.dotRE = /^\./;
 TurtleParser.openSquareBracketRE = /^\[/;
@@ -83,6 +86,8 @@ TurtleParser.prototype.reset = function() {
       base: null
    };
    this.blankNodeCounter = 0;
+   this.errorCount = 0;
+   this.lineNumber = 1;
 }
 
 TurtleParser.prototype.getGraph = function() {
@@ -101,14 +106,19 @@ TurtleParser.prototype._match = function(re,text) {
 
 TurtleParser.prototype._trim = function(text) {
    var match = TurtleParser.wsRE.exec(text);
+   if (match) {
+      this.lineNumber += (match[0].split(/\n/).length-1);
+   }
    return match ? text.substring(match[0].length) : text;
+}
+
+TurtleParser.prototype.reportError = function(msg) {
+   this.onError(this.lineNumber,msg);
 }
 
 TurtleParser.prototype.parse = function(text) {
    while (text.length>0) {
-      //console.log("Line ("+text.length+"): "+text);
       text = this._trim(text);
-      //console.log("Line ("+text.length+"): "+text);
       if (text.length>0) {
         text = this.parseStatement(text);
       }
@@ -122,7 +132,8 @@ TurtleParser.prototype.parseStatement = function(text) {
       var remaining = this._trim(match.remaining);
       match = this.parsePrefixName(remaining);
       if (!match) {
-         console.log("Cannot parse prefix after @prefix: "+text.substring(20)+"...");
+         this.reportError("Cannot parse prefix after @prefix: "+text.substring(20)+"...");
+         this.errorCount++;
          return remaining;
       }
       var prefix = match.prefix;
@@ -130,7 +141,8 @@ TurtleParser.prototype.parseStatement = function(text) {
       remaining = this._trim(match.remaining);
       match = this.parseIRIReference(remaining);
       if (!match) {
-         console.log("Cannot parse IRI after @prefix: "+remaining.substring(20)+"...");
+         this.reportError("Cannot parse IRI after @prefix: "+remaining.substring(20)+"...");
+         this.errorCount++;
          return remaining;
       }
       this.context.prefixes[prefix] = this.context.base ? this.context.base.resolve(match.iri) : match.iri;
@@ -140,7 +152,8 @@ TurtleParser.prototype.parseStatement = function(text) {
       if (match) {
          return match.remaining;
       } else {
-         console.log("Missing end . for @prefix statement.  Found: "+remaining.substring(0,20)+"...");
+         this.reportError("Missing end . for @prefix statement.  Found: "+remaining.substring(0,20)+"...");
+         this.errorCount++;
          return remaining;
       }
    } 
@@ -150,7 +163,8 @@ TurtleParser.prototype.parseStatement = function(text) {
       var remaining = this._trim(match.remaining);
       match = this.parseIRIReference(remaining);
       if (!match) {
-         console.log("Cannot parse IRI after @base: "+remaining.substring(0,20)+"...");
+         this.reportError("Cannot parse IRI after @base: "+remaining.substring(0,20)+"...");
+         this.errorCount++;
          return remaining;
       }
       this.context.base = this.parseURI(match.iri);
@@ -160,7 +174,8 @@ TurtleParser.prototype.parseStatement = function(text) {
       if (match) {
          return match.remaining;
       } else {
-         console.log("Missing end . for @base statement.  Found: "+remaining.substring(0,20)+"...");
+         this.reportError("Missing end . for @base statement.  Found: "+remaining.substring(0,20)+"...");
+         this.errorCount++;
          return remaining;
       }
    }
@@ -170,7 +185,8 @@ TurtleParser.prototype.parseStatement = function(text) {
       var remaining = this._trim(match.remaining);
       match = this.parsePrefixName(remaining);
       if (!match) {
-         console.log("Cannot parse prefix after PREFIX: "+text.substring(0,20)+"...");
+         this.reportError("Cannot parse prefix after PREFIX: "+text.substring(0,20)+"...");
+         this.errorCount++;
          return remaining;
       }
       var prefix = match.prefix;
@@ -178,7 +194,8 @@ TurtleParser.prototype.parseStatement = function(text) {
       remaining = this._trim(match.remaining);
       match = this.parseIRIReference(remaining);
       if (!match) {
-         console.log("Cannot parse IRI after PREFIX: "+remaining.substring(0,20)+"...");
+         this.reportError("Cannot parse IRI after PREFIX: "+remaining.substring(0,20)+"...");
+         this.errorCount++;
          return remaining;
       }
       this.context.prefixes[prefix] = this.context.base ? this.context.base.resolve(match.iri) : match.iri;
@@ -190,7 +207,8 @@ TurtleParser.prototype.parseStatement = function(text) {
       var remaining = this._trim(match.remaining);
       match = this.parseIRIReference(remaining);
       if (!match) {
-         console.log("Cannot parse IRI after BASE: "+remaining.substring(0,20)+"...");
+         this.reportError("Cannot parse IRI after BASE: "+remaining.substring(0,20)+"...");
+         this.errorCount++;
          return remaining;
       }
       this.context.base = this.parseURI(match.iri);
@@ -205,7 +223,8 @@ TurtleParser.prototype.parseStatement = function(text) {
    if (match) {
       return match.remaining;
    } else {
-      console.log("Missing end . triples.  Found: "+text.substring(0,20)+"...");
+      this.reportError("Missing end . triples.  Found: "+text.substring(0,20)+"...");
+      this.errorCount++;
       return text;
    }
    
@@ -221,7 +240,8 @@ TurtleParser.prototype.parseTriples = function(text) {
    }
    if (!match) {
       // end the parse
-      console.log("Terminating: Cannot parse at "+text.substring(0,20)+" ...");
+      this.reportError("Terminating: Cannot parse at "+text.substring(0,20)+" ...");
+      this.errorCount++;
       return "";
    }
    
@@ -243,7 +263,8 @@ TurtleParser.prototype.parsePredicateObjectList = function(subject,text,allowEmp
          if (allowEmpty) {
             return text;
          }
-         console.log("Terminating: Cannot parse predicate IRI.");
+         this.reportError("Terminating: Cannot parse predicate IRI.");
+         this.errorCount++;
          return "";
       }
       remaining = this.parseObjectList(subject,match.iri,this._trim(match.remaining));
@@ -318,7 +339,8 @@ TurtleParser.prototype.parseObject = function(subject,predicate,text) {
       if (match) {
          return match.remaining;
       } else {
-         console.log("Missing close square bracket ']' for blank node "+newSubject+" predicate object list");
+         this.reportError("Missing close square bracket ']' for blank node "+newSubject+" predicate object list");
+         this.errorCount++;
          return remaining;
       }
    }
@@ -327,7 +349,8 @@ TurtleParser.prototype.parseObject = function(subject,predicate,text) {
       this.addTriple(subject,predicate,{ type: match.type ? match.type : TurtleParser.plainLiteralURI, value: match.literal, language: match.language});
       return match.remaining;
    }
-   console.log("Terminating: Cannot parse literal at "+text.substring(0,20));
+   this.reportError("Terminating: Cannot parse literal at "+text.substring(0,20));
+   this.errorCount++;
    return "";
 }
 
@@ -346,7 +369,8 @@ TurtleParser.prototype.parseBlankNode = function(text) {
          match.iri = this.newBlankNode();
          return match;
       } else {
-         console.log("Missing close square bracket ']': "+remaining.substring(0,20)+" ...");
+         this.reportError("Missing close square bracket ']': "+remaining.substring(0,20)+" ...");
+         this.errorCount++;
          // attempt to recover
          return { iri: this.newBlankNode(), remaining: remaining };
       }
@@ -381,7 +405,8 @@ TurtleParser.prototype.parseIRI = function(text) {
       var prefix = match.values[0];
       var ns = prefix=="_" ? "_:" : this.context.prefixes[prefix];
       if (!ns) {
-         console.log("No prefix mapping for "+prefix);
+         this.reportError("No prefix mapping for "+prefix);
+         this.errorCount++;
          return null;
       }
       var remaining = match.remaining;
@@ -426,7 +451,8 @@ TurtleParser.prototype.parseLiteral = function(text) {
             match.type = match.iri;
             return match;
          } else {
-            console.log("Missing type after ^^");
+            this.reportError("Missing type URI after ^^");
+            this.errorCount++;
             return { literal: literal, remaining: remaining}
          }
       }
@@ -473,7 +499,7 @@ TurtleParser.prototype.newSubject = function(subject) {
 
 
 TurtleParser.prototype.addTriple = function(subject,predicate,object) {
-   console.log("Triple: "+subject+" "+predicate+" "+JSON.stringify(object));
+   //console.log("Triple: "+subject+" "+predicate+" "+JSON.stringify(object));
    var snode = this.newSubject(subject);
    var pnode = snode.predicates[predicate];
    if (!pnode) {
