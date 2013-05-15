@@ -82,6 +82,7 @@ var rdfaHostPath = "s3.amazonaws.com/green-turtle/RDFa.${version.label}.js";
    <file file="${src.dir}/RDFa.prolog.js"/>
    <file file="${src.dir}/URI.js"/>
    <file file="${src.dir}/RDFaProcessor.js"/>
+   <file file="${src.dir}/RDFaGraph.js"/>
    <file file="${src.dir}/GraphRDFaProcessor.js"/>
    <file file="${src.dir}/RDFaAPI.js"/>
    <file file="${src.dir}/RDFa.epilogue.js"/>
@@ -97,6 +98,7 @@ var rdfaHostPath = "s3.amazonaws.com/green-turtle/RDFa.${version.label}.js";
 </string>
       <file file="${src.dir}/URI.js"/>
       <file file="${src.dir}/RDFaProcessor.js"/>
+      <file file="${src.dir}/RDFaGraph.js"/>
       <file file="${src.dir}/GraphRDFaProcessor.js"/>
    </concat>
    
