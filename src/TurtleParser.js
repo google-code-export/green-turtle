@@ -41,6 +41,9 @@ TurtleParser.closeParenRE = /^\)/;
 TurtleParser.typeURI = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 TurtleParser.objectURI = "http://www.w3.org/1999/02/22-rdf-syntax-ns#object";
 TurtleParser.plainLiteralURI = "http://www.w3.org/1999/02/22-rdf-syntax-ns#PlainLiteral";
+TurtleParser.nilURI = "http://www.w3.org/1999/02/22-rdf-syntax-ns#nil";
+TurtleParser.firstURI = "http://www.w3.org/1999/02/22-rdf-syntax-ns#first";
+TurtleParser.restURI = "http://www.w3.org/1999/02/22-rdf-syntax-ns#rest";
 
 TurtleParser.prototype.reset = function() {
    this.context = {
@@ -210,6 +213,7 @@ TurtleParser.prototype.parseStatement = function(text) {
 TurtleParser.prototype.parseTriples = function(text) {
 
    // TODO:  blankNodePropertyList predicateObjectList?
+   // TODO: collection as subject
    var match =  this.parseIRI(text);
    if (!match) {
       match = this.parseBlankNode(text);
@@ -274,7 +278,35 @@ TurtleParser.prototype.parseObject = function(subject,predicate,text) {
       this.addTriple(subject,predicate,{ type: TurtleParser.objectURI, value: match.iri});
       return match.remaining;
    }
-   // TODO: collection
+   match = this._match(TurtleParser.openParenRE,text);
+   if (match) {
+      // collection
+      var collectionSubject = subject;
+      var collectionPredicate = predicate;
+      var remaining = match.remaining;
+      do {
+      
+         var remaining = this._trim(remaining);
+         
+         // try closing the collection
+         match = this._match(TurtleParser.closeParenRE,remaining);
+         if (match) {
+            this.addTriple(collectionSubject,collectionSubject==subject ? predicate : TurtleParser.restURI,{ type: TurtleParser.objectURI, value: TurtleParser.nilURI});
+            return match.remaining;
+         }
+         
+         var nextSubject = this.newBlankNode();
+         // there must be an object
+         if (collectionSubject==subject) {
+            this.addTriple(subject,predicate,{ type: TurtleParser.objectURI, value: nextSubject});
+         } else {
+            this.addTriple(collectionSubject,TurtleParser.restURI,{ type: TurtleParser.objectURI, value: nextSubject});
+         }
+         collectionSubject = nextSubject;
+         collectionPredicate = TurtleParser.firstURI;
+         var remaining = this.parseObject(collectionSubject,collectionPredicate,remaining);
+      } while (remaining.length>0);
+   }
    // TODO: blankNodePropertyList
    var match = this.parseLiteral(text);
    if (match) {
@@ -399,6 +431,7 @@ TurtleParser.prototype.newSubject = function(subject) {
 
 
 TurtleParser.prototype.addTriple = function(subject,predicate,object) {
+   console.log("Triple: "+subject+" "+predicate+" "+JSON.stringify(object));
    var snode = this.newSubject(subject);
    var pnode = snode.predicates[predicate];
    if (!pnode) {
