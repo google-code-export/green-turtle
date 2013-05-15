@@ -219,7 +219,7 @@ TurtleParser.prototype.parseTriples = function(text) {
    return this.parsePredicateObjectList(match.iri,this._trim(match.remaining));
 }
 
-TurtleParser.prototype.parsePredicateObjectList = function(subject,text) {
+TurtleParser.prototype.parsePredicateObjectList = function(subject,text,allowEmpty) {
    var more = true;
    var remaining = null;
    do {
@@ -231,6 +231,9 @@ TurtleParser.prototype.parsePredicateObjectList = function(subject,text) {
          }
       }
       if (!match) {   
+         if (allowEmpty) {
+            return text;
+         }
          console.log("Terminating: Cannot parse predicate IRI.");
          return "";
       }
@@ -262,9 +265,6 @@ TurtleParser.prototype.parseObjectList = function(subject,predicate,text) {
 
 TurtleParser.prototype.parseObject = function(subject,predicate,text) {
    var match =  this.parseIRI(text);
-   if (!match) {
-      match = this.parseBlankNode(text);
-   }
    if (match) {
       // object reference, generate triple
       this.addTriple(subject,predicate,{ type: TurtleParser.objectURI, value: match.iri});
@@ -299,7 +299,20 @@ TurtleParser.prototype.parseObject = function(subject,predicate,text) {
          var remaining = this.parseObject(collectionSubject,collectionPredicate,remaining);
       } while (remaining.length>0);
    }
-   // TODO: blankNodePropertyList
+   match = this._match(TurtleParser.openSquareBracketRE,text);
+   if (match) {
+      var newSubject = this.newBlankNode();
+      this.addTriple(subject,predicate,{ type: TurtleParser.objectURI, value: newSubject});
+      var remaining = this.parsePredicateObjectList(newSubject,this._trim(match.remaining),true);
+      remaining = this._trim(remaining);
+      match = this._match(TurtleParser.closeSquareBracketRE,remaining);
+      if (match) {
+         return match.remaining;
+      } else {
+         console.log("Missing close square bracket ']' for blank node "+newSubject+" predicate object list");
+         return remaining;
+      }
+   }
    var match = this.parseLiteral(text);
    if (match) {
       this.addTriple(subject,predicate,{ type: match.type ? match.type : TurtleParser.plainLiteralURI, value: match.literal, language: match.language});
@@ -324,7 +337,7 @@ TurtleParser.prototype.parseBlankNode = function(text) {
          match.iri = this.newBlankNode();
          return match;
       } else {
-         console.log("Missing close square bracket ']': "+remaining(0,20)+" ...");
+         console.log("Missing close square bracket ']': "+remaining.substring(0,20)+" ...");
          // attempt to recover
          return { iri: this.newBlankNode(), remaining: remaining };
       }
