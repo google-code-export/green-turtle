@@ -15,6 +15,7 @@ window.addEventListener("load",function() {
       if (window.parser.errorCount>0) {
          alert("There were "+window.parser.errorCount+" errors encountered during the parse.");
       } else {
+         TurtleParser.dumpGraph(parser.getGraph());
          alert("Parsed successfully!");
       }
    }
