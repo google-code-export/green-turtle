@@ -9,16 +9,8 @@ TurtleParser.wsRE = /^\s+/;
 TurtleParser.uriRE = /^\<([^>]*)\>/;
 TurtleParser.singleQuoteLiteralRE = /^'([^'\n\r]*)'/;
 TurtleParser.doubleQuoteLiteralRE = /^\"([^"\n\r]*)\"/;
-/*
-TurtleParser.quoteRE = /^"/;
-TurtleParser.multilineQuoteRE = /^"""/;
-TurtleParser.endMultilineQuoteRE = /"""/;
-TurtleParser.quoteTextRE = /^([^"]+)/;
-TurtleParser.escapedQuoteRE = /^\\"/;
-TurtleParser.tripleQuoteRE = /^""""/;
-TurtleParser.literalRE = /^"([^"]*)"/;
-TurtleParser.multilineRE = /^"""/;
-*/
+TurtleParser.longDoubleQuoteLiteralRE = /^\"\"\"((?:[^"]*|\"(?!\")|\"\"(?!\"))*)\"\"\"/;
+TurtleParser.longSingleQuoteLiteralRE = /^'''((?:[^']*|'(?!')|''(?!'))*)'''/;
 TurtleParser.typeRE = /^\^\^/;
 TurtleParser.dotRE = /^\./;
 TurtleParser.openSquareBracketRE = /^\[/;
@@ -359,7 +351,7 @@ TurtleParser.prototype.parseIRIReference = function(text) {
 TurtleParser.prototype.parseIRI = function(text) {
    var match = this._match(TurtleParser.uriRE,text);
    if (match) {
-      match.iri = match.values[0];
+      match.iri = this.context.base ? this.context.base.resolve(match.values[0]) : match.values[0];
       return match;
    }
    match = this._match(TurtleParser.prefixRE,text);
@@ -383,9 +375,13 @@ TurtleParser.prototype.parseIRI = function(text) {
 }
 
 TurtleParser.prototype.parseLiteral = function(text) {
-   var string = null;
-   var remaining = null;
-   var match = this._match(TurtleParser.singleQuoteLiteralRE,text);
+   var match = this._match(TurtleParser.longDoubleQuoteLiteralRE,text);
+   if (!match) {
+      match = this._match(TurtleParser.longSingleQuoteLiteralRE,text);
+   }
+   if (!match) {
+      match = this._match(TurtleParser.singleQuoteLiteralRE,text);
+   }
    if (!match) {
       match = this._match(TurtleParser.doubleQuoteLiteralRE,text);
    }
