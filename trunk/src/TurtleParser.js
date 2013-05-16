@@ -84,7 +84,16 @@ TurtleParser.prototype.reset = function() {
       },
       graph: {},
       prefixes: {},
-      base: null
+      base: null,
+      toString: function() {
+         var s = "";
+         for (var subject in this.graph) {
+            var snode = this.graph[subject];
+            s += snode.toString();
+            s += "\n";
+         }
+         return s;
+      }
    };
    this.blankNodeCounter = 0;
    this.errorCount = 0;
@@ -132,7 +141,10 @@ TurtleParser.prototype.reportError = function(msg) {
    this.onError(this.lineNumber,msg);
 }
 
-TurtleParser.prototype.parse = function(text) {
+TurtleParser.prototype.parse = function(text,baseURI) {
+   if (baseURI) {
+      this.context.base = this.parseURI(baseURI);
+   }
    while (text.length>0) {
       text = this._trim(text);
       if (text.length>0) {
@@ -488,7 +500,7 @@ TurtleParser.prototype.parseIRI = function(text) {
          match.iri = ns+match.values[0];
          return match;
       } else {
-         return ns;
+         return { iri: ns, remaining: remaining };
       }
    }
    return null;
