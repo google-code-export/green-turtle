@@ -8,6 +8,7 @@ function TurtleParser() {
    };
 }
 
+TurtleParser.commentRE = /^#.*/;
 TurtleParser.wsRE = /^\s+/;
 TurtleParser.uriRE = /^\<([^>]*)\>/;
 TurtleParser.singleQuoteLiteralRE = /^'([^'\n\r]*)'/;
@@ -112,11 +113,19 @@ TurtleParser.prototype._match = function(re,text) {
 }
 
 TurtleParser.prototype._trim = function(text) {
-   var match = TurtleParser.wsRE.exec(text);
-   if (match) {
-      this.lineNumber += (match[0].split(/\n/).length-1);
-   }
-   return match ? text.substring(match[0].length) : text;
+   var match = null;
+   do {
+      match = TurtleParser.wsRE.exec(text);
+      if (match) {
+         this.lineNumber += (match[0].split(/\n/).length-1);
+         text = text.substring(match[0].length);
+      }
+      match = TurtleParser.commentRE.exec(text);
+      if (match) {
+         text = text.substring(match[0].length);
+      }
+   } while (match);      
+   return text;
 }
 
 TurtleParser.prototype.reportError = function(msg) {
@@ -239,12 +248,7 @@ TurtleParser.prototype.parseStatement = function(text) {
 
 TurtleParser.prototype.parseTriples = function(text) {
 
-   // TODO:  blankNodePropertyList predicateObjectList?
-   // TODO: collection as subject
    var match =  this.parseIRI(text);
-   if (!match) {
-      match = this.parseBlankNode(text);
-   }
    if (match) {
       return this.parsePredicateObjectList(match.iri,this._trim(match.remaining));
    }
@@ -282,6 +286,26 @@ TurtleParser.prototype.parseTriples = function(text) {
       } while (remaining.length>0);
       
       return this.parsePredicateObjectList(subject,this._trim(remaining));
+   }
+   // blank node property list as subject
+   match = this._match(TurtleParser.openSquareBracketRE,text);
+   if (match) {
+      var subject = this.newBlankNode();
+      var remaining = this._trim(match.remaining);
+      // test for empty node
+      match = this._match(TurtleParser.closeSquareBracketRE,remaining);
+      if (match) {
+         remaining = match.remaining;
+      } else {
+         remaining = this.parsePredicateObjectList(subject,remaining);
+         match = this._match(TurtleParser.closeSquareBracketRE,this._trim(remaining));
+         if (match) {
+            remaining = match.remaining;
+         } else {
+            this.reportError("Missing end square bracket ']'.");
+         }
+      }
+      return this.parsePredicateObjectList(subject,this._trim(remaining),true);
    }
    
    if (!match) {
@@ -400,6 +424,7 @@ TurtleParser.prototype.parseObject = function(subject,predicate,text) {
    return "";
 }
 
+/*
 TurtleParser.prototype.parseBlankNode = function(text) {
 
    var match = this._match(TurtleParser.blankNodeLabelRE,text);
@@ -423,6 +448,7 @@ TurtleParser.prototype.parseBlankNode = function(text) {
    }
    return null;
 }
+*/
 
 TurtleParser.prototype.parsePrefixName = function(text) {
    var match = this._match(TurtleParser.prefixRE,text);
@@ -553,8 +579,6 @@ TurtleParser.expandLiteral = function(literal) {
          continue;
       }
       if (parts[i]=="\\t") {
-         s += "\t";
-      } else if (parts[i]=="\\t") {
          s += "\t";
       } else if (parts[i]=="\\b") {
          s += "\b";
