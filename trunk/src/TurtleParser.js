@@ -11,8 +11,8 @@ function TurtleParser() {
 TurtleParser.commentRE = /^#.*/;
 TurtleParser.wsRE = /^\s+/;
 TurtleParser.uriRE = /^\<([^>]*)\>/;
-TurtleParser.singleQuoteLiteralRE = /^'([^'\n\r]*)'/;
-TurtleParser.doubleQuoteLiteralRE = /^\"([^"\n\r]*)\"/;
+TurtleParser.singleQuoteLiteralRE = /^'((?:[^'\n\r\\]*|\\'|\\)*)'/;
+TurtleParser.doubleQuoteLiteralRE = /^\"((?:[^"\n\r\\]*|\\"|\\)*)\"/;
 TurtleParser.longDoubleQuoteLiteralRE = /^\"\"\"((?:[^"\\]*|\\"|\\|\"(?!\")|\"\"(?!\"))*)\"\"\"/;
 TurtleParser.longSingleQuoteLiteralRE = /^'''((?:[^'\\]*|\\'|\\|'(?!')|''(?!'))*)'''/;
 TurtleParser.typeRE = /^\^\^/;
@@ -341,6 +341,7 @@ TurtleParser.prototype.parsePredicateObjectList = function(subject,text,allowEmp
       match = this._match(TurtleParser.semicolonRE,this._trim(remaining));
       if (match) {
          text = this._trim(match.remaining);
+         allowEmpty = true;
       } else {
          more = false;
       }
