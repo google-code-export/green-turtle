@@ -410,17 +410,18 @@ DocumentData.prototype.getProjections = function(property, value, template) {
    return projections;
 };
 
-DocumentData.prototype.parse = function(text,mediaType,errorHandler) {
+DocumentData.prototype.parse = function(text,mediaType,options) {
    if (mediaType!="text/turtle") {
       throw "Unsupported media type "+mediaType;
    }
    var parser = new TurtleParser();
-   if (errorHandler) {
-      parser.onError = errorHandler;
+   if (options && options.errorHandler) {
+      parser.onError = options.errorHandler;
    }
-   parser.parse(text);
+   var base = options ? options.baseURI : null;
+   parser.parse(text,base);
    if (parser.errorCount>0) {
-      throw "Errors during parsing of "+mediaType;
+      throw base ? "Errors during parsing "+base+" of type "+mediaType : "Errors during parsing of type "+mediaType;
    }
    return parser.context;
 }
