@@ -410,6 +410,63 @@ DocumentData.prototype.getProjections = function(property, value, template) {
    return projections;
 };
 
+DocumentData.prototype.parse = function(text,mediaType,errorHandler) {
+   if (mediaType!="text/turtle") {
+      throw "Unsupported media type "+mediaType;
+   }
+   var parser = new TurtleParser();
+   if (errorHandler) {
+      parser.onError = errorHandler;
+   }
+   parser.parse(text);
+   if (parser.errorCount>0) {
+      throw "Errors during parsing of "+mediaType;
+   }
+   return parser.context;
+}
+
+DocumentData.prototype.merge = function(graph,prefixes) {
+   if (graph) {
+      for (var subject in graph) {
+         var snode = graph[subject];
+         var target = this._data_.triplesGraph[subject];
+         if (target) {
+            for (var predicate in snode.predicates) {
+               var pnode = snode.predicates[predicate];
+               var targetPredicate = target.predicates[predicate];
+               if (targetPredicate) {
+                  for (var i=0; i<pnode.objects.length; i++) {
+                     var object = pnode.objects[i];
+                     var toAdd = [];
+                     for (var j=0; j<targetPredicate.objects.length; i++) {
+                        if (object.type==RDFaProcessor.XMLLiteralURI && (targetPredicate.objects[j].type!=object.type || targetPredicate.objects[j].value!==object.value)) {
+                           toAdd.push(object);
+                        } else if (targetPredicate.objects[j].type!=object.type || targetPredicate.objects[j].value==object.value) {
+                           toAdd.push(object);
+                        }
+                     }
+                     for (var j=0; j<toAdd.length; j++) {
+                        targetPredicate.objects.push(toAdd[j]);
+                     }
+                  }
+               } else {
+                  target.predicates[predicate] = pnode;
+               }
+            }
+         } else {
+            this._data_.triplesGraph[subject] = snode;
+         }
+      }
+   }
+   if (prefixes) {
+      for (var prefix in prefixes) {
+         if (!this._data_.prefixes[prefix]) {
+            this._data_.prefixes[prefix] = prefixes[prefix];
+         }
+      }
+   }
+}
+
 Element.prototype.getElementsByType = function() {
    var typeList = arguments;
    var walker = this.ownerDocument.createTreeWalker(this,NodeFilter.SHOW_ELEMENT,
