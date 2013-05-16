@@ -85,7 +85,7 @@ RDFaPredicate.prototype.toString = function() {
                  this.objects[i].type=="http://www.w3.org/2001/XMLSchema#boolean") {
          s += this.objects[i].value;
       } else {
-         s += '"' + this.objects[i].value.split('"').join('\"') + '"';
+         s += '"' + this.objects[i].value.split('"').join('\\"') + '"';
          if (this.objects[i].type!="http://www.w3.org/1999/02/22-rdf-syntax-ns#PlainLiteral") {
              s += "^^<"+this.objects[i].type+">";
          }
