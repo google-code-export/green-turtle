@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component xmlns="http://www.atomojo.org/V/Server/2011/1/0" xmlns:xproc="http://www.atomojo.org/V/XProc/2011/1/0" autoconf-check="30">
+   
+   <client protocol="FILE"/>
+   <client protocol="HTTP"/>
+
+   <server protocol="HTTP" address="*" port="8888">
+      <host name="localhost">
+         <content match="/tests" href="tests"/>
+         <content match="/build" href="../../build"/>
+         <content match="" href="./"/>
+      </host>
+   </server>
+</component>
