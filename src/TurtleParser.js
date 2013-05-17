@@ -19,11 +19,21 @@ TurtleParser.typeRE = /^\^\^/;
 TurtleParser.dotRE = /^\./;
 TurtleParser.openSquareBracketRE = /^\[/;
 TurtleParser.closeSquareBracketRE = /^\]/;
-TurtleParser.prefixRE = /^(\w*):/;
-TurtleParser.blankNodeLabelRE = /^(_:\w+)/;
-TurtleParser.curieRE = /^(\w+:)(\w+)/;
-TurtleParser.localNameRE = /^(\w+)/;
-TurtleParser.langRE = /^@(\w+)/;
+// PN_CHARS_BASE
+// [A-Z]|[a-z]|[\u00C0-\u00D6]|[\u00D8-\u00F6]|[\u00F8-\u02FF]|[\u0370-\u037D]|[\u037F-\u1FFF]|[\u200C-\u200D]|[\u2070-\u218F]|[\u2C00-\u2FEF]|[\u3001-\uD7FF]|[\uF900-\uFDCF]|[\uFDF0-\uFFFD]
+// [\ud800-\udfff][\ud800-\udfff] - surrogate pairs
+// PN_CHARS_U
+// [A-Z]|[a-z]|[\u00C0-\u00D6]|[\u00D8-\u00F6]|[\u00F8-\u02FF]|[\u0370-\u037D]|[\u037F-\u1FFF]|[\u200C-\u200D]|[\u2070-\u218F]|[\u2C00-\u2FEF]|[\u3001-\uD7FF]|[\uF900-\uFDCF]|[\uFDF0-\uFFFD]
+// [\ud800-\udfff][\ud800-\udfff] - surrogate pairs
+// [_]
+// PN_CHARS
+// [A-Z]|[a-z]|[\u00C0-\u00D6]|[\u00D8-\u00F6]|[\u00F8-\u02FF]|[\u0370-\u037D]|[\u037F-\u1FFF]|[\u200C-\u200D]|[\u2070-\u218F]|[\u2C00-\u2FEF]|[\u3001-\uD7FF]|[\uF900-\uFDCF]|[\uFDF0-\uFFFD]
+// [_]
+// [\-\u00B7]|[0-9]|[\u0300-\u036F]|[\u203F-\u2040]
+TurtleParser.prefixRE = /^((?:(?:[A-Z]|[a-z]|[\u00C0-\u00D6]|[\u00D8-\u00F6]|[\u00F8-\u02FF]|[\u0370-\u037D]|[\u037F-\u1FFF]|[\u200C-\u200D]|[\u2070-\u218F]|[\u2C00-\u2FEF]|[\u3001-\uD7FF]|[\uF900-\uFDCF]|[\uFDF0-\uFFFD]|(?:[\ud800-\udfff][\ud800-\udfff]))(?:[A-Z]|[a-z]|[\u00C0-\u00D6]|[\u00D8-\u00F6]|[\u00F8-\u02FF]|[\u0370-\u037D]|[\u037F-\u1FFF]|[\u200C-\u200D]|[\u2070-\u218F]|[\u2C00-\u2FEF]|[\u3001-\uD7FF]|[\uF900-\uFDCF]|[\uFDF0-\uFFFD]|[\ud800-\udfff][\ud800-\udfff]|[_\.\-\u00B7]|[0-9]|[\u0300-\u036F]|[\u203F-\u2040])*)?):/;
+TurtleParser.blankNodeRE = /^(_:)/;
+TurtleParser.localNameRE = /^((?:[A-Z]|[a-z]|[\u00C0-\u00D6]|[\u00D8-\u00F6]|[\u00F8-\u02FF]|[\u0370-\u037D]|[\u037F-\u1FFF]|[\u200C-\u200D]|[\u2070-\u218F]|[\u2C00-\u2FEF]|[\u3001-\uD7FF]|[\uF900-\uFDCF]|[\uFDF0-\uFFFD]|[\ud800-\udfff][\ud800-\udfff]|[_:]|[0-9]|%[0-9A-Fa-f][0-9A-Fa-f]|\\[_~\.\-!$&'()*+,;=\/?#@%])(?:[A-Z]|[a-z]|[\u00C0-\u00D6]|[\u00D8-\u00F6]|[\u00F8-\u02FF]|[\u0370-\u037D]|[\u037F-\u1FFF]|[\u200C-\u200D]|[\u2070-\u218F]|[\u2C00-\u2FEF]|[\u3001-\uD7FF]|[\uF900-\uFDCF]|[\uFDF0-\uFFFD]|[\ud800-\udfff][\ud800-\udfff]|[_\-\.:\u00b7]|[\u0300-\u036F]|[\u203F-\u2040]|[0-9]|%[0-9A-Fa-f][0-9A-Fa-f]|\\[_~\.\-!$&'()*+,;=/?#@%])*)/;
+TurtleParser.langRE = /^@([a-zA-Z]+(?:-[a-zA-Z0-9]+)*)/;
 TurtleParser.prefixIDRE = /^@prefix/;
 TurtleParser.baseRE = /^@base/;
 TurtleParser.sparqlPrefixRE = /^PREFIX/;
@@ -502,6 +512,13 @@ TurtleParser.prototype.parseIRI = function(text) {
       } else {
          return { iri: ns, remaining: remaining };
       }
+   }
+   match = this._match(TurtleParser.blankNodeRE,text);
+   if (match) {
+      var remaining = match.remaining;
+      match = this._match(TurtleParser.localNameRE,remaining);
+      match.iri = "_:"+match.values[0];
+      return match;
    }
    return null;
 }
