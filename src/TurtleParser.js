@@ -360,6 +360,9 @@ TurtleParser.prototype.parsePredicateObjectList = function(subject,text,allowEmp
          if (match) {
             match.iri = TurtleParser.typeURI;
          }
+      } else if (match.iri.substring(0,2)=="_:") {
+         this.reportError("Cannot have a blank node "+match.iri+" as a predicate.");
+         this.errorCount++;
       }
       if (!match) {   
          if (allowEmpty) {
