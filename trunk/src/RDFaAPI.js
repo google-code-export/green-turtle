@@ -439,7 +439,7 @@ DocumentData.prototype.merge = function(graph,prefixes) {
                   for (var i=0; i<pnode.objects.length; i++) {
                      var object = pnode.objects[i];
                      var toAdd = [];
-                     for (var j=0; j<targetPredicate.objects.length; i++) {
+                     for (var j=0; j<targetPredicate.objects.length; j++) {
                         if (object.type==RDFaProcessor.XMLLiteralURI && (targetPredicate.objects[j].type!=object.type || targetPredicate.objects[j].value!==object.value)) {
                            toAdd.push(object);
                         } else if (targetPredicate.objects[j].type!=object.type || targetPredicate.objects[j].value==object.value) {
@@ -512,7 +512,7 @@ Element.prototype.getFirstElementByType = function() {
 DocumentData.attach = function(target) {
 
    Object.defineProperty(target,"data", {
-      value: new DocumentData(target.baseURI),
+      value: new DocumentData(target.nodeType==Node.DOCUMENT_NODE && !target.baseURI ? target.documentElement.baseURI : target.baseURI),
       writable: false,
       configurable: false,
       enumerable: true
