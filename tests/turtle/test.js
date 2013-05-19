@@ -1,12 +1,59 @@
+var positiveSyntaxTest = "http://www.w3.org/ns/rdftest#TestTurtlePositiveSyntax";
+var negativeSyntaxTest = "http://www.w3.org/ns/rdftest#TestTurtleNegativeSyntax";
+var positiveEvalTest = "http://www.w3.org/ns/rdftest#TestTurtleEval";
+var negativeEvalTest = "http://www.w3.org/ns/rdftest#TestTurtleNegativeEval";
+
+function dumpGraph(graph) {
+   var s = "";
+   var subjects = [];
+   for (var subject in graph) {
+      subjects.push(subject);
+   }
+   subjects.sort();
+   for (var i=0; i<subjects.length; i++) {
+      var snode = graph[subjects[i]];
+      var predicates = [];
+      var subjectStr = "<"+subjects[i]+">";
+      for (var predicate in snode.predicates) {
+         predicates.push(predicate);
+      }
+      predicates.sort();
+      for (var j=0; j<predicates.length; j++) {
+         var pnode = snode.predicates[predicates[j]];
+         s += subjectStr+" "+pnode+" .\n";
+      }
+   }
+   return s;
+}
+
 function test(entry) {
    var requester = new XMLHttpRequest();
    requester.open("GET",entry.action,false);
    requester.send(null);
+   entry.shouldParse = entry.type!=negativeSyntaxTest;
+   entry.passed = false;
    try {
       entry.output = document.data.parse(requester.responseText,"text/turtle",{ baseURI: entry.action});
       entry.parsed = true;
+      if (entry.type==positiveSyntaxTest) {
+         entry.passed = true;
+      } if (entry.type==positiveEvalTest) {
+         requester = new XMLHttpRequest();
+         requester.open("GET",entry.result,false);
+         requester.send(null);
+         var text = dumpGraph(entry.output.graph);
+         entry.passed = text==requester.responseText;
+         if (!entry.passed) {
+            console.log(entry.subject+" eval output does not match:");
+            console.log(requester.responseText);
+            console.log(text);
+         }
+      }
    } catch (ex) {
       entry.parsed = false;
+      if (entry.type==negativeSyntaxTest) {
+         entry.passed = true;
+      } 
    }
 }
 window.addEventListener("load",function() {
@@ -51,6 +98,6 @@ window.addEventListener("load",function() {
       var row = document.createElement("tr");
       table.appendChild(row);
       var shortType = entry.type.substring(entry.type.indexOf("#")+1);
-      row.innerHTML = "<td><a target=\"new\" href=\"parser.xhtml?"+entry.action+"\">"+entry.name+"</a></td><td>"+shortType+"</td><td class=\"parsed-"+entry.parsed+"\">"+entry.parsed+"</td><td></td>";
+      row.innerHTML = "<td><a target=\"new\" href=\"parser.xhtml?"+entry.action+"\">"+entry.name+"</a></td><td>"+shortType+"</td><td class=\""+(entry.shouldParse ? entry.parsed ? "pass" : "fail" : entry.parsed ? "fail" : "pass")+"\">"+entry.parsed+"</td><td class=\""+(entry.passed ? "pass" : "fail")+"\">"+(entry.passed ? "pass" : "fail")+"</td>";
    }
 },false);
