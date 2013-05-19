@@ -36,8 +36,8 @@ TurtleParser.localNameRE = /^((?:[A-Z]|[a-z]|[\u00C0-\u00D6]|[\u00D8-\u00F6]|[\u
 TurtleParser.langRE = /^@([a-zA-Z]+(?:-[a-zA-Z0-9]+)*)/;
 TurtleParser.prefixIDRE = /^@prefix/;
 TurtleParser.baseRE = /^@base/;
-TurtleParser.sparqlPrefixRE = /^PREFIX/;
-TurtleParser.sparqlBaseRE = /^BASE/;
+TurtleParser.sparqlPrefixRE = /^[Pp][Rr][Ee][Ff][Ii][Xx]/;
+TurtleParser.sparqlBaseRE = /^[Bb][Aa][Ss][Ee]/;
 TurtleParser.semicolonRE = /^;/;
 TurtleParser.commaRE = /^,/;
 TurtleParser.aRE = /^a/;
@@ -362,7 +362,10 @@ TurtleParser.prototype.parsePredicateObjectList = function(subject,text,allowEmp
       remaining = this.parseObjectList(subject,match.iri,this._trim(match.remaining));
       match = this._match(TurtleParser.semicolonRE,this._trim(remaining));
       if (match) {
-         text = this._trim(match.remaining);
+         do {
+            text = this._trim(match.remaining);
+            match = this._match(TurtleParser.semicolonRE,text);
+         } while (match);
          allowEmpty = true;
       } else {
          more = false;
