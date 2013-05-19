@@ -1,0 +1,5 @@
+@prefix : <http://www.milowski.com/testing/> .
+<#labeled_blank_node_subject> :from
+( _:s ); :to (_:b1).
+<#labeled_blank_node_object> :from
+( _:o ); :to (_:b1).
