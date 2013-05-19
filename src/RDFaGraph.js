@@ -9,7 +9,7 @@ function RDFaSubject(context,subject) {
 }
 
 RDFaSubject.prototype.toString = function() {
-   var s = "<" + this.subject + ">";
+   var s = this.subject.substring(0,2)=="_:" ? this.subject+"" : "<" + this.subject + ">";
    var first = true;
    for (var predicate in this.predicates) {
       if (!first) {
@@ -78,7 +78,11 @@ RDFaPredicate.prototype.toString = function() {
          s += ", ";
       }
       if (this.objects[i].type=="http://www.w3.org/1999/02/22-rdf-syntax-ns#object") {
-         s += "<" + this.objects[i].value+">";
+         if (this.objects[i].value.substring(0,2)=="_:") {
+            s += this.objects[i].value;
+         } else {
+            s += "<" + this.objects[i].value+">";
+         }
       } else if (this.objects[i].type=="http://www.w3.org/2001/XMLSchema#integer" ||
                  this.objects[i].type=="http://www.w3.org/2001/XMLSchema#decimal" ||
                  this.objects[i].type=="http://www.w3.org/2001/XMLSchema#double" ||
