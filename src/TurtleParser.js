@@ -30,9 +30,9 @@ TurtleParser.closeSquareBracketRE = /^\]/;
 // [A-Z]|[a-z]|[\u00C0-\u00D6]|[\u00D8-\u00F6]|[\u00F8-\u02FF]|[\u0370-\u037D]|[\u037F-\u1FFF]|[\u200C-\u200D]|[\u2070-\u218F]|[\u2C00-\u2FEF]|[\u3001-\uD7FF]|[\uF900-\uFDCF]|[\uFDF0-\uFFFD]
 // [_]
 // [\-\u00B7]|[0-9]|[\u0300-\u036F]|[\u203F-\u2040]
-TurtleParser.prefixRE = /^((?:(?:[A-Z]|[a-z]|[\u00C0-\u00D6]|[\u00D8-\u00F6]|[\u00F8-\u02FF]|[\u0370-\u037D]|[\u037F-\u1FFF]|[\u200C-\u200D]|[\u2070-\u218F]|[\u2C00-\u2FEF]|[\u3001-\uD7FF]|[\uF900-\uFDCF]|[\uFDF0-\uFFFD]|(?:[\ud800-\udfff][\ud800-\udfff]))(?:[A-Z]|[a-z]|[\u00C0-\u00D6]|[\u00D8-\u00F6]|[\u00F8-\u02FF]|[\u0370-\u037D]|[\u037F-\u1FFF]|[\u200C-\u200D]|[\u2070-\u218F]|[\u2C00-\u2FEF]|[\u3001-\uD7FF]|[\uF900-\uFDCF]|[\uFDF0-\uFFFD]|[\ud800-\udfff][\ud800-\udfff]|[_\.\-\u00B7]|[0-9]|[\u0300-\u036F]|[\u203F-\u2040])*)?):/;
+TurtleParser.prefixRE = /^((?:(?:[A-Z]|[a-z]|[\u00C0-\u00D6]|[\u00D8-\u00F6]|[\u00F8-\u02FF]|[\u0370-\u037D]|[\u037F-\u1FFF]|[\u200C-\u200D]|[\u2070-\u218F]|[\u2C00-\u2FEF]|[\u3001-\uD7FF]|[\uF900-\uFDCF]|[\uFDF0-\uFFFD]|[\ud800-\udfff][\ud800-\udfff])(?:(?:[A-Z]|[a-z]|[\u00C0-\u00D6]|[\u00D8-\u00F6]|[\u00F8-\u02FF]|[\u0370-\u037D]|[\u037F-\u1FFF]|[\u200C-\u200D]|[\u2070-\u218F]|[\u2C00-\u2FEF]|[\u3001-\uD7FF]|[\uF900-\uFDCF]|[\uFDF0-\uFFFD]|[\ud800-\udfff][\ud800-\udfff]|[_\.\-\u00B7]|[0-9]|[\u0300-\u036F]|[\u203F-\u2040])*(?:[A-Z]|[a-z]|[\u00C0-\u00D6]|[\u00D8-\u00F6]|[\u00F8-\u02FF]|[\u0370-\u037D]|[\u037F-\u1FFF]|[\u200C-\u200D]|[\u2070-\u218F]|[\u2C00-\u2FEF]|[\u3001-\uD7FF]|[\uF900-\uFDCF]|[\uFDF0-\uFFFD]|[\ud800-\udfff][\ud800-\udfff]|[_\-\u00B7]|[0-9]|[\u0300-\u036F]|[\u203F-\u2040]))?)?):/;
 TurtleParser.blankNodeRE = /^(_:)/;
-TurtleParser.localNameRE = /^((?:[A-Z]|[a-z]|[\u00C0-\u00D6]|[\u00D8-\u00F6]|[\u00F8-\u02FF]|[\u0370-\u037D]|[\u037F-\u1FFF]|[\u200C-\u200D]|[\u2070-\u218F]|[\u2C00-\u2FEF]|[\u3001-\uD7FF]|[\uF900-\uFDCF]|[\uFDF0-\uFFFD]|[\ud800-\udfff][\ud800-\udfff]|[_:]|[0-9]|%[0-9A-Fa-f][0-9A-Fa-f]|\\[_~\.\-!$&'()*+,;=\/?#@%])(?:[A-Z]|[a-z]|[\u00C0-\u00D6]|[\u00D8-\u00F6]|[\u00F8-\u02FF]|[\u0370-\u037D]|[\u037F-\u1FFF]|[\u200C-\u200D]|[\u2070-\u218F]|[\u2C00-\u2FEF]|[\u3001-\uD7FF]|[\uF900-\uFDCF]|[\uFDF0-\uFFFD]|[\ud800-\udfff][\ud800-\udfff]|[_\-\.:\u00b7]|[\u0300-\u036F]|[\u203F-\u2040]|[0-9]|%[0-9A-Fa-f][0-9A-Fa-f]|\\[_~\.\-!$&'()*+,;=/?#@%])*)/;
+TurtleParser.localNameRE = /^((?:[A-Z]|[a-z]|[\u00C0-\u00D6]|[\u00D8-\u00F6]|[\u00F8-\u02FF]|[\u0370-\u037D]|[\u037F-\u1FFF]|[\u200C-\u200D]|[\u2070-\u218F]|[\u2C00-\u2FEF]|[\u3001-\uD7FF]|[\uF900-\uFDCF]|[\uFDF0-\uFFFD]|[\ud800-\udfff][\ud800-\udfff]|[_:]|[0-9]|%[0-9A-Fa-f][0-9A-Fa-f]|\\[_~\.\-!$&'()*+,;=\/?#@%])(?:(?:[A-Z]|[a-z]|[\u00C0-\u00D6]|[\u00D8-\u00F6]|[\u00F8-\u02FF]|[\u0370-\u037D]|[\u037F-\u1FFF]|[\u200C-\u200D]|[\u2070-\u218F]|[\u2C00-\u2FEF]|[\u3001-\uD7FF]|[\uF900-\uFDCF]|[\uFDF0-\uFFFD]|[\ud800-\udfff][\ud800-\udfff]|[_\-\.:\u00b7]|[\u0300-\u036F]|[\u203F-\u2040]|[0-9]|%[0-9A-Fa-f][0-9A-Fa-f]|\\[_~\.\-!$&'()*+,;=/?#@%])*(?:[A-Z]|[a-z]|[\u00C0-\u00D6]|[\u00D8-\u00F6]|[\u00F8-\u02FF]|[\u0370-\u037D]|[\u037F-\u1FFF]|[\u200C-\u200D]|[\u2070-\u218F]|[\u2C00-\u2FEF]|[\u3001-\uD7FF]|[\uF900-\uFDCF]|[\uFDF0-\uFFFD]|[\ud800-\udfff][\ud800-\udfff]|[_\-:\u00b7]|[\u0300-\u036F]|[\u203F-\u2040]|[0-9]|%[0-9A-Fa-f][0-9A-Fa-f]|\\[_~\.\-!$&'()*+,;=/?#@%]))?)/;
 TurtleParser.langRE = /^@([a-zA-Z]+(?:-[a-zA-Z0-9]+)*)/;
 TurtleParser.prefixIDRE = /^@prefix/;
 TurtleParser.baseRE = /^@base/;
@@ -205,7 +205,12 @@ TurtleParser.prototype.parseStatement = function(text) {
          this.errorCount++;
          return remaining;
       }
-      this.context.base = this.parseURI(match.iri);
+      try {
+         this.context.base = this.context.base ? this.parseURI(this.context.base.resolve(match.iri)) : this.parseURI(match.iri);
+      } catch (ex) {
+         this.reportError(ex+"; IRI: "+match.iri);
+         this.errorCount++;
+      }
       
       remaining = this._trim(match.remaining);
       match = this._match(TurtleParser.dotRE,remaining);
@@ -249,7 +254,12 @@ TurtleParser.prototype.parseStatement = function(text) {
          this.errorCount++;
          return remaining;
       }
-      this.context.base = this.parseURI(match.iri);
+      try {
+         this.context.base = this.context.base ? this.parseURI(this.context.base.resolve(match.iri)) : this.parseURI(match.iri);
+      } catch (ex) {
+         this.reportError(ex+"; IRI: "+match.iri);
+         this.errorCount++;
+      }
       
       return match.remaining;      
    }
