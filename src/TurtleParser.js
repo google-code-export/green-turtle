@@ -523,7 +523,7 @@ TurtleParser.prototype.parseIRI = function(text) {
       var remaining = match.remaining;
       match = this._match(TurtleParser.localNameRE,remaining);
       if (match) {
-         match.iri = ns+match.values[0];
+         match.iri = ns+TurtleParser.expandName(match.values[0]);
          return match;
       } else {
          return { iri: ns, remaining: remaining };
@@ -533,7 +533,7 @@ TurtleParser.prototype.parseIRI = function(text) {
    if (match) {
       var remaining = match.remaining;
       match = this._match(TurtleParser.localNameRE,remaining);
-      match.iri = "_:"+match.values[0];
+      match.iri = "_:"+TurtleParser.expandName(match.values[0]);
       return match;
    }
    return null;
@@ -645,6 +645,23 @@ TurtleParser.expandLiteral = function(literal) {
       } else {
          s += parts[i];
       }
+   }
+   return s;
+}
+
+TurtleParser.escapedNameCharRE = /(\\[_~\.\-!$&'()*+,;=/?#@%])/;
+TurtleParser.expandName = function(name) {
+   var parts = name.split(TurtleParser.escapedNameCharRE);
+   var s = "";
+   for (var i=0; i<parts.length; i++) {
+      if (parts[i].length==0) {
+         continue;
+      }
+      if (parts[i].charAt(0)=="\\") {
+         s += parts[i].charAt(1);
+      } else {
+         s += parts[i];
+      } 
    }
    return s;
 }
