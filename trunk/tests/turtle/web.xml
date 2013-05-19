@@ -6,9 +6,13 @@
 
    <server protocol="HTTP" address="*" port="8888">
       <host name="localhost">
-         <content match="/tests" href="tests"/>
+         <content match="/tests" href="tests">
+            <map extension="ttl" type="text/turtle"/>
+         </content>
          <content match="/build" href="../../build"/>
-         <content match="" href="./"/>
+         <content match="" href="./">
+            <map extension="ttl" type="text/turtle"/>
+         </content>
       </host>
    </server>
 </component>
