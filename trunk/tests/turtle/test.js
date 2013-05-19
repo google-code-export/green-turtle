@@ -13,7 +13,7 @@ function dumpGraph(graph) {
    for (var i=0; i<subjects.length; i++) {
       var snode = graph[subjects[i]];
       var predicates = [];
-      var subjectStr = "<"+subjects[i]+">";
+      var subjectStr = subjects[i].substring(0,2)=="_:" ? subjects[i]+"" : "<"+subjects[i]+">";
       for (var predicate in snode.predicates) {
          predicates.push(predicate);
       }
@@ -44,6 +44,8 @@ function test(entry) {
          var text = dumpGraph(entry.output.graph);
          entry.passed = text==requester.responseText;
          if (!entry.passed) {
+            entry.output.expected = requester.responseText;
+            entry.output.text = text;
             console.log(entry.subject+" eval output does not match:");
             console.log(requester.responseText);
             console.log(text);
@@ -98,6 +100,12 @@ window.addEventListener("load",function() {
       var row = document.createElement("tr");
       table.appendChild(row);
       var shortType = entry.type.substring(entry.type.indexOf("#")+1);
-      row.innerHTML = "<td><a target=\"new\" href=\"parser.xhtml?"+entry.action+"\">"+entry.name+"</a></td><td>"+shortType+"</td><td class=\""+(entry.shouldParse ? entry.parsed ? "pass" : "fail" : entry.parsed ? "fail" : "pass")+"\">"+entry.parsed+"</td><td class=\""+(entry.passed ? "pass" : "fail")+"\">"+(entry.passed ? "pass" : "fail")+"</td>";
+      row.innerHTML = "<td><a target=\"new\" href=\"parser.xhtml?"+entry.action+"\">"+entry.name+"</a></td><td>"+shortType+"</td><td class=\""+(entry.shouldParse ? entry.parsed ? "pass" : "fail" : entry.parsed ? "fail" : "pass")+"\">"+entry.parsed+"</td><td class=\""+(entry.passed ? "pass" : "fail")+"\">"+(entry.passed ? "pass" : "fail")+"</td><td></td>";
+      if (entry.output.expected) {
+         var cell = row.cells[4];
+         cell.innerHTML = "<pre/><p>versus</p><pre/>";
+         cell.firstChild.appendChild(document.createTextNode(entry.output.text));
+         cell.lastChild.appendChild(document.createTextNode(entry.output.expected));
+      }
    }
 },false);
