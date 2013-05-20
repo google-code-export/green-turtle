@@ -406,6 +406,7 @@ TurtleParser.prototype.parseObjectList = function(subject,predicate,text) {
 TurtleParser.prototype.parseObject = function(subject,predicate,text) {
    var match =  this.parseIRI(text);
    if (match) {
+      console.log("Predicate object "+match.iri);
       // object reference, generate triple
       this.addTriple(subject,predicate,{ type: TurtleParser.objectURI, value: match.iri});
       return match.remaining;
@@ -481,7 +482,7 @@ TurtleParser.prototype.parsePrefixName = function(text) {
 TurtleParser.prototype.parseIRIReference = function(text) {
    var match = this._match(TurtleParser.iriRE,text);
    if (match) {
-      match.iri = match.values[0];
+      match.iri = TurtleParser.expandURI(match.values[0]);
    }
    return match;
 }
@@ -489,7 +490,8 @@ TurtleParser.prototype.parseIRIReference = function(text) {
 TurtleParser.prototype.parseIRI = function(text) {
    var match = this._match(TurtleParser.iriRE,text);
    if (match) {
-      match.iri = this.context.base ? this.context.base.resolve(match.values[0]) : match.values[0];
+      var expanded = TurtleParser.expandURI(match.values[0]);
+      match.iri = this.context.base ? this.context.base.resolve(expanded) : expanded;
       return match;
    }
    match = this._match(TurtleParser.prefixRE,text);
@@ -609,6 +611,28 @@ TurtleParser.prototype.newSubject = function(subject) {
    return snode;
 }
 
+TurtleParser.expandHex = function(hex) {
+   var check = hex.split(/[0-9A-Fa-f]+/);
+   for (var j=0; j<check.length; j++) {
+      if (check[j].length>0) {
+         throw "Bad hex in escape: "+hex;
+      }
+   }
+   var code = parseInt(hex,16);
+   if (isNaN(code)) {
+      throw "Bad hex in escape: "+hex;
+   }
+   if (code<0x10000) {
+      return String.fromCharCode(code);
+   } else {
+      // Evil: generate surrogate pairs
+      var n = code - 0x10000;
+      var h = n >> 10;
+      var l = n & 0x3ff;
+      return String.fromCharCode(h + 0xd800) + String.fromCharCode(l + 0xdc00);
+   }
+}
+
 TurtleParser.escapedSequenceRE = /(\\t|\\b|\\n|\\r|\\f|\\"|\\'|\\\\|(?:\\U[0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f])|(?:\\u[0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f]))/;
 
 TurtleParser.expandLiteral = function(literal) {
@@ -635,31 +659,39 @@ TurtleParser.expandLiteral = function(literal) {
       } else if (parts[i]=="\\\\") {
          s += "\\";
       } else if (parts[i].length==6 && parts[i].charAt(0)== '\\' && parts[i].charAt(1)=="u") {
-         var hex = parts[i].substring(2);
-         var check = hex.split(/[0-9A-Fa-f]+/);
-         for (var j=0; j<check.length; j++) {
-            if (check[j].length>0) {
-               throw "Bad hex in \\u escape "+parts[i];
-            }
-         }
-         var code = parseInt(hex,16);
-         if (isNaN(code)) {
-            throw "Bad hex in \\u escape "+parts[i];
-         }
-         s += String.fromCharCode(code);
+         s += TurtleParser.expandHex(parts[i].substring(2));
       } else if (parts[i].length==10 && parts[i].charAt(0)== '\\' && parts[i].charAt(1)=="U") {
-         var hex = parts[i].substring(2);
-         var check = hex.split(/[0-9A-Fa-f]+/);
-         for (var j=0; j<check.length; j++) {
-            if (check[j].length>0) {
-               throw "Bad hex in \\U escape "+parts[i];
-            }
+         s += TurtleParser.expandHex(parts[i].substring(2));
+      } else {
+         var u = parts[i].substring(0,2);
+         if (u.length==2 && u=="\\U") {
+            throw "Bad hex in \\U escape "+parts[i].substring(0,10);
+         } else if (u.length==2 && u=="\\u") {
+            throw "Bad hex in \\u escape "+parts[i].substring(0,6);
          }
-         var code = parseInt(hex,16);
-         if (isNaN(code)) {
-            throw "Bad hex in \\U escape "+parts[i];
+         var pos = parts[i].indexOf("\\");
+         if (pos>=0) {
+            throw "Bad escape "+parts[i].substring(pos,pos+2);
          }
-         s += String.fromCharCode(code);
+         s += parts[i];
+      }
+   }
+   return s;
+}
+
+TurtleParser.escapedURIRE = /((?:\\U[0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f])|(?:\\u[0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f]))/;
+
+TurtleParser.expandURI = function(uri) {
+   var parts = uri.split(TurtleParser.escapedURIRE);
+   var s = "";
+   for (var i=0; i<parts.length; i++) {
+      if (parts[i].length==0) {
+         continue;
+      }
+      if (parts[i].length==6 && parts[i].charAt(0)== '\\' && parts[i].charAt(1)=="u") {
+         s += TurtleParser.expandHex(parts[i].substring(2));
+      } else if (parts[i].length==10 && parts[i].charAt(0)== '\\' && parts[i].charAt(1)=="U") {
+         s += TurtleParser.expandHex(parts[i].substring(2));
       } else {
          var u = parts[i].substring(0,2);
          if (u.length==2 && u=="\\U") {
