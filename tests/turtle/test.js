@@ -85,7 +85,7 @@ function test(entry) {
       entry.parsed = true;
       if (entry.type==positiveSyntaxTest) {
          entry.passed = true;
-      } if (entry.type==positiveEvalTest) {
+      } else if (entry.type==positiveEvalTest) {
          requester = new XMLHttpRequest();
          requester.open("GET",entry.result,false);
          requester.send(null);
@@ -102,7 +102,7 @@ function test(entry) {
       }
    } catch (ex) {
       entry.parsed = false;
-      if (entry.type==negativeSyntaxTest) {
+      if (entry.type==negativeSyntaxTest || entry.type==negativeEvalTest) {
          entry.passed = true;
       } 
    }
