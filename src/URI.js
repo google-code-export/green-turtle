@@ -1,6 +1,6 @@
 function URIResolver() {
 }
-URIResolver.SCHEME = new RegExp("^[A-Za-z][A-Za-z0-9\+\-\.]*\:");
+URIResolver.SCHEME = /^[A-Za-z][A-Za-z0-9\+\-\.]*\:/;
 
 URIResolver.prototype.parseURI = function(uri) {
    var match = URIResolver.SCHEME.exec(uri);
@@ -180,6 +180,16 @@ URIResolver.prototype.parseGeneric = function(parsed) {
          // check to see if it is legimate
          if (parsed.path.length>1 && parsed.path.charAt(parsed.path.length-2)!='/') {
             parsed.segments.pop();
+         }
+      }
+      // check for non-escaped characters
+      for (var i=0; i<parsed.segments.length; i++) {
+         var check = parsed.segments[i].split(/%[A-Za-z0-9][A-Za-z0-9]|[\ud800-\udfff][\ud800-\udfff]|[A-Za-z0-9\-\._~!$&'()*+,;=@:\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]+/);
+
+                 for (var j=0; j<check.length; j++) {
+            if (check[j].length>0) {
+               throw "Unecaped character "+check[j].charAt(0)+" ("+check[j].charCodeAt(0)+") in URI.";
+            }
          }
       }
    }

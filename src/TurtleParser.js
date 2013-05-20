@@ -184,6 +184,12 @@ TurtleParser.prototype.parseStatement = function(text) {
          return remaining;
       }
       this.context.prefixes[prefix] = this.context.base ? this.context.base.resolve(match.iri) : match.iri;
+      try {
+         this.parseURI(this.context.prefixes[prefix]);
+      } catch (ex) {
+         this.reportError(ex.toString());
+         this.errorCount++;
+      }
       
       remaining = this._trim(match.remaining);
       match = this._match(TurtleParser.dotRE,remaining);
@@ -242,6 +248,12 @@ TurtleParser.prototype.parseStatement = function(text) {
          return remaining;
       }
       this.context.prefixes[prefix] = this.context.base ? this.context.base.resolve(match.iri) : match.iri;
+      try {
+         this.parseURI(this.context.prefixes[prefix]);
+      } catch (ex) {
+         this.reportError(ex.toString());
+         this.errorCount++;
+      }
       return match.remaining;
    }
    match = this._match(TurtleParser.sparqlBaseRE,text);
@@ -406,7 +418,6 @@ TurtleParser.prototype.parseObjectList = function(subject,predicate,text) {
 TurtleParser.prototype.parseObject = function(subject,predicate,text) {
    var match =  this.parseIRI(text);
    if (match) {
-      console.log("Predicate object "+match.iri);
       // object reference, generate triple
       this.addTriple(subject,predicate,{ type: TurtleParser.objectURI, value: match.iri});
       return match.remaining;
@@ -492,6 +503,12 @@ TurtleParser.prototype.parseIRI = function(text) {
    if (match) {
       var expanded = TurtleParser.expandURI(match.values[0]);
       match.iri = this.context.base ? this.context.base.resolve(expanded) : expanded;
+      try {
+         this.parseURI(match.iri);
+      } catch (ex) {
+         this.reportError(ex.toString());
+         this.errorCount++;
+      }
       return match;
    }
    match = this._match(TurtleParser.prefixRE,text);
@@ -507,6 +524,12 @@ TurtleParser.prototype.parseIRI = function(text) {
       match = this._match(TurtleParser.localNameRE,remaining);
       if (match) {
          match.iri = ns+TurtleParser.expandName(match.values[0]);
+         try {
+            this.parseURI(match.iri);
+         } catch (ex) {
+            this.reportError(ex.toString());
+            this.errorCount++;
+         }
          return match;
       } else {
          return { iri: ns, remaining: remaining };
