@@ -284,6 +284,10 @@ TurtleParser.prototype.parseTriples = function(text) {
    if (match) {
       return this.parsePredicateObjectList(match.iri,this._trim(match.remaining));
    }
+   match = this.parseBlankNode(text);
+   if (match) {
+      return this.parsePredicateObjectList(match.iri,this._trim(match.remaining));
+   }
    // collection as subject
    match = this._match(TurtleParser.openParenRE,text);
    if (match) {
@@ -360,9 +364,6 @@ TurtleParser.prototype.parsePredicateObjectList = function(subject,text,allowEmp
          if (match) {
             match.iri = TurtleParser.typeURI;
          }
-      } else if (match.iri.substring(0,2)=="_:") {
-         this.reportError("Cannot have a blank node "+match.iri+" as a predicate.");
-         this.errorCount++;
       }
       if (!match) {   
          if (allowEmpty) {
@@ -404,6 +405,12 @@ TurtleParser.prototype.parseObjectList = function(subject,predicate,text) {
 
 TurtleParser.prototype.parseObject = function(subject,predicate,text) {
    var match =  this.parseIRI(text);
+   if (match) {
+      // object reference, generate triple
+      this.addTriple(subject,predicate,{ type: TurtleParser.objectURI, value: match.iri});
+      return match.remaining;
+   }
+   var match =  this.parseBlankNode(text);
    if (match) {
       // object reference, generate triple
       this.addTriple(subject,predicate,{ type: TurtleParser.objectURI, value: match.iri});
@@ -463,32 +470,6 @@ TurtleParser.prototype.parseObject = function(subject,predicate,text) {
    return "";
 }
 
-/*
-TurtleParser.prototype.parseBlankNode = function(text) {
-
-   var match = this._match(TurtleParser.blankNodeLabelRE,text);
-   if (match) {
-      match.iri = match.values[0];
-      return match;
-   }
-   match =  this._match(TurtleParser.openSquareBracketRE,text);
-   if (match) {
-      remaining = this._trim(match.remaining);
-      match =  this._match(TurtleParser.closeSquareBracketRE,remaining);
-      if (match) {
-         match.iri = this.newBlankNode();
-         return match;
-      } else {
-         this.reportError("Missing close square bracket ']': "+remaining.substring(0,20)+" ...");
-         this.errorCount++;
-         // attempt to recover
-         return { iri: this.newBlankNode(), remaining: remaining };
-      }
-   }
-   return null;
-}
-*/
-
 TurtleParser.prototype.parsePrefixName = function(text) {
    var match = this._match(TurtleParser.prefixRE,text);
    if (match) {
@@ -514,7 +495,7 @@ TurtleParser.prototype.parseIRI = function(text) {
    match = this._match(TurtleParser.prefixRE,text);
    if (match) {
       var prefix = match.values[0];
-      var ns = prefix=="_" ? "_:" : this.context.prefixes[prefix];
+      var ns = this.context.prefixes[prefix];
       if (!ns) {
          this.reportError("No prefix mapping for "+prefix);
          this.errorCount++;
@@ -529,12 +510,19 @@ TurtleParser.prototype.parseIRI = function(text) {
          return { iri: ns, remaining: remaining };
       }
    }
+   return null;
+}
+
+TurtleParser.prototype.parseBlankNode = function(text) {
    match = this._match(TurtleParser.blankNodeRE,text);
    if (match) {
       var remaining = match.remaining;
       match = this._match(TurtleParser.localNameRE,remaining);
-      match.iri = "_:"+TurtleParser.expandName(match.values[0]);
-      return match;
+      if (match) {
+         match.iri = "_:"+TurtleParser.expandName(match.values[0]);
+         return match;
+      } 
+      return null;
    }
    return null;
 }
