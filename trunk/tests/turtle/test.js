@@ -80,7 +80,8 @@ function test(entry) {
    entry.shouldParse = entry.type!=negativeSyntaxTest;
    entry.passed = false;
    try {
-      entry.output = document.data.parse(requester.responseText,"text/turtle",{ baseURI: entry.action});
+      var baseURI = "http://example/base/" + entry.action.substring(entry.action.lastIndexOf("/")+1);
+      entry.output = document.data.parse(requester.responseText,"text/turtle",{ baseURI: baseURI});
       entry.parsed = true;
       if (entry.type==positiveSyntaxTest) {
          entry.passed = true;
@@ -88,7 +89,7 @@ function test(entry) {
          requester = new XMLHttpRequest();
          requester.open("GET",entry.result,false);
          requester.send(null);
-         var expected = document.data.parse(requester.responseText,"text/turtle",{ baseURI: entry.action});
+         var expected = document.data.parse(requester.responseText,"text/turtle",{ baseURI: baseURI});
          try {
             entry.passed = compareGraph(entry.output.graph,expected.graph,entry.subjectMap);
          } catch (ex) {
@@ -189,6 +190,7 @@ window.addEventListener("load",function() {
       }
    }
    
+   var success = 0;
    for (var i=0; i<entries.length; i++) {
       var entry = entries[i];
       console.log("Testing: "+entry.name+", "+entry.comment);
@@ -203,5 +205,9 @@ window.addEventListener("load",function() {
          cell.firstChild.appendChild(document.createTextNode(entry.output.text));
          cell.lastChild.appendChild(document.createTextNode(entry.output.expected));
       }
+      if (entry.passed) {
+         success++;
+      }
    }
+   document.getElementById("summary").innerHTML = success+"/"+entries.length+" passed";
 },false);
