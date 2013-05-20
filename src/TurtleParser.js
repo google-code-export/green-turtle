@@ -609,7 +609,7 @@ TurtleParser.prototype.newSubject = function(subject) {
    return snode;
 }
 
-TurtleParser.escapedSequenceRE = /(\\t|\\b|\\n|\\r|\\f|\\"|\\'|\\\\|(?:\\[uU][0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f]))/;
+TurtleParser.escapedSequenceRE = /(\\t|\\b|\\n|\\r|\\f|\\"|\\'|\\\\|(?:\\U[0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f])|(?:\\u[0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f]))/;
 
 TurtleParser.expandLiteral = function(literal) {
    var parts = literal.split(TurtleParser.escapedSequenceRE);
@@ -634,14 +634,39 @@ TurtleParser.expandLiteral = function(literal) {
          s += "'";
       } else if (parts[i]=="\\\\") {
          s += "\\";
-      } else if (parts[i].length==6 && parts[i].charAt(0)== '\\' && (parts[i].charAt(1)=="u" || parts[i].charAt(1)=="U")) {
+      } else if (parts[i].length==6 && parts[i].charAt(0)== '\\' && parts[i].charAt(1)=="u") {
          var hex = parts[i].substring(2);
+         var check = hex.split(/[0-9A-Fa-f]+/);
+         for (var j=0; j<check.length; j++) {
+            if (check[j].length>0) {
+               throw "Bad hex in \\u escape "+parts[i];
+            }
+         }
          var code = parseInt(hex,16);
          if (isNaN(code)) {
-            throw "Bad escape "+parts[i];
+            throw "Bad hex in \\u escape "+parts[i];
+         }
+         s += String.fromCharCode(code);
+      } else if (parts[i].length==10 && parts[i].charAt(0)== '\\' && parts[i].charAt(1)=="U") {
+         var hex = parts[i].substring(2);
+         var check = hex.split(/[0-9A-Fa-f]+/);
+         for (var j=0; j<check.length; j++) {
+            if (check[j].length>0) {
+               throw "Bad hex in \\U escape "+parts[i];
+            }
+         }
+         var code = parseInt(hex,16);
+         if (isNaN(code)) {
+            throw "Bad hex in \\U escape "+parts[i];
          }
          s += String.fromCharCode(code);
       } else {
+         var u = parts[i].substring(0,2);
+         if (u.length==2 && u=="\\U") {
+            throw "Bad hex in \\U escape "+parts[i].substring(0,10);
+         } else if (u.length==2 && u=="\\u") {
+            throw "Bad hex in \\u escape "+parts[i].substring(0,6);
+         }
          var pos = parts[i].indexOf("\\");
          if (pos>=0) {
             throw "Bad escape "+parts[i].substring(pos,pos+2);
