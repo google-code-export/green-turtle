@@ -10,7 +10,7 @@ function TurtleParser() {
 
 TurtleParser.commentRE = /^#.*/;
 TurtleParser.wsRE = /^\s+/;
-TurtleParser.uriRE = /^\<([^>]*)\>/;
+TurtleParser.iriRE = /^\<((?:(?:[^\x00-\x20<>"{}|^`\\]|\\u[0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f]|\\U[0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f])*))\>/;
 TurtleParser.singleQuoteLiteralRE = /^'((?:[^'\n\r\\]*|\\'|\\)*)'/;
 TurtleParser.doubleQuoteLiteralRE = /^\"((?:[^"\n\r\\]*|\\"|\\)*)\"/;
 TurtleParser.longDoubleQuoteLiteralRE = /^\"\"\"((?:[^"\\]*|\\"|\\|\"(?!\")|\"\"(?!\"))*)\"\"\"/;
@@ -479,7 +479,7 @@ TurtleParser.prototype.parsePrefixName = function(text) {
 }
 
 TurtleParser.prototype.parseIRIReference = function(text) {
-   var match = this._match(TurtleParser.uriRE,text);
+   var match = this._match(TurtleParser.iriRE,text);
    if (match) {
       match.iri = match.values[0];
    }
@@ -487,7 +487,7 @@ TurtleParser.prototype.parseIRIReference = function(text) {
 }
 
 TurtleParser.prototype.parseIRI = function(text) {
-   var match = this._match(TurtleParser.uriRE,text);
+   var match = this._match(TurtleParser.iriRE,text);
    if (match) {
       match.iri = this.context.base ? this.context.base.resolve(match.values[0]) : match.values[0];
       return match;
