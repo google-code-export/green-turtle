@@ -89,15 +89,20 @@ function test(entry) {
          requester = new XMLHttpRequest();
          requester.open("GET",entry.result,false);
          requester.send(null);
-         var expected = document.data.parse(requester.responseText,"text/turtle",{ baseURI: baseURI});
          try {
-            entry.passed = compareGraph(entry.output.graph,expected.graph,entry.subjectMap);
+            var expected = document.data.parse(requester.responseText,"text/turtle",{ baseURI: baseURI});
+            try {
+               entry.passed = compareGraph(entry.output.graph,expected.graph,entry.subjectMap);
+            } catch (ex) {
+               console.log(ex.toString());
+            }
+            if (!entry.passed) {
+               entry.output.expected = requester.responseText;
+               entry.output.text = dumpGraph(entry.output.graph);
+            }
          } catch (ex) {
-            console.log(ex.toString());
-         }
-         if (!entry.passed) {
-            entry.output.expected = requester.responseText;
-            entry.output.text = dumpGraph(entry.output.graph);
+            entry.passed = false;
+            console.log("ERROR: Cannot parse expected result: "+entry.result);
          }
       }
    } catch (ex) {
