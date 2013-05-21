@@ -24,8 +24,8 @@ if (document.head) {
       } else if (message.type=="get-subjects") {
          var subjects = document.data.getSubjects();
          meta.setAttribute("content",'{ "type": "subjects", "subjects": '+JSON.stringify(subjects)+' }');
-         var event = makeEvent();
-         setTimeout(function() { meta.dispatchEvent(event); },1);
+         var getSubjectsEvent = makeEvent();
+         setTimeout(function() { meta.dispatchEvent(getSubjectsEvent); },1);
       } else if (message.type=="get-subject") {
          var triples = null;
          if (document.data.getSubject) {
@@ -51,8 +51,8 @@ if (document.head) {
          }
          var response = { type: "subject", subject: message.subject, triples: triples };
          meta.setAttribute("content",JSON.stringify(response));
-         var event = makeEvent();
-         setTimeout(function() { meta.dispatchEvent(event); },1);
+         var getSubjectEvent = makeEvent();
+         setTimeout(function() { meta.dispatchEvent(getSubjectEvent); },1);
       }
    },false);
 }
