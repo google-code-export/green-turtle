@@ -131,17 +131,18 @@ function generateEARL(earlProlog,target,entries)
    }
    
    for (var i=0; i<entries.length; i++) {
+      var subject = "https://dvcs.w3.org/hg/rdf/raw-file/default/rdf-turtle/tests-ttl/manifest.ttl"+entries[i].subject.substring(entries[i].subject.indexOf("#"));
       var s = "[ a earl:Assertion; \n\
   earl:assertedBy <http://www.milowski.com#alex>; \n\
   earl:subject <https://code.google.com/p/green-turtle/>; \n\
   earl:test <";
-      s += entries[i].subject +"> ;\n";
+      s += subject +"> ;\n";
       s += "  earl:result [\n\
     a earl:TestResult; \n\
     earl:outcome ";
       s += entries[i].passed ? "earl:passed; \n" : "earl:failed; \n"
       s += "    dc:date \""+dateTimeStr+"\"^^xsd:dateTime ];\n"
-      s += "    earl:mode earl:automatic ] .\n\n";
+      s += "  earl:mode earl:automatic ] .\n\n";
       target.appendChild(document.createTextNode(s));
    }
    // check report
