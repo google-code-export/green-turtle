@@ -17,13 +17,12 @@ GraphRDFaProcessor.prototype.getObjectSize = function(obj) {
 
 GraphRDFaProcessor.prototype.init = function() {
    this.target.tripleCount = 0;
-   this.target.triplesGraph = {};
    var thisObj = this;
    this.finishedHandlers.push(function(node) {
-      for (var subject in thisObj.target.triplesGraph) {
-         var snode = thisObj.target.triplesGraph[subject];
+      for (var subject in thisObj.target.graph.subjects) {
+         var snode = thisObj.target.graph.subjects[subject];
          if (thisObj.getObjectSize(snode.predicates)==0) {
-            delete thisObj.target.triplesGraph[subject];
+            delete thisObj.target.graph.subjects[subject];
          }
       }
    });
@@ -48,17 +47,16 @@ GraphRDFaProcessor.prototype.newSubjectOrigin = function(origin,subject) {
 }
 
 GraphRDFaProcessor.prototype.newSubject = function(origin,subject) {
-   var snode = this.target.triplesGraph[subject];
+   var snode = this.target.graph.subjects[subject];
    if (!snode) {
       snode = new RDFaSubject(this.target,subject);
-      this.target.triplesGraph[subject] = snode;
+      this.target.graph.subjects[subject] = snode;
    }
    return snode;
 }
 
 
 GraphRDFaProcessor.prototype.addTriple = function(origin,subject,predicate,object) {
-   var graph = this.target.triplesGraph;
    var snode = this.newSubject(origin,subject);
    var pnode = snode.predicates[predicate];
    if (!pnode) {

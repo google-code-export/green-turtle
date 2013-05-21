@@ -1,6 +1,6 @@
 
-function getTransferSubject(triplesGraph,subject) {
-   var snode = triplesGraph[subject];
+function getTransferSubject(subjects,subject) {
+   var snode = subjects[subject];
    var tsnode = { subject: subject, predicates: {} };
    for (var predicate in snode.predicates) {
       var pnode = snode.predicates[predicate];
@@ -102,12 +102,12 @@ function manualTransfer() {
       function(request,sender,sendResponse) {
          if (request.getSubjects) {
             var subjects = [];
-            for (var subject in rdfaProcessor.target.triplesGraph) {
+            for (var subject in rdfaProcessor.target.graph.subjects) {
                subjects.push(subject);
             }
             sendResponse({ setSubjects: true, subjects: subjects });
          } else if (request.getSubject) {
-            sendResponse({ setSubject: true, subject: getTransferSubject(rdfaProcessor.target.triplesGraph,request.subject) });
+            sendResponse({ setSubject: true, subject: getTransferSubject(rdfaProcessor.target.graph.subjects,request.subject) });
          }
       });
    rdfaProcessor.process(document.documentElement);

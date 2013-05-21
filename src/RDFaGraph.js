@@ -1,5 +1,53 @@
-function RDFaSubject(context,subject) {
-   this.context = context;
+function RDFaGraph()
+{
+   var dataContext = this;
+   this.curieParser = {
+      trim: function(str) {
+         return str.replace(/^\s\s*/, '').replace(/\s\s*$/, '');
+      },
+      parse: function(value,resolve) {
+         value = this.trim(value);
+         if (value.charAt(0)=='[' && value.charAt(value.length-1)==']') {
+            value = value.substring(1,value.length-1);
+         }
+         var colon = value.indexOf(":");
+         if (colon>=0) {
+            var prefix = value.substring(0,colon);
+            if (prefix=="") {
+               // default prefix
+               var uri = dataContext.prefixes[""];
+               return uri ? uri+value.substring(colon+1) : null;
+            } else if (prefix=="_") {
+               // blank node
+               return "_:"+value.substring(colon+1);
+            } else if (DocumentData.NCNAME.test(prefix)) {
+               var uri = dataContext.prefixes[prefix];
+               if (uri) {
+                  return uri+value.substring(colon+1);
+               }
+            }
+         }
+
+         return resolve ? dataContext.baseURI.resolve(value) : value;
+      }
+   };
+   this.subjects = {};
+   this.prefixes = {};
+   this.terms = {};
+   this.base =  null;
+   this.toString = function(baseURI) {
+      var s = baseURI ? "@base <"+baseURI+"> .\n" : "";
+      for (var subject in this.subjects) {
+         var snode = this.subjects[subject];
+         s += snode.toString();
+         s += "\n";
+      }
+      return s;
+   };
+}
+
+function RDFaSubject(graph,subject) {
+   this.graph = graph;
    // TODO: subject or id?
    this.subject = subject
    this.id = subject;
@@ -54,7 +102,7 @@ RDFaSubject.prototype.toObject = function() {
 RDFaSubject.prototype.getValues = function() {
    var values = [];
    for (var i=0; i<arguments.length; i++) {
-      var property = this.context.curieParser.parse(arguments[i],true)
+      var property = this.graph.curieParser.parse(arguments[i],true)
       var pnode = this.predicates[property];
       if (pnode) {
          for (var j=0; j<pnode.objects.length; j++) {
@@ -77,6 +125,7 @@ RDFaPredicate.prototype.toString = function() {
       if (i>0) {
          s += ", ";
       }
+      // TODO: handle HTML literal
       if (this.objects[i].type=="http://www.w3.org/1999/02/22-rdf-syntax-ns#object") {
          if (this.objects[i].value.substring(0,2)=="_:") {
             s += this.objects[i].value;
@@ -88,12 +137,14 @@ RDFaPredicate.prototype.toString = function() {
                  this.objects[i].type=="http://www.w3.org/2001/XMLSchema#double" ||
                  this.objects[i].type=="http://www.w3.org/2001/XMLSchema#boolean") {
          s += this.objects[i].value;
+      } else if (this.objects[i].type=="http://www.w3.org/1999/02/22-rdf-syntax-ns#XMLLiteral") {
+         var serializer = new XMLSerializer();
+         s += '"""'+serializer.serializeToString(this.objects[i].value)+'"""^^<http://www.w3.org/1999/02/22-rdf-syntax-ns#XMLLiteral>';
       } else {
          s += '"' + this.objects[i].value.split('"').join('\\"') + '"';
          if (this.objects[i].type!="http://www.w3.org/1999/02/22-rdf-syntax-ns#PlainLiteral") {
              s += "^^<"+this.objects[i].type+">";
-         }
-         if (this.objects[i].language) {
+         } else if (this.objects[i].language) {
              s += "@"+this.objects[i].language;
          }
       }
