@@ -112,16 +112,58 @@ function test(entry) {
       } 
    }
 }
+
+function generateEARL(earlProlog,target,entries)
+{
+   var now = new Date();
+   var dateStr = now.format("yyyy-mm-dd")
+   var dateTimeStr = now.format("yyyy-mm-dd'T'HH:MM:sso")
+   var requester = new XMLHttpRequest();
+   requester.open("GET",earlProlog,false);
+   requester.send(null);
+   var parts = requester.responseText.split(/({date})/);
+   for (var i=0; i<parts.length; i++) {
+      if (parts[i]=="{date}") {
+         target.appendChild(document.createTextNode(dateStr));
+      } else {
+         target.appendChild(document.createTextNode(parts[i]));
+      }
+   }
+   
+   for (var i=0; i<entries.length; i++) {
+      var s = "[ a earl:Assertion; \n\
+  earl:assertedBy <http://www.milowski.com#alex>; \n\
+  earl:subject <https://code.google.com/p/green-turtle/>; \n\
+  earl:test <";
+      s += entries[i].subject +"> ;\n";
+      s += "  earl:result [\n\
+    a earl:TestResult; \n\
+    earl:outcome ";
+      s += entries[i].passed ? "earl:passed; \n" : "earl:failed; \n"
+      s += "    dc:date \""+dateTimeStr+"\"^^xsd:dateTime ];\n"
+      s += "    earl:mode earl:automatic ] .\n\n";
+      target.appendChild(document.createTextNode(s));
+   }
+   // check report
+   try {
+      document.data.parse(target.textContent,"text/turtle");
+   } catch (ex) {
+      alert("EARL format is invalid.");
+   }
+}
 window.addEventListener("load",function() {
    var table = document.getElementById("output");
    var child = document.head.firstElementChild;
    var manifestURI = null;
    var mappingsURI = null;
+   var earlURI = null;
    while (child) {
       if (child.rel=="manifest") {
          manifestURI = child.href;
       } else if (child.rel=="mappings") {
          mappingsURI = child.href;
+      } else if (child.rel=="earl") {
+         earlURI = child.href;
       }
       child = child.nextElementSibling;
    }
@@ -215,4 +257,5 @@ window.addEventListener("load",function() {
       }
    }
    document.getElementById("summary").innerHTML = success+"/"+entries.length+" passed";
+   generateEARL(earlURI,document.getElementById("earl"),entries);
 },false);
