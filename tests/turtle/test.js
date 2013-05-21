@@ -158,11 +158,12 @@ window.addEventListener("load",function() {
    var mappingsURI = null;
    var earlURI = null;
    while (child) {
-      if (child.rel=="manifest") {
+      var rel = child.getAttribute("rel");
+      if (rel=="manifest") {
          manifestURI = child.href;
-      } else if (child.rel=="mappings") {
+      } else if (rel=="mappings") {
          mappingsURI = child.href;
-      } else if (child.rel=="earl") {
+      } else if (rel=="earl") {
          earlURI = child.href;
       }
       child = child.nextElementSibling;
@@ -202,8 +203,8 @@ window.addEventListener("load",function() {
    requester.open("GET",mappingsURI,false);
    requester.send(null);
    var turtle = document.data.parse(requester.responseText,"text/turtle",{ baseURI: manifestURI});
-   var mapDoc = document.implementation.createDocument("http://www.w3.org/1999/xhtml","html");
-   mapDoc.documentElement.setAttributeNS("http://www.w3.org/XML/1998/namespace","xml:base",window.location.href);
+   var mapDoc = document.implementation.createDocument("http://www.w3.org/1999/xhtml","html",null);
+   mapDoc.documentElement.setAttributeNS("http://www.w3.org/XML/1998/namespace","base",window.location.href);
    RDFa.attach(mapDoc);
    mapDoc.data.merge(turtle.graph);
    for (var i=0; i<entries.length; i++) {

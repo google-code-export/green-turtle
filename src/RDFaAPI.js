@@ -157,8 +157,8 @@ DocumentData.prototype.getProperties = function(subject) {
       }
    } else {
       var uniqueProperties = {};
-      for (var subject in this._data_.triplesGraph) {
-         var snode = this._data_.triplesGraph[subject];
+      for (var graphSubject in this._data_.triplesGraph) {
+         var snode = this._data_.triplesGraph[graphSubject];
          if (snode) {
             for (var predicate in snode.predicates) {
                if (!uniqueProperties[predicate]) {
@@ -259,13 +259,13 @@ DocumentData.prototype.getValueOrigins = function(subject,property) {
          }
       }
    } else if (property) {
-      for (var subject in this._data_.triplesGraph) {
-         var snode = this._data_.triplesGraph[subject];
+      for (var graphSubject in this._data_.triplesGraph) {
+         var snode = this._data_.triplesGraph[graphSubject];
          convert(snode.predicates[property]);
       }
    } else {
-      for (var subject in this._data_.triplesGraph) {
-         var snode = this._data_.triplesGraph[subject];
+      for (var graphSubject in this._data_.triplesGraph) {
+         var snode = this._data_.triplesGraph[graphSubject];
          for (var predicate in snode.predicates) {
             convert(snode.predicates[predicate]);
          }
@@ -299,8 +299,8 @@ DocumentData.prototype.getValues = function(subject,property) {
          }
       }
    } else if (property) {
-      for (var subject in this._data_.triplesGraph) {
-         var snode = this._data_.triplesGraph[subject];
+      for (var graphSubject in this._data_.triplesGraph) {
+         var snode = this._data_.triplesGraph[graphSubject];
          var pnode = snode.predicates[property];
          if (pnode) {
             for (var i=0; i<pnode.objects.length; i++) {
@@ -309,8 +309,8 @@ DocumentData.prototype.getValues = function(subject,property) {
          }
       }
    } else {
-      for (var subject in this._data_.triplesGraph) {
-         var snode = this._data_.triplesGraph[subject];
+      for (var graphSubject in this._data_.triplesGraph) {
+         var snode = this._data_.triplesGraph[graphSubject];
          for (var predicate in snode.predicates) {
             var pnode = snode.predicates[predicate];
             for (var i=0; i<pnode.objects.length; i++) {
@@ -512,7 +512,7 @@ Element.prototype.getFirstElementByType = function() {
 DocumentData.attach = function(target) {
 
    Object.defineProperty(target,"data", {
-      value: new DocumentData(target.nodeType==Node.DOCUMENT_NODE && !target.baseURI ? target.documentElement.baseURI : target.baseURI),
+      value: new DocumentData(target.nodeType==Node.DOCUMENT_NODE ? target.documentElement.baseURI : target.baseURI),
       writable: false,
       configurable: false,
       enumerable: true
