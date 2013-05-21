@@ -405,7 +405,7 @@ TurtleParser.prototype.parseObjectList = function(subject,predicate,text) {
    var remaining = null;
    do {
       remaining = this.parseObject(subject,predicate,text);
-      match = this._match(TurtleParser.commaRE,this._trim(remaining));
+      var match = this._match(TurtleParser.commaRE,this._trim(remaining));
       if (match) {
          text = this._trim(match.remaining);
       } else {
@@ -539,7 +539,7 @@ TurtleParser.prototype.parseIRI = function(text) {
 }
 
 TurtleParser.prototype.parseBlankNode = function(text) {
-   match = this._match(TurtleParser.blankNodeRE,text);
+   var match = this._match(TurtleParser.blankNodeRE,text);
    if (match) {
       var remaining = match.remaining;
       match = this._match(TurtleParser.localNameRE,remaining);
