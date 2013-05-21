@@ -92,13 +92,13 @@ function test(entry) {
          try {
             var expected = document.data.parse(requester.responseText,"text/turtle",{ baseURI: baseURI});
             try {
-               entry.passed = compareGraph(entry.output.graph,expected.graph,entry.subjectMap);
+               entry.passed = compareGraph(entry.output.subjects,expected.subjects,entry.subjectMap);
             } catch (ex) {
                console.log(ex.toString());
             }
             if (!entry.passed) {
                entry.output.expected = requester.responseText;
-               entry.output.text = dumpGraph(entry.output.graph);
+               entry.output.text = dumpGraph(entry.output.subjects);
             }
          } catch (ex) {
             entry.passed = false;
@@ -174,7 +174,7 @@ window.addEventListener("load",function() {
    requester.open("GET",manifestURI,false);
    requester.send(null);
    var turtle = document.data.parse(requester.responseText,"text/turtle",{ baseURI: manifestURI});
-   document.data.merge(turtle.graph,turtle.prefixes);
+   document.data.merge(turtle.subjects,turtle.prefixes);
    var manifestSubject = document.data.getSubjects("rdf:type","mf:Manifest")[0];
    //console.log("Manifest subject: "+manifestSubject);
    var currentSubject = document.data.getValues(manifestSubject,"mf:entries")[0];
@@ -207,7 +207,7 @@ window.addEventListener("load",function() {
    var mapDoc = document.implementation.createDocument("http://www.w3.org/1999/xhtml","html",null);
    mapDoc.documentElement.setAttributeNS("http://www.w3.org/XML/1998/namespace","base",window.location.href);
    RDFa.attach(mapDoc);
-   mapDoc.data.merge(turtle.graph);
+   mapDoc.data.merge(turtle.subjects);
    for (var i=0; i<entries.length; i++) {
       var entry = entries[i];
       entry.subjectMap = { forward: {}, reverse: {} ,

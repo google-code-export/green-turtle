@@ -2,9 +2,14 @@
 RDFaProcessor.prototype = new URIResolver();
 RDFaProcessor.prototype.constructor=RDFaProcessor;
 function RDFaProcessor(targetObject) {
-   this.target = targetObject ? targetObject : {};
-   this.target.prefixes = {};
-   this.target.terms = {};
+   if (targetObject) {
+      this.target = targetObject;
+   } else {
+      this.target = {};
+      this.target.graph = {}
+      this.target.graph.prefixes = {};
+      this.target.graph.terms = {};
+   }
    this.language = null;
    this.vocabulary = null;
    this.blankCounter = 0;
@@ -207,57 +212,57 @@ RDFaProcessor.prototype.setContext = function(node) {
 
 RDFaProcessor.prototype.setInitialContext = function() {
    this.vocabulary = null;
-   this.target.prefixes = {};
-   this.target.terms = {};
+   this.target.graph.prefixes = {};
+   this.target.graph.terms = {};
    this.langAttributes = [ { namespaceURI: "http://www.w3.org/XML/1998/namespace", localName: "lang" } ];
    this.contentAttributes = [ "content" ];
    
-   this.target.prefixes[""] = "http://www.w3.org/1999/xhtml/vocab#";
+   this.target.graph.prefixes[""] = "http://www.w3.org/1999/xhtml/vocab#";
 
    // w3c
-   this.target.prefixes["grddl"] = "http://www.w3.org/2003/g/data-view#";
-   this.target.prefixes["ma"] = "http://www.w3.org/ns/ma-ont#";
-   this.target.prefixes["owl"] = "http://www.w3.org/2002/07/owl#";
-   this.target.prefixes["rdf"] = "http://www.w3.org/1999/02/22-rdf-syntax-ns#";
-   this.target.prefixes["rdfa"] = "http://www.w3.org/ns/rdfa#";
-   this.target.prefixes["rdfs"] = "http://www.w3.org/2000/01/rdf-schema#";
-   this.target.prefixes["rif"] = "http://www.w3.org/2007/rif#";
-   this.target.prefixes["skos"] = "http://www.w3.org/2004/02/skos/core#";
-   this.target.prefixes["skosxl"] = "http://www.w3.org/2008/05/skos-xl#";
-   this.target.prefixes["wdr"] = "http://www.w3.org/2007/05/powder#";
-   this.target.prefixes["void"] = "http://rdfs.org/ns/void#";
-   this.target.prefixes["wdrs"] = "http://www.w3.org/2007/05/powder-s#";
-   this.target.prefixes["xhv"] = "http://www.w3.org/1999/xhtml/vocab#";
-   this.target.prefixes["xml"] = "http://www.w3.org/XML/1998/namespace";
-   this.target.prefixes["xsd"] = "http://www.w3.org/2001/XMLSchema#";
+   this.target.graph.prefixes["grddl"] = "http://www.w3.org/2003/g/data-view#";
+   this.target.graph.prefixes["ma"] = "http://www.w3.org/ns/ma-ont#";
+   this.target.graph.prefixes["owl"] = "http://www.w3.org/2002/07/owl#";
+   this.target.graph.prefixes["rdf"] = "http://www.w3.org/1999/02/22-rdf-syntax-ns#";
+   this.target.graph.prefixes["rdfa"] = "http://www.w3.org/ns/rdfa#";
+   this.target.graph.prefixes["rdfs"] = "http://www.w3.org/2000/01/rdf-schema#";
+   this.target.graph.prefixes["rif"] = "http://www.w3.org/2007/rif#";
+   this.target.graph.prefixes["skos"] = "http://www.w3.org/2004/02/skos/core#";
+   this.target.graph.prefixes["skosxl"] = "http://www.w3.org/2008/05/skos-xl#";
+   this.target.graph.prefixes["wdr"] = "http://www.w3.org/2007/05/powder#";
+   this.target.graph.prefixes["void"] = "http://rdfs.org/ns/void#";
+   this.target.graph.prefixes["wdrs"] = "http://www.w3.org/2007/05/powder-s#";
+   this.target.graph.prefixes["xhv"] = "http://www.w3.org/1999/xhtml/vocab#";
+   this.target.graph.prefixes["xml"] = "http://www.w3.org/XML/1998/namespace";
+   this.target.graph.prefixes["xsd"] = "http://www.w3.org/2001/XMLSchema#";
    // non-rec w3c
-   this.target.prefixes["sd"] = "http://www.w3.org/ns/sparql-service-description#";
-   this.target.prefixes["org"] = "http://www.w3.org/ns/org#";
-   this.target.prefixes["gldp"] = "http://www.w3.org/ns/people#";
-   this.target.prefixes["cnt"] = "http://www.w3.org/2008/content#";
-   this.target.prefixes["dcat"] = "http://www.w3.org/ns/dcat#";
-   this.target.prefixes["earl"] = "http://www.w3.org/ns/earl#";
-   this.target.prefixes["ht"] = "http://www.w3.org/2006/http#";
-   this.target.prefixes["ptr"] = "http://www.w3.org/2009/pointers#";
+   this.target.graph.prefixes["sd"] = "http://www.w3.org/ns/sparql-service-description#";
+   this.target.graph.prefixes["org"] = "http://www.w3.org/ns/org#";
+   this.target.graph.prefixes["gldp"] = "http://www.w3.org/ns/people#";
+   this.target.graph.prefixes["cnt"] = "http://www.w3.org/2008/content#";
+   this.target.graph.prefixes["dcat"] = "http://www.w3.org/ns/dcat#";
+   this.target.graph.prefixes["earl"] = "http://www.w3.org/ns/earl#";
+   this.target.graph.prefixes["ht"] = "http://www.w3.org/2006/http#";
+   this.target.graph.prefixes["ptr"] = "http://www.w3.org/2009/pointers#";
    // widely used
-   this.target.prefixes["cc"] = "http://creativecommons.org/ns#";
-   this.target.prefixes["ctag"] = "http://commontag.org/ns#";
-   this.target.prefixes["dc"] = "http://purl.org/dc/terms/";
-   this.target.prefixes["dcterms"] = "http://purl.org/dc/terms/";
-   this.target.prefixes["foaf"] = "http://xmlns.com/foaf/0.1/";
-   this.target.prefixes["gr"] = "http://purl.org/goodrelations/v1#";
-   this.target.prefixes["ical"] = "http://www.w3.org/2002/12/cal/icaltzd#";
-   this.target.prefixes["og"] = "http://ogp.me/ns#";
-   this.target.prefixes["rev"] = "http://purl.org/stuff/rev#";
-   this.target.prefixes["sioc"] = "http://rdfs.org/sioc/ns#";
-   this.target.prefixes["v"] = "http://rdf.data-vocabulary.org/#";
-   this.target.prefixes["vcard"] = "http://www.w3.org/2006/vcard/ns#";
-   this.target.prefixes["schema"] = "http://schema.org/";
+   this.target.graph.prefixes["cc"] = "http://creativecommons.org/ns#";
+   this.target.graph.prefixes["ctag"] = "http://commontag.org/ns#";
+   this.target.graph.prefixes["dc"] = "http://purl.org/dc/terms/";
+   this.target.graph.prefixes["dcterms"] = "http://purl.org/dc/terms/";
+   this.target.graph.prefixes["foaf"] = "http://xmlns.com/foaf/0.1/";
+   this.target.graph.prefixes["gr"] = "http://purl.org/goodrelations/v1#";
+   this.target.graph.prefixes["ical"] = "http://www.w3.org/2002/12/cal/icaltzd#";
+   this.target.graph.prefixes["og"] = "http://ogp.me/ns#";
+   this.target.graph.prefixes["rev"] = "http://purl.org/stuff/rev#";
+   this.target.graph.prefixes["sioc"] = "http://rdfs.org/sioc/ns#";
+   this.target.graph.prefixes["v"] = "http://rdf.data-vocabulary.org/#";
+   this.target.graph.prefixes["vcard"] = "http://www.w3.org/2006/vcard/ns#";
+   this.target.graph.prefixes["schema"] = "http://schema.org/";
    
    // terms
-   this.target.terms["describedby"] = "http://www.w3.org/2007/05/powder-s#describedby";
-   this.target.terms["license"] = "http://www.w3.org/1999/xhtml/vocab#license";
-   this.target.terms["role"] = "http://www.w3.org/1999/xhtml/vocab#role";
+   this.target.graph.terms["describedby"] = "http://www.w3.org/2007/05/powder-s#describedby";
+   this.target.graph.terms["license"] = "http://www.w3.org/1999/xhtml/vocab#license";
+   this.target.graph.terms["role"] = "http://www.w3.org/1999/xhtml/vocab#role";
 }
 
 RDFaProcessor.prototype.setXMLContext = function() {
@@ -286,36 +291,36 @@ RDFaProcessor.prototype.setXHTMLContext = function() {
    this.contentAttributes = [ "content" ];
    
    // From http://www.w3.org/2011/rdfa-context/xhtml-rdfa-1.1
-   this.target.terms["alternate"] = "http://www.w3.org/1999/xhtml/vocab#alternate";
-   this.target.terms["appendix"] = "http://www.w3.org/1999/xhtml/vocab#appendix";
-   this.target.terms["bookmark"] = "http://www.w3.org/1999/xhtml/vocab#bookmark";
-   this.target.terms["cite"] = "http://www.w3.org/1999/xhtml/vocab#cite"
-   this.target.terms["chapter"] = "http://www.w3.org/1999/xhtml/vocab#chapter";
-   this.target.terms["contents"] = "http://www.w3.org/1999/xhtml/vocab#contents";
-   this.target.terms["copyright"] = "http://www.w3.org/1999/xhtml/vocab#copyright";
-   this.target.terms["first"] = "http://www.w3.org/1999/xhtml/vocab#first";
-   this.target.terms["glossary"] = "http://www.w3.org/1999/xhtml/vocab#glossary";
-   this.target.terms["help"] = "http://www.w3.org/1999/xhtml/vocab#help";
-   this.target.terms["icon"] = "http://www.w3.org/1999/xhtml/vocab#icon";
-   this.target.terms["index"] = "http://www.w3.org/1999/xhtml/vocab#index";
-   this.target.terms["last"] = "http://www.w3.org/1999/xhtml/vocab#last";
-   this.target.terms["license"] = "http://www.w3.org/1999/xhtml/vocab#license";
-   this.target.terms["meta"] = "http://www.w3.org/1999/xhtml/vocab#meta";
-   this.target.terms["next"] = "http://www.w3.org/1999/xhtml/vocab#next";
-   this.target.terms["prev"] = "http://www.w3.org/1999/xhtml/vocab#prev";
-   this.target.terms["previous"] = "http://www.w3.org/1999/xhtml/vocab#previous";
-   this.target.terms["section"] = "http://www.w3.org/1999/xhtml/vocab#section";
-   this.target.terms["stylesheet"] = "http://www.w3.org/1999/xhtml/vocab#stylesheet";
-   this.target.terms["subsection"] = "http://www.w3.org/1999/xhtml/vocab#subsection";
-   this.target.terms["start"] = "http://www.w3.org/1999/xhtml/vocab#start";
-   this.target.terms["top"] = "http://www.w3.org/1999/xhtml/vocab#top";
-   this.target.terms["up"] = "http://www.w3.org/1999/xhtml/vocab#up";
-   this.target.terms["p3pv1"] = "http://www.w3.org/1999/xhtml/vocab#p3pv1";
+   this.target.graph.terms["alternate"] = "http://www.w3.org/1999/xhtml/vocab#alternate";
+   this.target.graph.terms["appendix"] = "http://www.w3.org/1999/xhtml/vocab#appendix";
+   this.target.graph.terms["bookmark"] = "http://www.w3.org/1999/xhtml/vocab#bookmark";
+   this.target.graph.terms["cite"] = "http://www.w3.org/1999/xhtml/vocab#cite"
+   this.target.graph.terms["chapter"] = "http://www.w3.org/1999/xhtml/vocab#chapter";
+   this.target.graph.terms["contents"] = "http://www.w3.org/1999/xhtml/vocab#contents";
+   this.target.graph.terms["copyright"] = "http://www.w3.org/1999/xhtml/vocab#copyright";
+   this.target.graph.terms["first"] = "http://www.w3.org/1999/xhtml/vocab#first";
+   this.target.graph.terms["glossary"] = "http://www.w3.org/1999/xhtml/vocab#glossary";
+   this.target.graph.terms["help"] = "http://www.w3.org/1999/xhtml/vocab#help";
+   this.target.graph.terms["icon"] = "http://www.w3.org/1999/xhtml/vocab#icon";
+   this.target.graph.terms["index"] = "http://www.w3.org/1999/xhtml/vocab#index";
+   this.target.graph.terms["last"] = "http://www.w3.org/1999/xhtml/vocab#last";
+   this.target.graph.terms["license"] = "http://www.w3.org/1999/xhtml/vocab#license";
+   this.target.graph.terms["meta"] = "http://www.w3.org/1999/xhtml/vocab#meta";
+   this.target.graph.terms["next"] = "http://www.w3.org/1999/xhtml/vocab#next";
+   this.target.graph.terms["prev"] = "http://www.w3.org/1999/xhtml/vocab#prev";
+   this.target.graph.terms["previous"] = "http://www.w3.org/1999/xhtml/vocab#previous";
+   this.target.graph.terms["section"] = "http://www.w3.org/1999/xhtml/vocab#section";
+   this.target.graph.terms["stylesheet"] = "http://www.w3.org/1999/xhtml/vocab#stylesheet";
+   this.target.graph.terms["subsection"] = "http://www.w3.org/1999/xhtml/vocab#subsection";
+   this.target.graph.terms["start"] = "http://www.w3.org/1999/xhtml/vocab#start";
+   this.target.graph.terms["top"] = "http://www.w3.org/1999/xhtml/vocab#top";
+   this.target.graph.terms["up"] = "http://www.w3.org/1999/xhtml/vocab#up";
+   this.target.graph.terms["p3pv1"] = "http://www.w3.org/1999/xhtml/vocab#p3pv1";
 
    // other
-   this.target.terms["related"] = "http://www.w3.org/1999/xhtml/vocab#related";
-   this.target.terms["role"] = "http://www.w3.org/1999/xhtml/vocab#role";
-   this.target.terms["transformation"] = "http://www.w3.org/1999/xhtml/vocab#transformation";
+   this.target.graph.terms["related"] = "http://www.w3.org/1999/xhtml/vocab#related";
+   this.target.graph.terms["role"] = "http://www.w3.org/1999/xhtml/vocab#role";
+   this.target.graph.terms["transformation"] = "http://www.w3.org/1999/xhtml/vocab#transformation";
 }
 
 RDFaProcessor.prototype.init = function() {
@@ -812,8 +817,8 @@ RDFaProcessor.prototype.push = function(parent,subject) {
       incomplete: [],
       listMapping: parent ? parent.listMapping : {},
       language: parent ? parent.language : this.language,
-      prefixes: parent ? parent.prefixes : this.target.prefixes,
-      terms: parent ? parent.terms : this.target.terms,
+      prefixes: parent ? parent.prefixes : this.target.graph.prefixes,
+      terms: parent ? parent.terms : this.target.graph.terms,
       vocabulary: parent ? parent.vocabulary : this.vocabulary
    };
 };

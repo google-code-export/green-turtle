@@ -4,16 +4,16 @@ function RDFaEnvironment(owner) {
          return owner.getProjections(template);
       }
       var projections = [];
-      for (var subject in owner._data_.triplesGraph) {
-         var snode = owner._data_.triplesGraph[subject];
+      for (var subject in owner._data_.graph.subjects) {
+         var snode = owner._data_.graph.subjects[subject];
          for (var key in query) {
-            var predicate = owner._data_.curieParser.parse(key,true);
+            var predicate = owner._data_.graph.curieParser.parse(key,true);
             var pnode = snode.predicates[predicate];
             if (!pnode) {
                snode = null;
                break;
             }
-            var value = owner._data_.curieParser.parse(query[key],false);
+            var value = owner._data_.graph.curieParser.parse(query[key],false);
             var object = null;
             for (var i=0; !object && i<pnode.objects.length; i++) {
                if (pnode.objects[i].value==value) {
@@ -54,13 +54,13 @@ Projection.prototype.getSubject = function() {
 }
 
 Projection.prototype.get = function(uriOrCurie) {
-   var property = this._data_.owner._data_.curieParser.parse(uriOrCurie,true);
+   var property = this._data_.owner._data_.graph.curieParser.parse(uriOrCurie,true);
    var objects = this._data_.properties[property];
    return objects ? objects[0] : null;
 }
 
 Projection.prototype.getAll = function(uriOrCurie) {
-   var property = this._data_.owner._data_.curieParser.parse(uriOrCurie,true);
+   var property = this._data_.owner._data_.graph.curieParser.parse(uriOrCurie,true);
    return this._data_.properties[property];
 }
 
@@ -69,44 +69,19 @@ DocumentData.prototype.constructor = DocumentData;
 function DocumentData (uri) {
    this._data_ = { 
       tripleCount: 0,
-      triplesGraph: {},
-      prefixes: {},
-      terms: {},
-      baseURI: this.parseURI(uri)
+      graph: new RDFaGraph()
    };
-   var dataContext = this._data_;
-   this._data_.curieParser = {
-      trim: function(str) {
-         return str.replace(/^\s\s*/, '').replace(/\s\s*$/, '');
-      },
-      parse: function(value,resolve) {
-         value = this.trim(value);
-         if (value.charAt(0)=='[' && value.charAt(value.length-1)==']') {
-            value = value.substring(1,value.length-1);
-         }
-         var colon = value.indexOf(":");
-         if (colon>=0) {
-            var prefix = value.substring(0,colon);
-            if (prefix=="") {
-               // default prefix
-               var uri = dataContext.prefixes[""];
-               return uri ? uri+value.substring(colon+1) : null;
-            } else if (prefix=="_") {
-               // blank node
-               return "_:"+value.substring(colon+1);
-            } else if (DocumentData.NCNAME.test(prefix)) {
-               var uri = dataContext.prefixes[prefix];
-               if (uri) {
-                  return uri+value.substring(colon+1);
-               }
-            }
-         }
+   this._data_.graph.baseURI = this.parseURI(uri)
 
-         return resolve ? dataContext.baseURI.resolve(value) : value;
-      }
-   };
+   var dataContext = this._data_;
    Object.defineProperty(this,"rdfa", {
       value: new RDFaEnvironment(this),
+      writable: false,
+      configurable: false,
+      enumerable: true
+   });
+   Object.defineProperty(this,"graph", {
+      value: this._data_.graph,
       writable: false,
       configurable: false,
       enumerable: true
@@ -131,7 +106,7 @@ DocumentData.toProjection = function(owner,snode,template) {
    if (template) {
       for (var key in template) {
          var predicate = template[key];
-         predicate = owner._data_.curieParser.parse(predicate,true);
+         predicate = owner._data_.graph.curieParser.parse(predicate,true);
          var values = projection._data_.properties[predicate];
          if (values) {
             // TODO: API issue: is this the first value or all values?
@@ -148,8 +123,8 @@ DocumentData.prototype.getProperties = function(subject) {
    var properties = [];
 
    if (subject) {
-      subject = this._data_.curieParser.parse(subject,true);
-      snode = this._data_.triplesGraph[subject];
+      subject = this._data_.graph.curieParser.parse(subject,true);
+      snode = this._data_.graph.subjects[subject];
       if (snode) {
          for (var predicate in snode.predicates) {
             properties.push(predicate);
@@ -157,8 +132,8 @@ DocumentData.prototype.getProperties = function(subject) {
       }
    } else {
       var uniqueProperties = {};
-      for (var graphSubject in this._data_.triplesGraph) {
-         var snode = this._data_.triplesGraph[graphSubject];
+      for (var graphSubject in this._data_.graph.subjects) {
+         var snode = this._data_.graph.subjects[graphSubject];
          if (snode) {
             for (var predicate in snode.predicates) {
                if (!uniqueProperties[predicate]) {
@@ -175,12 +150,12 @@ DocumentData.prototype.getProperties = function(subject) {
 DocumentData.prototype.getSubjects = function(property,value) {
    var subjects = [];
    if (property) {
-      property = this._data_.curieParser.parse(property,true);
+      property = this._data_.graph.curieParser.parse(property,true);
    }
    if (property && value) {
-      var expanded = this._data_.curieParser.parse(value,true);
-      for (var subject in this._data_.triplesGraph) {
-         var snode = this._data_.triplesGraph[subject];
+      var expanded = this._data_.graph.curieParser.parse(value,true);
+      for (var subject in this._data_.graph.subjects) {
+         var snode = this._data_.graph.subjects[subject];
          var pnode = snode.predicates[property];
          if (pnode) {
             for (var i=0; i<pnode.objects.length; i++) {
@@ -192,17 +167,17 @@ DocumentData.prototype.getSubjects = function(property,value) {
          }
       }
    } else if (property) {
-      for (var subject in this._data_.triplesGraph) {
-         var snode = this._data_.triplesGraph[subject];
+      for (var subject in this._data_.graph.subjects) {
+         var snode = this._data_.graph.subjects[subject];
          var pnode = snode.predicates[property];
          if (pnode) {
             subjects.push(subject);
          }
       }
    } else if (value) {
-      var expanded = this._data_.curieParser.parse(value,true);
-      for (var subject in this._data_.triplesGraph) {
-         var snode = this._data_.triplesGraph[subject];
+      var expanded = this._data_.graph.curieParser.parse(value,true);
+      for (var subject in this._data_.graph.subjects) {
+         var snode = this._data_.graph.subjects[subject];
          for (var predicate in snode.predicates) {
             var pnode = subject.predicates[predicate];
             if (pnode) {
@@ -220,7 +195,7 @@ DocumentData.prototype.getSubjects = function(property,value) {
          }
       }
    } else {
-      for (var subject in this._data_.triplesGraph) {
+      for (var subject in this._data_.graph.subjects) {
          subjects.push(subject);
       }
    }
@@ -244,11 +219,11 @@ DocumentData.prototype.getValueOrigins = function(subject,property) {
       }
    }
    if (property) {
-      property = this._data_.curieParser.parse(property,true);
+      property = this._data_.graph.curieParser.parse(property,true);
    }
    if (subject) {
-      subject = this._data_.curieParser.parse(subject,true);
-      var snode = this._data_.triplesGraph[subject];
+      subject = this._data_.graph.curieParser.parse(subject,true);
+      var snode = this._data_.graph.subjects[subject];
       if (snode) {
          if (property) {
             convert(snode.predicates[property]);
@@ -259,13 +234,13 @@ DocumentData.prototype.getValueOrigins = function(subject,property) {
          }
       }
    } else if (property) {
-      for (var graphSubject in this._data_.triplesGraph) {
-         var snode = this._data_.triplesGraph[graphSubject];
+      for (var graphSubject in this._data_.graph.subjects) {
+         var snode = this._data_.graph.subjects[graphSubject];
          convert(snode.predicates[property]);
       }
    } else {
-      for (var graphSubject in this._data_.triplesGraph) {
-         var snode = this._data_.triplesGraph[graphSubject];
+      for (var graphSubject in this._data_.graph.subjects) {
+         var snode = this._data_.graph.subjects[graphSubject];
          for (var predicate in snode.predicates) {
             convert(snode.predicates[predicate]);
          }
@@ -276,11 +251,11 @@ DocumentData.prototype.getValueOrigins = function(subject,property) {
 DocumentData.prototype.getValues = function(subject,property) {
    var values = [];
    if (property) {
-      property = this._data_.curieParser.parse(property,true);
+      property = this._data_.graph.curieParser.parse(property,true);
    }
    if (subject) {
-      subject = this._data_.curieParser.parse(subject,true);
-      var snode = this._data_.triplesGraph[subject];
+      subject = this._data_.graph.curieParser.parse(subject,true);
+      var snode = this._data_.graph.subjects[subject];
       if (snode) {
          if (property) {
             var pnode = snode.predicates[property];
@@ -299,8 +274,8 @@ DocumentData.prototype.getValues = function(subject,property) {
          }
       }
    } else if (property) {
-      for (var graphSubject in this._data_.triplesGraph) {
-         var snode = this._data_.triplesGraph[graphSubject];
+      for (var graphSubject in this._data_.graph.subjects) {
+         var snode = this._data_.graph.subjects[graphSubject];
          var pnode = snode.predicates[property];
          if (pnode) {
             for (var i=0; i<pnode.objects.length; i++) {
@@ -309,8 +284,8 @@ DocumentData.prototype.getValues = function(subject,property) {
          }
       }
    } else {
-      for (var graphSubject in this._data_.triplesGraph) {
-         var snode = this._data_.triplesGraph[graphSubject];
+      for (var graphSubject in this._data_.graph.subjects) {
+         var snode = this._data_.graph.subjects[graphSubject];
          for (var predicate in snode.predicates) {
             var pnode = snode.predicates[predicate];
             for (var i=0; i<pnode.objects.length; i++) {
@@ -325,25 +300,25 @@ DocumentData.prototype.getValues = function(subject,property) {
 Object.defineProperty(DocumentData.prototype,"prefixes",{
    enumerable: true,
    get: function() {
-      return Object.keys(this._data_.prefixes);
+      return Object.keys(this._data_.graph.prefixes);
    }
 });
 
 DocumentData.prototype.setMapping = function(prefix,uri) {
-   this._data_.prefixes[prefix] = uri;
+   this._data_.graph.prefixes[prefix] = uri;
 };
 
 DocumentData.prototype.getMapping = function(prefix) {
-   return this._data_.prefixes[prefix];
+   return this._data_.graph.prefixes[prefix];
 };
 
 DocumentData.prototype.expand = function(curie) {
-   return this._data_.curieParser.parse(curie,true);  
+   return this._data_.graph.curieParser.parse(curie,true);  
 }
 
 DocumentData.prototype.shorten = function(uri) {
-   for (prefix in this._data_.prefixes) {
-      var mapped = this._data_.prefixes[prefix];
+   for (prefix in this._data_.graph.prefixes) {
+      var mapped = this._data_.graph.prefixes[prefix];
       if (uri.indexOf(mapped)==0) {
          return prefix+":"+uri.substring(mapped.length);
       }
@@ -354,17 +329,17 @@ DocumentData.prototype.shorten = function(uri) {
 DocumentData.prototype.getSubject = function(subject) {
    if (!subject) { return null; }
 
-   subject = this._data_.curieParser.parse(subject,true);
+   subject = this._data_.graph.curieParser.parse(subject,true);
  
-   return this._data_.triplesGraph[subject];
+   return this._data_.graph.subjects[subject];
 }
 
 DocumentData.prototype.getProjection = function(subject, template) {
    if (!subject) { return null }
 
-   subject = this._data_.curieParser.parse(subject,true);
+   subject = this._data_.graph.curieParser.parse(subject,true);
    
-   var snode = this._data_.triplesGraph[subject];
+   var snode = this._data_.graph.subjects[subject];
    if (!snode) {
       return null;
    }
@@ -374,16 +349,16 @@ DocumentData.prototype.getProjection = function(subject, template) {
 
 DocumentData.prototype.getProjections = function(property, value, template) {
    if (property) {
-      property = this._data_.curieParser.parse(property,true);
+      property = this._data_.graph.curieParser.parse(property,true);
    }
    var projections = [];
    if (typeof value == "undefined" && typeof template == "undefined") {
       template = property;
    }
    if (property && value) {
-      var expanded = this._data_.curieParser.parse(value,true);
-      for (var subject in this._data_.triplesGraph) {
-         var snode = this._data_.triplesGraph[subject];
+      var expanded = this._data_.graph.curieParser.parse(value,true);
+      for (var subject in this._data_.graph.subjects) {
+         var snode = this._data_.graph.subjects[subject];
          var pnode = snode.predicates[property];
          if (pnode) {
             for (var i=0; i<pnode.objects.length; i++) {
@@ -395,15 +370,15 @@ DocumentData.prototype.getProjections = function(property, value, template) {
          }
       }
    } else if (property) {
-      for (var subject in this._data_.triplesGraph) {
-         var snode = this._data_.triplesGraph[subject];
+      for (var subject in this._data_.graph.subjects) {
+         var snode = this._data_.graph.subjects[subject];
          if (snode.predicates[property]) {
             projections.push(DocumentData.toProjection(this,snode,template));
          }
       }
    } else {
-      for (var subject in this._data_.triplesGraph) {
-         var snode = this._data_.triplesGraph[subject];
+      for (var subject in this._data_.graph.subjects) {
+         var snode = this._data_.graph.subjects[subject];
          projections.push(DocumentData.toProjection(this,snode,template));
       }
    }
@@ -430,7 +405,7 @@ DocumentData.prototype.merge = function(graph,prefixes) {
    if (graph) {
       for (var subject in graph) {
          var snode = graph[subject];
-         var target = this._data_.triplesGraph[subject];
+         var target = this._data_.graph.subjects[subject];
          if (target) {
             for (var predicate in snode.predicates) {
                var pnode = snode.predicates[predicate];
@@ -455,14 +430,14 @@ DocumentData.prototype.merge = function(graph,prefixes) {
                }
             }
          } else {
-            this._data_.triplesGraph[subject] = snode;
+            this._data_.graph.subjects[subject] = snode;
          }
       }
    }
    if (prefixes) {
       for (var prefix in prefixes) {
-         if (!this._data_.prefixes[prefix]) {
-            this._data_.prefixes[prefix] = prefixes[prefix];
+         if (!this._data_.graph.prefixes[prefix]) {
+            this._data_.graph.prefixes[prefix] = prefixes[prefix];
          }
       }
    }
@@ -512,7 +487,7 @@ Element.prototype.getFirstElementByType = function() {
 DocumentData.attach = function(target) {
 
    Object.defineProperty(target,"data", {
-      value: new DocumentData(target.nodeType==Node.DOCUMENT_NODE ? target.documentElement.baseURI : target.baseURI),
+      value: new DocumentData(target.nodeType==Node.DOCUMENT_NODE ? target.documentElement.baseURI : target.graph.baseURI),
       writable: false,
       configurable: false,
       enumerable: true
@@ -527,8 +502,8 @@ DocumentData.attach = function(target) {
       nodes.item = function(index) {
          return this[index];
       };
-      subject = this.data._data_.curieParser.parse(subject,true);
-      var snode = this.data._data_.triplesGraph[subject];
+      subject = this.data._data_.graph.curieParser.parse(subject,true);
+      var snode = this.data._data_.graph.subjects[subject];
       if (snode) {
          for (var i=0; i<snode.origins.length; i++) {
             nodes.push(snode.origins[i]);
@@ -543,12 +518,12 @@ DocumentData.attach = function(target) {
          return this[index];
       };
       if (value) {
-         value = this.data._data_.curieParser.parse(value,false);
+         value = this.data._data_.graph.curieParser.parse(value,false);
       }
       var noValue = typeof value == "undefined";
-      property = this.data._data_.curieParser.parse(property,true);
-      for (var subject in this.data._data_.triplesGraph) {
-         var snode = this.data._data_.triplesGraph[subject];
+      property = this.data._data_.graph.curieParser.parse(property,true);
+      for (var subject in this.data._data_.graph.subjects) {
+         var snode = this.data._data_.graph.subjects[subject];
          var pnode = snode.predicates[property];
          if (pnode) {
             for (var i=0; i<pnode.objects.length; i++) {
@@ -566,8 +541,8 @@ DocumentData.attach = function(target) {
    };
    
    target.getElementSubject = function(e) {
-      for (var subject in this.data._data_.triplesGraph) {
-         var snode = this.data._data_.triplesGraph[subject];
+      for (var subject in this.data._data_.graph.subjects) {
+         var snode = this.data._data_.graph.subjects[subject];
          if (snode.origins.indexOf(e)>=0) {
             return subject;
          }

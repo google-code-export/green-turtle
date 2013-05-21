@@ -542,10 +542,10 @@ TestHarness.prototype.compareTest = function(testContext,sparql) {
    }
    this.testResult(testContext,"inprogress","COMPARING","Comparing triples..");
    
-   var testGraph = testContext.doc.data._data_.triplesGraph;
+   var testGraph = testContext.doc.data.graph;
    for (var subject in graph) {
       var snode = graph[subject];
-      var testSnode = testGraph[subject];
+      var testSnode = testGraph.subjects[subject];
       if (!testSnode) {
          console.log("Missing subject: "+subject);
          ok = false;
@@ -615,7 +615,7 @@ TestHarness.prototype.compareTest = function(testContext,sparql) {
          
       }
    }
-   for (var subject in testGraph) {
+   for (var subject in testGraph.subjects) {
       var snode = graph[subject];
       if (!snode) {
          console.log("Extra subject: "+subject);

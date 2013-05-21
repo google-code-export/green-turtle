@@ -61,50 +61,7 @@ TurtleParser.xsdDoubleURI = "http://www.w3.org/2001/XMLSchema#double";
 TurtleParser.xsdBooleanURI = "http://www.w3.org/2001/XMLSchema#boolean";
 
 TurtleParser.prototype.reset = function() {
-   this.context = {
-      curieParser: {
-         trim: function(str) {
-            return str.replace(/^\s\s*/, '').replace(/\s\s*$/, '');
-         },
-         parse: function(value,resolve) {
-            value = this.trim(value);
-            if (value.charAt(0)=='[' && value.charAt(value.length-1)==']') {
-               value = value.substring(1,value.length-1);
-            }
-            var colon = value.indexOf(":");
-            if (colon>=0) {
-               var prefix = value.substring(0,colon);
-               if (prefix=="") {
-                  // default prefix
-                  var uri = dataContext.prefixes[""];
-                  return uri ? uri+value.substring(colon+1) : null;
-               } else if (prefix=="_") {
-                  // blank node
-                  return "_:"+value.substring(colon+1);
-               } else if (DocumentData.NCNAME.test(prefix)) {
-                  var uri = dataContext.prefixes[prefix];
-                  if (uri) {
-                     return uri+value.substring(colon+1);
-                  }
-               }
-            }
-   
-            return resolve ? dataContext.baseURI.resolve(value) : value;
-         }
-      },
-      graph: {},
-      prefixes: {},
-      base: null,
-      toString: function() {
-         var s = "";
-         for (var subject in this.graph) {
-            var snode = this.graph[subject];
-            s += snode.toString();
-            s += "\n";
-         }
-         return s;
-      }
-   };
+   this.context = new RDFaGraph();
    this.blankNodeCounter = 0;
    this.errorCount = 0;
    this.lineNumber = 1;
@@ -115,10 +72,6 @@ TurtleParser.dumpGraph = function(graph) {
       var snode = graph[subject];
       console.log(snode.toString());
    }
-}
-
-TurtleParser.prototype.getGraph = function() {
-   return this.context.graph;
 }
 
 TurtleParser.prototype.newBlankNode = function() {
@@ -153,7 +106,7 @@ TurtleParser.prototype.reportError = function(msg) {
 
 TurtleParser.prototype.parse = function(text,baseURI) {
    if (baseURI) {
-      this.context.base = this.parseURI(baseURI);
+      this.context.baseURI = this.parseURI(baseURI);
    }
    while (text.length>0) {
       text = this._trim(text);
@@ -183,7 +136,7 @@ TurtleParser.prototype.parseStatement = function(text) {
          this.errorCount++;
          return remaining;
       }
-      this.context.prefixes[prefix] = this.context.base ? this.context.base.resolve(match.iri) : match.iri;
+      this.context.prefixes[prefix] = this.context.baseURI ? this.context.baseURI.resolve(match.iri) : match.iri;
       try {
          this.parseURI(this.context.prefixes[prefix]);
       } catch (ex) {
@@ -212,7 +165,7 @@ TurtleParser.prototype.parseStatement = function(text) {
          return remaining;
       }
       try {
-         this.context.base = this.context.base ? this.parseURI(this.context.base.resolve(match.iri)) : this.parseURI(match.iri);
+         this.context.baseURI = this.context.baseURI ? this.parseURI(this.context.baseURI.resolve(match.iri)) : this.parseURI(match.iri);
       } catch (ex) {
          this.reportError(ex+"; IRI: "+match.iri);
          this.errorCount++;
@@ -247,7 +200,7 @@ TurtleParser.prototype.parseStatement = function(text) {
          this.errorCount++;
          return remaining;
       }
-      this.context.prefixes[prefix] = this.context.base ? this.context.base.resolve(match.iri) : match.iri;
+      this.context.prefixes[prefix] = this.context.baseURI ? this.context.baseURI.resolve(match.iri) : match.iri;
       try {
          this.parseURI(this.context.prefixes[prefix]);
       } catch (ex) {
@@ -267,7 +220,7 @@ TurtleParser.prototype.parseStatement = function(text) {
          return remaining;
       }
       try {
-         this.context.base = this.context.base ? this.parseURI(this.context.base.resolve(match.iri)) : this.parseURI(match.iri);
+         this.context.baseURI = this.context.baseURI ? this.parseURI(this.context.baseURI.resolve(match.iri)) : this.parseURI(match.iri);
       } catch (ex) {
          this.reportError(ex+"; IRI: "+match.iri);
          this.errorCount++;
@@ -502,7 +455,7 @@ TurtleParser.prototype.parseIRI = function(text) {
    var match = this._match(TurtleParser.iriRE,text);
    if (match) {
       var expanded = TurtleParser.expandURI(match.values[0]);
-      match.iri = this.context.base ? this.context.base.resolve(expanded) : expanded;
+      match.iri = this.context.baseURI ? this.context.baseURI.resolve(expanded) : expanded;
       try {
          this.parseURI(match.iri);
       } catch (ex) {
@@ -626,10 +579,10 @@ TurtleParser.prototype.parseLiteral = function(text) {
 }
 
 TurtleParser.prototype.newSubject = function(subject) {
-   var snode = this.context.graph[subject];
+   var snode = this.context.subjects[subject];
    if (!snode) {
       snode = new RDFaSubject(this.context,subject);
-      this.context.graph[subject] = snode;
+      this.context.subjects[subject] = snode;
    }
    return snode;
 }
