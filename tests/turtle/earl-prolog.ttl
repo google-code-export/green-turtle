@@ -15,8 +15,7 @@
   doap:created       "{date}"^^xsd:date ;
   doap:programming-language "Javascript" ;
   doap:implements    <http://www.w3.org/TR/turtle/> ;
-  doap:category      <http://dbpedia.org/resource/Resource_Description_Framework>,
-                     <http://dbpedia.org/resource/Ruby_(programming_language)> ;
+  doap:category      <http://dbpedia.org/resource/Resource_Description_Framework>;
   doap:download-page <https://code.google.com/p/green-turtle/> ;
   doap:bug-database  <https://code.google.com/p/green-turtle/issues/list> ;
   doap:blog          <http://www.milowski.com/> ;
