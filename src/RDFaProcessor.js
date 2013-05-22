@@ -10,6 +10,7 @@ function RDFaProcessor(targetObject) {
       this.target.graph.prefixes = {};
       this.target.graph.terms = {};
    }
+   this.theOne = "_:"+(new Date()).getTime();
    this.language = null;
    this.vocabulary = null;
    this.blankCounter = 0;
@@ -52,6 +53,10 @@ RDFaProcessor.prototype.parseSafeCURIEOrCURIEOrURI = function(value,prefixes,bas
       value = value.trim(value);
       if (value.length==0) {
          return null;
+      }
+      if (value=="_:") {
+         // the one node
+         return this.theOne;
       }
       return this.parseCURIE(value,prefixes,base);
    } else {
