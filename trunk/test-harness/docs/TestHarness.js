@@ -56,7 +56,7 @@ TestHarness.prototype.nextTest = function() {
 
 TestHarness.prototype.test = function(entry,dataDoc,oncomplete)
 {
-   console.log("Processing "+entry.name);
+   console.log("["+(this.index-1)+"] Processing "+entry.name);
    RDFa.attach(dataDoc,{ 
       baseURI: entry.baseURI, 
       baseURIMap: function(uri) {
@@ -83,24 +83,9 @@ TestHarness.prototype.test = function(entry,dataDoc,oncomplete)
    });
 }
 
-TestHarness.baseRE = /http:\/\/rdfa.info\/test-suite\/test-cases\/rdfa1.1/;
-TestHarness.prototype.fixSparql = function(sparql) 
-{
-   var parts = sparql.split(TestHarness.baseRE);
-   if (parts.length==1) {
-      return sparql;
-   }
-   var s = parts[0];
-   for (var i=1; i<parts.length; i++) {
-      s += "http://localhost:8888/tests/cache"+parts[i];
-   }
-   return s;
-}
-
 TestHarness.prototype.compare = function(entry,dataDoc,sparql) {
    var id = null;
    entry.turtle = dataDoc.data.graph.toString();
-   //entry.sparql = this.fixSparql(sparql);
    entry.sparql = sparql;
    entry.passed = false;
    entry.failed = false;
@@ -220,8 +205,13 @@ TestHarness.prototype.generate = function(manifestURI)
       
       currentSubject = dataDoc.data.getValues(currentSubject,"rdf:rest")[0];
    }
+   
+   if (this.only>=0) {
+      var save = this.entries[this.only];
+      this.entries = [ save ];
+   }
    console.log(this.entries.length+" tests");
-
+   
    this.index = 0;
    this.nextTest();
 }
@@ -235,6 +225,11 @@ window.addEventListener("load",function() {
    testHarness.earl = document.getElementById("earl");
    testHarness.summary = document.getElementById("summary");
    var go = document.getElementById("go").onclick = function() {
+      testHarness.output.innerHTML = "<tr><th>Test</th><th>Parsed</th><th>Outcome</th><th>Details</th></tr>";
+      testHarness.summary.innerHTML = "";
+      testHarness.earl.innerHTML = "";
+      var only = document.getElementById("only").value;
+      testHarness.only = only.length==0 ? -1 : parseInt(only);
       testHarness.generate(document.getElementById("source").value);
    };
    
