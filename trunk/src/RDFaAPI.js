@@ -484,10 +484,10 @@ Element.prototype.getFirstElementByType = function() {
    return walker.nextNode() ? walker.currentNode : null;
 }
 
-DocumentData.attach = function(target) {
+DocumentData.attach = function(target,options) {
 
    Object.defineProperty(target,"data", {
-      value: new DocumentData(target.nodeType==Node.DOCUMENT_NODE ? target.documentElement.baseURI : target.graph.baseURI),
+      value: new DocumentData(options && options.baseURI ? options.baseURI : target.nodeType==Node.DOCUMENT_NODE ? target.documentElement.baseURI : target.graph.baseURI),
       writable: false,
       configurable: false,
       enumerable: true

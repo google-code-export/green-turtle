@@ -19,5 +19,5 @@ RDFa.trackChanges = function(flag) {
 
 }
 
-RDFa.attach = function(document) {
+RDFa.attach = function(document,options) {
 

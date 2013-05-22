@@ -332,7 +332,7 @@ RDFaProcessor.prototype.newSubjectOrigin = function(origin,subject) {
 RDFaProcessor.prototype.addTriple = function(origin,subject,predicate,object) {
 }
 
-RDFaProcessor.prototype.process = function(node) {
+RDFaProcessor.prototype.process = function(node,options) {
 
    /*
    if (!window.console) {
@@ -350,6 +350,9 @@ RDFaProcessor.prototype.process = function(node) {
       var hash = baseURI.indexOf("#");
       if (hash>=0) {
          baseURI = baseURI.substring(0,hash);
+      }
+      if (options && options.baseURIMap) {
+         baseURI = options.baseURIMap(baseURI);
       }
       return baseURI;
    }

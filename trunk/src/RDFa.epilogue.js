@@ -59,7 +59,7 @@ if (document.head) {
 
 
 if (!document.data) {
-   DocumentData.attach(document);
+   DocumentData.attach(document,options);
 }
 
 var processDoc = function() {
@@ -71,7 +71,7 @@ var processDoc = function() {
          node.ownerDocument.dispatchEvent(event);
       }
    });
-   processor.process(document.documentElement);
+   processor.process(document.documentElement,options);
    loaded = true;
    
 }
