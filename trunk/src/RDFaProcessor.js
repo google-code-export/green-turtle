@@ -577,7 +577,7 @@ RDFaProcessor.prototype.process = function(node,options) {
             if (!typedResource && srcAtt) {
                typedResource = this.resolveAndNormalize(base,srcAtt.value);
             }
-            if (!typedResource && this.inXHTMLMode && (current.localName=="head" || current.localName=="body")) {
+            if (!typedResource && (this.inXHTMLMode || this.inHTMLMode) && (current.localName=="head" || current.localName=="body")) {
                typedResource = newSubject;
             }
             if (!typedResource) {
@@ -603,7 +603,7 @@ RDFaProcessor.prototype.process = function(node,options) {
          if (!newSubject) {
             if (current.parentNode.nodeType==Node.DOCUMENT_NODE) {
                newSubject = removeHash(current.baseURI);
-            } else if (this.inXHTMLMode && (current.localName=="head" || current.localName=="body")) {
+            } else if ((this.inXHTMLMode || this.inHTMLMode) && (current.localName=="head" || current.localName=="body")) {
                newSubject = removeHash(current.parentNode.baseURI)==context.parentObject ? removeHash(current.baseURI) : context.parentObject;
             } else if (typeofAtt) {
                newSubject = this.newBlankNode();
