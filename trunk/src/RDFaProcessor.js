@@ -168,7 +168,8 @@ RDFaProcessor.prototype.parsePrefixMappings = function(str,target) {
       if (values[i][values[i].length-1]==':') {
          prefix = values[i].substring(0,values[i].length-1);
       } else if (prefix) {
-         target[prefix] = values[i];
+         console.log("map "+prefix+" -> "+values[i]+", base: "+this.target.baseURI);
+         target[prefix] = this.target.baseURI ? this.target.baseURI.resolve(values[i]) : values[i];
          prefix = null;
       }
    }
@@ -438,7 +439,8 @@ RDFaProcessor.prototype.process = function(node,options) {
             }
             var prefix = att.nodeName.substring(6);
             // TODO: resolve relative?
-            prefixes[prefix] = this.trim(att.value);
+            var ref = this.trim(att.value);
+            prefixes[prefix] = this.target.baseURI ? this.target.baseURI.resolve(ref) : ref;
          }
       }
       // Handle prefix mappings (@prefix)
