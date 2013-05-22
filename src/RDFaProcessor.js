@@ -464,6 +464,8 @@ RDFaProcessor.prototype.process = function(node,options) {
          var value = this.trim(xmlLangAtt.value);
          if (value.length>0) {
             language = value;
+         } else {
+            language = null;
          }
       }
 
