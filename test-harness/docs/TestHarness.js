@@ -57,11 +57,21 @@ TestHarness.prototype.nextTest = function() {
 TestHarness.prototype.test = function(entry,dataDoc,oncomplete)
 {
    console.log("Processing "+entry.name);
-   RDFa.attach(dataDoc);
+   RDFa.attach(dataDoc,{ 
+      baseURI: entry.baseURI, 
+      baseURIMap: function(uri) {
+         var prefix = "http://localhost:8888/tests/cache";
+         if (uri.match(/^http:\/\/localhost:8888\/tests\/cache/)) {
+            uri = "http://rdfa.info/test-suite/test-cases/rdfa1.1"+uri.substring(prefix.length);
+         }
+         return uri;
+      }
+   });
+   var app = this;
    HTTP("GET",entry.query,{
       synchronizedRequest: true,
       onSuccess: function(status,doc,text) {
-         console.log(text);
+         app.compare(entry,dataDoc,text);
          if (oncomplete) {
             oncomplete();
          }
@@ -73,7 +83,84 @@ TestHarness.prototype.test = function(entry,dataDoc,oncomplete)
    });
 }
 
+TestHarness.baseRE = /http:\/\/rdfa.info\/test-suite\/test-cases\/rdfa1.1/;
+TestHarness.prototype.fixSparql = function(sparql) 
+{
+   var parts = sparql.split(TestHarness.baseRE);
+   if (parts.length==1) {
+      return sparql;
+   }
+   var s = parts[0];
+   for (var i=1; i<parts.length; i++) {
+      s += "http://localhost:8888/tests/cache"+parts[i];
+   }
+   return s;
+}
+
+TestHarness.prototype.compare = function(entry,dataDoc,sparql) {
+   var id = null;
+   entry.turtle = dataDoc.data.graph.toString();
+   //entry.sparql = this.fixSparql(sparql);
+   entry.sparql = sparql;
+   entry.passed = false;
+   entry.failed = false;
+   HTTP("POST","/sparql/new",{
+      synchronizedRequest: true,
+      contentType: "text/turtle",
+      body: entry.turtle,
+      onSuccess: function(status,doc,text) {
+         id = doc.documentElement.getAttribute("id");
+      },
+      onFailure: function(status,doc,text) {
+         entry.failed = true;
+         console.log("Could not post turtle ("+status+"): "+text);
+      }
+   });
+   if (id==null) {
+      return;
+   }
+   console.log("Query context "+id);
+   var askResult = false;
+   HTTP("POST","/sparql/query/"+id,{
+      synchronizedRequest: true,
+      contentType: "text/sparql",
+      body: entry.sparql,
+      onSuccess: function(status,doc,text) {
+         entry.ask = doc.documentElement.textContent=="true";
+      },
+      onFailure: function(status,doc,text) {
+         entry.failed = true;
+         console.log("Could not post turtle ("+status+"): "+text);
+      }
+   });
+   
+   if (entry.failed) {
+      return;
+   }
+
+   entry.passed = entry.result ? entry.ask : !entry.ask;
+ 
+   console.log(entry.passed ? "PASS" : "FAIL");
+}
+
 TestHarness.prototype.generateReport = function() {
+   var success = 0;
+   for (var i=0; i<this.entries.length; i++) {
+      var entry = this.entries[i];
+      var row = document.createElement("tr");
+      this.output.appendChild(row);
+      row.innerHTML = "<td><a href=\""+entry.data+"\">"+entry.name.replace(/&/g, '&amp;').replace(/</g, '&lt;')+"</a></td><td class=\""+(entry.failed ? "fail" : "pass")+"\">"+!entry.failed+"</td><td class=\""+(entry.passed ? "pass" : "fail")+"\">"+(entry.passed ? "pass" : "fail")+"</td><td></td>";
+      if (!entry.passed) {
+         var cell = row.cells[3];
+         cell.innerHTML = "<pre/><p>versus</p><pre/>";
+         cell.firstChild.appendChild(document.createTextNode(entry.turtle));
+         cell.lastChild.appendChild(document.createTextNode(entry.sparql));
+      } else {
+         success++;
+      }
+   }
+   
+   this.summary.innerHTML = success+" / "+this.entries.length;
    
 }
 
@@ -105,7 +192,7 @@ TestHarness.prototype.generate = function(manifestURI)
    dataDoc.documentElement.setAttributeNS("http://www.w3.org/XML/1998/namespace","base",window.location.href);
    RDFa.attach(dataDoc);
    console.log("Merging ...");
-   dataDoc.data.merge(turtle.graph,turtle.prefixes);
+   dataDoc.data.merge(turtle.subjects,turtle.prefixes);
    console.log("Processing ...");
 
    // load entries
@@ -125,7 +212,8 @@ TestHarness.prototype.generate = function(manifestURI)
       entry.result = "true"==dataDoc.data.getValues(entry.subject,"mf:result")[0];
       
       var actionSubject = dataDoc.data.getValues(entry.subject,"mf:action")[0];
-      entry.data = this.mapURI(dataDoc.data.getValues(actionSubject,"qt:data")[0]);
+      entry.baseURI = dataDoc.data.getValues(actionSubject,"qt:data")[0];
+      entry.data = this.mapURI(entry.baseURI);
       entry.query = this.mapURI(dataDoc.data.getValues(actionSubject,"qt:query")[0]);
       
       this.entries.push(entry);
@@ -143,6 +231,9 @@ var testHarness = new TestHarness();
 window.addEventListener("load",function() {
    
    testHarness.init(document.getElementById("loader"));
+   testHarness.output = document.getElementById("output");
+   testHarness.earl = document.getElementById("earl");
+   testHarness.summary = document.getElementById("summary");
    var go = document.getElementById("go").onclick = function() {
       testHarness.generate(document.getElementById("source").value);
    };
