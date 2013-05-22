@@ -72,6 +72,7 @@ function DocumentData (uri) {
       graph: new RDFaGraph()
    };
    this._data_.graph.baseURI = this.parseURI(uri)
+   this._data_.baseURI = this._data_.graph.baseURI;
 
    var dataContext = this._data_;
    Object.defineProperty(this,"rdfa", {
