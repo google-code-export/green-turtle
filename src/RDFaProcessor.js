@@ -293,7 +293,8 @@ RDFaProcessor.prototype.setXHTMLContext = function() {
    this.inXHTMLMode = true;
    this.inHTMLMode = false;
    
-   this.langAttributes = [ { namespaceURI: "http://www.w3.org/XML/1998/namespace", localName: "lang" } ];
+   this.langAttributes = [ { namespaceURI: "http://www.w3.org/XML/1998/namespace", localName: "lang" },
+                           { namespaceURI: null, localName: "lang" }];
    this.contentAttributes = [ "content" ];
    
    // From http://www.w3.org/2011/rdfa-context/xhtml-rdfa-1.1
