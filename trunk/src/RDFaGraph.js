@@ -139,9 +139,22 @@ RDFaPredicate.prototype.toString = function() {
          s += this.objects[i].value;
       } else if (this.objects[i].type=="http://www.w3.org/1999/02/22-rdf-syntax-ns#XMLLiteral") {
          var serializer = new XMLSerializer();
-         s += '"""'+serializer.serializeToString(this.objects[i].value)+'"""^^<http://www.w3.org/1999/02/22-rdf-syntax-ns#XMLLiteral>';
+         var value = "";
+         for (var x=0; x<this.objects[i].value.length; x++) {
+            if (this.objects[i].value[x].nodeType==Node.ELEMENT_NODE) {
+               value += serializer.serializeToString(this.objects[i].value[x]);
+            } else if (this.objects[i].value[x].nodeType==Node.TEXT_NODE) {
+               value += this.objects[i].value[x].nodeValue;
+            }
+         }
+         s += '"""'+value.replace(/"""/,"\\\"\\\"\\\"")+'"""^^<http://www.w3.org/1999/02/22-rdf-syntax-ns#XMLLiteral>';
       } else {
-         s += '"' + this.objects[i].value.split('"').join('\\"') + '"';
+         var l = this.objects[i].value;
+         if (l.indexOf("\n")>=0 || l.indexOf("\r")>=0) {
+            s += '"""' + l.replace(/"""/,"\\\"\\\"\\\"") + '"""';
+         } else {
+            s += '"' + l.replace(/"/,"\\\"") + '"';
+         }
          if (this.objects[i].type!="http://www.w3.org/1999/02/22-rdf-syntax-ns#PlainLiteral") {
              s += "^^<"+this.objects[i].type+">";
          } else if (this.objects[i].language) {
