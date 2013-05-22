@@ -93,11 +93,11 @@ RDFaProcessor.prototype.parseCURIEOrURI = function(value,prefixes,base) {
    return this.resolveAndNormalize(base,value);
 }
 
-RDFaProcessor.prototype.parsePredicate = function(value,defaultVocabulary,terms,prefixes,base) {
+RDFaProcessor.prototype.parsePredicate = function(value,defaultVocabulary,terms,prefixes,base,ignoreTerms) {
    if (value=="") {
       return null;
    }
-   var predicate = this.parseTermOrCURIEOrAbsURI(value,defaultVocabulary,terms,prefixes,base);
+   var predicate = this.parseTermOrCURIEOrAbsURI(value,defaultVocabulary,ignoreTerms ? null : terms,prefixes,base);
    if (predicate && predicate.indexOf("_:")==0) {
       return null;
    }
@@ -133,7 +133,7 @@ RDFaProcessor.prototype.parseTermOrCURIEOrAbsURI = function(value,defaultVocabul
    var curie = this.parseCURIE(value,prefixes,base);
    if (curie) {
       return curie;
-   } else {
+   } else if (terms) {
        if (defaultVocabulary && !this.absURIRE.exec(value)) {
           return defaultVocabulary+value
        }
@@ -488,7 +488,7 @@ RDFaProcessor.prototype.process = function(node,options) {
       if (relAtt) {
          var values = this.tokenize(relAtt.value);
          for (var i=0; i<values.length; i++) {
-            var predicate = this.parsePredicate(values[i],vocabulary,context.terms,prefixes,base);
+            var predicate = this.parsePredicate(values[i],vocabulary,context.terms,prefixes,base,this.inHTMLMode && propertyAtt!=null);
             if (predicate) {
                relAttPredicates.push(predicate);
             }
@@ -498,7 +498,7 @@ RDFaProcessor.prototype.process = function(node,options) {
       if (revAtt) {
          var values = this.tokenize(revAtt.value);
          for (var i=0; i<values.length; i++) {
-            var predicate = this.parsePredicate(values[i],vocabulary,context.terms,prefixes,base);
+            var predicate = this.parsePredicate(values[i],vocabulary,context.terms,prefixes,base,this.inHTMLMode && propertyAtt!=null);
             if (predicate) {
                revAttPredicates.push(predicate);
             }
@@ -506,7 +506,7 @@ RDFaProcessor.prototype.process = function(node,options) {
       }
       
       // Section 3.1, bullet 7
-      if (this.inHTMLMode) {
+      if (this.inHTMLMode && (relAtt!=null || revAtt!=null) && propertyAtt!=null) {
          if (relAttPredicates.length==0) {
             relAtt = null;
          }
