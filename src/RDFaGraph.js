@@ -119,6 +119,25 @@ function RDFaPredicate(predicate) {
    this.objects = [];
 }
 
+RDFaPredicate.getPrefixMap = function(e) {
+   var prefixMap = {};
+   while (e.attributes) {
+      for (var i=0; i<e.attributes.length; i++) {
+         if (e.attributes[i].namespaceURI=="http://www.w3.org/2000/xmlns/") {
+            var prefix = e.attributes[i].localName;
+            if (e.attributes[i].localName=="xmlns") {
+               prefix = "";
+            }
+            if (!(prefix in prefixMap)) {
+               prefixMap[prefix] = e.attributes[i].nodeValue;
+            }
+         }
+      }
+      e = e.parentNode;
+   }
+   return prefixMap;
+}
+
 RDFaPredicate.prototype.toString = function() {
    var s = "<" + this.predicate + "> ";
    for (var i=0; i<this.objects.length; i++) {
@@ -142,7 +161,17 @@ RDFaPredicate.prototype.toString = function() {
          var value = "";
          for (var x=0; x<this.objects[i].value.length; x++) {
             if (this.objects[i].value[x].nodeType==Node.ELEMENT_NODE) {
-               value += serializer.serializeToString(this.objects[i].value[x]);
+               var prefixMap = RDFaPredicate.getPrefixMap(this.objects[i].value[x]);
+               var prefixes = [];
+               for (var prefix in prefixMap) {
+                  prefixes.push(prefix);
+               }
+               prefixes.sort();
+               var e = this.objects[i].value[x].cloneNode(true);
+               for (var p=0; p<prefixes.length; p++) {
+                  e.setAttributeNS("http://www.w3.org/2000/xmlns/",prefixes[p].length==0 ? "xmlns" : "xmlns:"+prefixes[p],prefixMap[prefixes[p]]);
+               }
+               value += serializer.serializeToString(e);
             } else if (this.objects[i].value[x].nodeType==Node.TEXT_NODE) {
                value += this.objects[i].value[x].nodeValue;
             }
