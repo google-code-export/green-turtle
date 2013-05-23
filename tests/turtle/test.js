@@ -81,7 +81,7 @@ function test(entry) {
    entry.passed = false;
    try {
       var baseURI = "http://example/base/" + entry.action.substring(entry.action.lastIndexOf("/")+1);
-      entry.output = document.data.parse(requester.responseText,"text/turtle",{ baseURI: baseURI});
+      entry.output = document.data.implementation.parse(requester.responseText,"text/turtle",{ baseURI: baseURI});
       entry.parsed = true;
       if (entry.type==positiveSyntaxTest) {
          entry.passed = true;
@@ -90,7 +90,7 @@ function test(entry) {
          requester.open("GET",entry.result,false);
          requester.send(null);
          try {
-            var expected = document.data.parse(requester.responseText,"text/turtle",{ baseURI: baseURI});
+            var expected = document.data.implementation.parse(requester.responseText,"text/turtle",{ baseURI: baseURI});
             try {
                entry.passed = compareGraph(entry.output.subjects,expected.subjects,entry.subjectMap);
             } catch (ex) {
@@ -147,7 +147,7 @@ function generateEARL(earlProlog,target,entries)
    }
    // check report
    try {
-      document.data.parse(target.textContent,"text/turtle");
+      document.data.implementation.parse(target.textContent,"text/turtle");
    } catch (ex) {
       alert("EARL format is invalid.");
    }
@@ -173,7 +173,7 @@ window.addEventListener("load",function() {
    var requester = new XMLHttpRequest();
    requester.open("GET",manifestURI,false);
    requester.send(null);
-   var turtle = document.data.parse(requester.responseText,"text/turtle",{ baseURI: manifestURI});
+   var turtle = document.data.implementation.parse(requester.responseText,"text/turtle",{ baseURI: manifestURI});
    document.data.merge(turtle.subjects,turtle.prefixes);
    var manifestSubject = document.data.getSubjects("rdf:type","mf:Manifest")[0];
    //console.log("Manifest subject: "+manifestSubject);
@@ -203,7 +203,7 @@ window.addEventListener("load",function() {
    var requester = new XMLHttpRequest();
    requester.open("GET",mappingsURI,false);
    requester.send(null);
-   var turtle = document.data.parse(requester.responseText,"text/turtle",{ baseURI: manifestURI});
+   var turtle = document.data.implementation.parse(requester.responseText,"text/turtle",{ baseURI: manifestURI});
    var mapDoc = document.implementation.createDocument("http://www.w3.org/1999/xhtml","html",null);
    mapDoc.documentElement.setAttributeNS("http://www.w3.org/XML/1998/namespace","base",window.location.href);
    GreenTurtle.attach(mapDoc);
