@@ -350,7 +350,6 @@ RDFaProcessor.dateTimeTypes = [
 ];
 
 RDFaProcessor.deriveDateTimeType = function(value) {
-   value = RDFaProcessor.trim(value);
    for (var i=0; i<RDFaProcessor.dateTimeTypes.length; i++) {
       //console.log("Checking "+value+" against "+RDFaProcessor.dateTimeTypes[i].type);
       var matched = RDFaProcessor.dateTimeTypes[i].pattern.exec(value);
@@ -762,8 +761,13 @@ RDFaProcessor.prototype.process = function(node,options) {
                datatype = RDFaProcessor.objectURI;
                content = typedResource;
             } else {
-               datatype = RDFaProcessor.PlainLiteralURI;
                content = current.textContent;
+               if (this.inHTMLMode && current.localName=="time") {
+                  datatype = RDFaProcessor.deriveDateTimeType(content);
+               }
+               if (!datatype) {
+                  datatype = RDFaProcessor.PlainLiteralURI;
+               }
             }
          }
          var values = this.tokenize(propertyAtt.value);
