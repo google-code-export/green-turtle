@@ -160,7 +160,47 @@ TestHarness.prototype.generateReport = function() {
    }
    
    this.summary.innerHTML = success+" / "+this.entries.length;
-   
+
+   this.generateEARL();
+}
+
+TestHarness.prototype.generateEARL = function() {
+   var now = new Date();
+   var dateStr = now.format("yyyy-mm-dd")
+   var dateTimeStr = now.format("yyyy-mm-dd'T'HH:MM:sso")
+   var requester = new XMLHttpRequest();
+   requester.open("GET",this.earlURI,false);
+   requester.send(null);
+   var parts = requester.responseText.split(/({date})/);
+   for (var i=0; i<parts.length; i++) {
+      if (parts[i]=="{date}") {
+         this.earl.appendChild(document.createTextNode(dateStr));
+      } else {
+         this.earl.appendChild(document.createTextNode(parts[i]));
+      }
+   }
+
+   for (var i=0; i<this.entries.length; i++) {
+      var s = "[ a earl:Assertion; \n\
+  earl:assertedBy <http://www.milowski.com#alex>; \n\
+  earl:subject <https://code.google.com/p/green-turtle/>; \n\
+  earl:test <";
+      s += this.entries[i].subject +"> ;\n";
+      s += "  earl:result [\n\
+    a earl:TestResult; \n\
+    earl:outcome ";
+      s += this.entries[i].passed ? "earl:pass; \n" : "earl:fail; \n"
+      s += "    dc:date \""+dateTimeStr+"\"^^xsd:dateTime ];\n"
+      s += "  earl:mode earl:automatic ] .\n\n";
+      this.earl.appendChild(document.createTextNode(s));
+   }
+   // check report
+   try {
+      document.data.parse(this.earl.textContent,"text/turtle");
+   } catch (ex) {
+      alert("EARL format is invalid: "+ex.toString());
+   }
+
 }
 
 TestHarness.sourceBase = "http://rdfa.info/test-suite/test-cases/rdfa1.1/";
@@ -200,10 +240,8 @@ TestHarness.prototype.generate = function(manifestURI)
    this.entries = [];
    while (currentSubject!="http://www.w3.org/1999/02/22-rdf-syntax-ns#nil") {
       var entrySubject = dataDoc.data.getValues(currentSubject,"rdf:first")[0];
-      pos = entrySubject.lastIndexOf("/");
-      var file = entrySubject.substring(pos+1);
       var entry = {
-         subject: "http://rdfa.info/test-suite/test-cases/rdfa1.1/"+this.type+"/manifest#"+file.substring(0,file.indexOf("."))
+         subject: entrySubject
       };
       entry.name = dataDoc.data.getValues(entry.subject,"mf:name")[0];
       entry.comment = dataDoc.data.getValues(entry.subject,"rdfs:comment")[0];
@@ -234,6 +272,15 @@ var testHarness = new TestHarness();
 
 window.addEventListener("load",function() {
    
+   var child = document.head.firstElementChild;
+   var earlURI = null;
+   while (child) {
+      var rel = child.getAttribute("rel");
+      if (rel=="earl") {
+         testHarness.earlURI = child.href;
+      }
+      child = child.nextElementSibling;
+   }
    testHarness.init(document.getElementById("loader"));
    testHarness.output = document.getElementById("output");
    testHarness.earl = document.getElementById("earl");
