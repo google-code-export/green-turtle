@@ -23,7 +23,7 @@ window.addEventListener("load",function() {
    parseButton.onclick = function() {
       var errors = [];
       try {
-         var result = document.data.parse(input.value,"text/turtle",
+         var result = document.data.implementation.parse(input.value,"text/turtle",
             { baseURI: baseURI.value.length>0 ? baseURI.value : null,
               errorHandler: function(line,msg) { errors.push({ line: line, message: msg}); }
             }

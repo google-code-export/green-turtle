@@ -1,4 +1,6 @@
-var GreenTurtle = GreenTurtle || {};
 
-GreenTurtle.attach = function(document,options) {
+if (typeof GreenTurtle == "undefined") {
 
+var GreenTurtle = (function() {
+
+var env = {};

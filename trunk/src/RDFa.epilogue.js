@@ -1,3 +1,4 @@
+env.attach = function(document,options) {
 
 var hasFeature = document.implementation.hasFeature;
 document.implementation.hasFeature = function(feature,version) {
@@ -86,5 +87,27 @@ if (document.readyState=="loading") {
 
 };
 
-GreenTurtle.attach(document);
+env.implementation = {
+   parse: function(text,mediaType,options) {
+      if (mediaType!="text/turtle") {
+         throw "Unsupported media type "+mediaType;
+      }
+      var parser = new TurtleParser();
+      if (options && options.errorHandler) {
+         parser.onError = options.errorHandler;
+      }
+      var base = options ? options.baseURI : null;
+      parser.parse(text,base);
+      if (parser.errorCount>0) {
+         throw base ? "Errors during parsing "+base+" of type "+mediaType : "Errors during parsing of type "+mediaType;
+      }
+      return parser.context;
+   }
+};
+
+return env;
+
+})();
+
+}
 

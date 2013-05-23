@@ -23,7 +23,7 @@ function generateDownloads(manifestURI) {
    requester.open("GET",manifestURI,false);
    requester.send(null);
    console.log("Parsing manifest...");
-   var turtle = document.data.parse(requester.responseText,"text/turtle",{ baseURI: baseURI});
+   var turtle = document.data.implementation.parse(requester.responseText,"text/turtle",{ baseURI: baseURI});
    //console.log(turtle.toString());
    var dataDoc = document.implementation.createDocument("http://www.w3.org/1999/xhtml","html",null);
    dataDoc.documentElement.setAttributeNS("http://www.w3.org/XML/1998/namespace","base",window.location.href);
