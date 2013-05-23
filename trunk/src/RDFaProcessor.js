@@ -848,10 +848,17 @@ RDFaProcessor.prototype.process = function(node,options) {
          }
       }
    }
+   
+   if (this.inHTMLMode) {
+      this.copyProperties();
+   }
 
    for (var i=0; i<this.finishedHandlers.length; i++) {
       this.finishedHandlers[i](node);
    }
+}
+
+RDFaProcessor.prototype.copyProperties = function() {
 }
 
 
