@@ -85,3 +85,89 @@ GraphRDFaProcessor.prototype.addTriple = function(origin,subject,predicate,objec
    }
 }
 
+GraphRDFaProcessor.rdfaCopyPredicate = "http://www.w3.org/ns/rdfa#copy";
+GraphRDFaProcessor.rdfaPatternType = "http://www.w3.org/ns/rdfa#Pattern";
+
+GraphRDFaProcessor.prototype.copyProperties = function() {
+   var copySubjects = [];
+   var patternSubjects = {};
+   for (var subject in this.target.graph.subjects) {
+      var snode = this.target.graph.subjects[subject];
+      var pnode = snode.predicates[GraphRDFaProcessor.rdfaCopyPredicate];
+      if (!pnode) {
+         continue;
+      }
+      copySubjects.push(subject);
+      for (var i=0; i<pnode.objects.length; i++) {
+         if (pnode.objects[i].type!=RDFaProcessor.objectURI) {
+            continue;
+         }
+         var target = pnode.objects[i].value;
+         var patternSubjectNode = this.target.graph.subjects[target];
+         if (!patternSubjectNode) {
+            continue;
+         }
+         var patternTypes = patternSubjectNode.predicates[RDFaProcessor.typeURI];
+         if (!patternTypes) {
+            continue;
+         }
+         var isPattern = false;
+         for (var j=0; j<patternTypes.objects.length && !isPattern; j++) {
+            if (patternTypes.objects[j].value==GraphRDFaProcessor.rdfaPatternType && 
+                patternTypes.objects[j].type==RDFaProcessor.objectURI) {
+               isPattern = true;
+            }
+         }
+         if (!isPattern) {
+            continue;
+         }
+         patternSubjects[target] = true;
+         for (var predicate in patternSubjectNode.predicates) {
+            var targetPNode = patternSubjectNode.predicates[predicate];
+            if (predicate==RDFaProcessor.typeURI) {
+               if (targetPNode.objects.length==1) {
+                  continue;
+               }
+               for (var j=0; j<targetPNode.objects.length; j++) {
+                  if (targetPNode.objects[j].value!=GraphRDFaProcessor.rdfaPatternType) {
+                      var subjectPNode = snode.predicates[predicate];
+                      if (!subjectPNode) {
+                         subjectPNode = new RDFaPredicate(predicate);
+                         snode.predicates[predicate] = subjectPNode;
+                      }
+                      subjectPNode.objects.push(
+                         { type: targetPNode.objects[j].type, 
+                           value: targetPNode.objects[j].value, 
+                           language: targetPNode.objects[j].language, 
+                           origin: targetPNode.objects[j].origin}
+                      );
+                      snode.types.push(targetPNode.objects[j].value);
+                  }
+               }
+            } else {
+               var subjectPNode = snode.predicates[predicate];
+               if (!subjectPNode) {
+                  subjectPNode = new RDFaPredicate(predicate);
+                  snode.predicates[predicate] = subjectPNode;
+               }
+               for (var j=0; j<targetPNode.objects.length; j++) {
+                   subjectPNode.objects.push(
+                      { type: targetPNode.objects[j].type, 
+                        value: targetPNode.objects[j].value, 
+                        language: targetPNode.objects[j].language, 
+                        origin: targetPNode.objects[j].origin}
+                   );
+               }
+            }
+         }
+      }
+   }
+   for (var i=0; i<copySubjects.length; i++) {
+      var snode = this.target.graph.subjects[copySubjects[i]];
+      delete snode.predicates[GraphRDFaProcessor.rdfaCopyPredicate];
+   }
+   for (var subject in patternSubjects) {
+      delete this.target.graph.subjects[subject];
+   }
+}
+
