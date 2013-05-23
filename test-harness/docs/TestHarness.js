@@ -189,7 +189,7 @@ TestHarness.prototype.generateEARL = function() {
       s += "  earl:result [\n\
     a earl:TestResult; \n\
     earl:outcome ";
-      s += this.entries[i].passed ? "earl:pass; \n" : "earl:fail; \n"
+      s += this.entries[i].passed ? "earl:passed; \n" : "earl:failed; \n"
       s += "    dc:date \""+dateTimeStr+"\"^^xsd:dateTime ];\n"
       s += "  earl:mode earl:automatic ] .\n\n";
       this.earl.appendChild(document.createTextNode(s));
