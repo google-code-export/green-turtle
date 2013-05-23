@@ -57,7 +57,7 @@ TestHarness.prototype.nextTest = function() {
 TestHarness.prototype.test = function(entry,dataDoc,oncomplete)
 {
    console.log("["+(this.index-1)+"] Processing "+entry.name);
-   RDFa.attach(dataDoc,{ 
+   GreenTurtle.attach(dataDoc,{ 
       baseURI: entry.baseURI, 
       baseURIMap: function(uri) {
          var prefix = "http://localhost:8888/tests/cache";
@@ -229,7 +229,7 @@ TestHarness.prototype.generate = function(manifestURI)
    //console.log(turtle.toString());
    var dataDoc = document.implementation.createDocument("http://www.w3.org/1999/xhtml","html",null);
    dataDoc.documentElement.setAttributeNS("http://www.w3.org/XML/1998/namespace","base",window.location.href);
-   RDFa.attach(dataDoc);
+   GreenTurtle.attach(dataDoc);
    console.log("Merging ...");
    dataDoc.data.merge(turtle.subjects,turtle.prefixes);
    console.log("Processing ...");

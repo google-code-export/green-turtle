@@ -206,7 +206,7 @@ window.addEventListener("load",function() {
    var turtle = document.data.parse(requester.responseText,"text/turtle",{ baseURI: manifestURI});
    var mapDoc = document.implementation.createDocument("http://www.w3.org/1999/xhtml","html",null);
    mapDoc.documentElement.setAttributeNS("http://www.w3.org/XML/1998/namespace","base",window.location.href);
-   RDFa.attach(mapDoc);
+   GreenTurtle.attach(mapDoc);
    mapDoc.data.merge(turtle.subjects);
    for (var i=0; i<entries.length; i++) {
       var entry = entries[i];
