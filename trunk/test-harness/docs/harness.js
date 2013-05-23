@@ -205,7 +205,7 @@ TestHarness.prototype.testResult = function(testContext,className,status,message
 
 TestHarness.prototype.executeTest = function(testContext) {
    this.testResult(testContext,"inprogress","HARVESTING","Harvesting triples...");
-   RDFa.attach(testContext.doc);
+   GreenTurtle.attach(testContext.doc);
    this.testResult(testContext,"inprogress","GET-COMPARISON","Getting output for comparison...");
    var app = this;
    HTTP("GET",testContext.outputURL,{

@@ -27,7 +27,7 @@ function generateDownloads(manifestURI) {
    //console.log(turtle.toString());
    var dataDoc = document.implementation.createDocument("http://www.w3.org/1999/xhtml","html",null);
    dataDoc.documentElement.setAttributeNS("http://www.w3.org/XML/1998/namespace","base",window.location.href);
-   RDFa.attach(dataDoc);
+   GreenTurtle.attach(dataDoc);
    console.log("Merging ...");
    dataDoc.data.merge(turtle.graph,turtle.prefixes);
    console.log("Processing ...");

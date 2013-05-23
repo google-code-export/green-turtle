@@ -86,5 +86,5 @@ if (document.readyState=="loading") {
 
 };
 
-RDFa.attach(document);
+GreenTurtle.attach(document);
 
