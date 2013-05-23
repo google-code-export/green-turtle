@@ -129,12 +129,26 @@ TestHarness.prototype.compare = function(entry,dataDoc,sparql) {
 }
 
 TestHarness.prototype.generateReport = function() {
+   var makeShowOutput = function(entry) {
+      return function() {
+         console.log(entry.turtle);
+         return false;
+      }
+   }
+   var makeShowSparql = function(entry) {
+      return function() {
+         console.log(entry.sparql);
+         return false;
+      }
+   }
    var success = 0;
    for (var i=0; i<this.entries.length; i++) {
       var entry = this.entries[i];
       var row = document.createElement("tr");
       this.output.appendChild(row);
-      row.innerHTML = "<td><a href=\""+entry.data+"\">"+entry.name.replace(/&/g, '&amp;').replace(/</g, '&lt;')+"</a></td><td class=\""+(entry.failed ? "fail" : "pass")+"\">"+!entry.failed+"</td><td class=\""+(entry.passed ? "pass" : "fail")+"\">"+(entry.passed ? "pass" : "fail")+"</td><td></td>";
+      row.innerHTML = "<td><a href=\"#\">[T]</a><a href=\"#\">[Q]</a> <a href=\""+entry.data+"\" target=\"new\">"+entry.name.replace(/&/g, '&amp;').replace(/</g, '&lt;')+"</a></td><td class=\""+(entry.failed ? "fail" : "pass")+"\">"+!entry.failed+"</td><td class=\""+(entry.passed ? "pass" : "fail")+"\">"+(entry.passed ? "pass" : "fail")+"</td><td></td>";
+      row.cells[0].firstChild.onclick = makeShowOutput(entry);
+      row.cells[0].firstChild.nextElementSibling.onclick = makeShowSparql(entry);
       if (!entry.passed) {
          var cell = row.cells[3];
          cell.innerHTML = "<pre/><p>versus</p><pre/>";
