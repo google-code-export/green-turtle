@@ -87,7 +87,7 @@ if (document.readyState=="loading") {
 
 };
 
-env.implementation = {
+var implementation = {
    parse: function(text,mediaType,options) {
       if (mediaType!="text/turtle") {
          throw "Unsupported media type "+mediaType;
@@ -104,6 +104,13 @@ env.implementation = {
       return parser.context;
    }
 };
+
+Object.defineProperty(env,"implementation", {
+   value: implementation,
+   writable: false,
+   configurable: false,
+   enumerable: true
+});
 
 return env;
 
