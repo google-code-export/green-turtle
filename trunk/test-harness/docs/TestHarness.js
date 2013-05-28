@@ -245,7 +245,6 @@ TestHarness.prototype.generate = function(manifestURI)
       entry.result = "true"==data.getValues(entry.subject,"mf:result")[0];
       
       var actionSubject = data.getValues(entry.subject,"mf:action")[0];
-      console.log(entry.baseURI);
       entry.baseURI = data.getValues(actionSubject,"qt:data")[0];
       entry.data = this.mapURI(entry.baseURI);
       entry.query = this.mapURI(data.getValues(actionSubject,"qt:query")[0]);
