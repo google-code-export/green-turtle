@@ -102,6 +102,10 @@ var implementation = {
          throw base ? "Errors during parsing "+base+" of type "+mediaType : "Errors during parsing of type "+mediaType;
       }
       return parser.context;
+   },
+   
+   createDocumentData: function(baseURI) {
+      return new DocumentData(baseURI ? baseURI : window ? window.location.href : "about:blank");
    }
 };
 
