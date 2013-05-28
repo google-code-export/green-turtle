@@ -57,7 +57,7 @@ TestHarness.prototype.nextTest = function() {
 TestHarness.prototype.test = function(entry,dataDoc,oncomplete)
 {
    console.log("["+(this.index-1)+"] Processing "+entry.name);
-   GreenTurtle.attach(dataDoc,{ 
+   document.data.implementation.attach(dataDoc,{ 
       baseURI: entry.baseURI, 
       baseURIMap: function(uri) {
          var prefix = "http://localhost:8888/tests/cache";
