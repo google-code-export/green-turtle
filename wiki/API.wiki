@@ -59,6 +59,7 @@ The returned value is an object with the following properties:
    * `subjects` - a map of subject URIs to RDFaSubject instances.
    * `prefixes` - a map of prefixes to URIs.
    * `terms` - a list of recognized terms.
+   * `base` - the base URI of the representation.
 
 === GreenTurtle.implentation.createDocumentData() ===
 
