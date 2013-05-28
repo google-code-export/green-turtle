@@ -459,6 +459,7 @@ DocumentData.prototype.merge = function(graph,options) {
             }
          } else {
             this._data_.graph.subjects[subject] = snode;
+            snode.subject = subject;
             // map object subjects
             for (var predicate in snode.predicates) {
                var pnode = snode.predicates[predicate];
