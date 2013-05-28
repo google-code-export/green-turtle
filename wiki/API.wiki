@@ -18,15 +18,56 @@ There are three main scripts:
 
 = RDFa API =
 
-== RDFa.attach() ==
+== GreenTurtle.attach() ==
 
 {{{
-RDFa.attach(node,update)
+GreenTurtle.attach(node,options)
 }}}
 
-The `RDFa.attach()` function is an instance-less function that is used to run the RDFa processor on a node and added the RDFa API to the document.  The `node` argument is the node to be processed and typically is the document.  
+The `GreenTurtle.attach()` function is an instance-less function that is used to run the RDFa processor on a node and added the RDFa API to the document.  The `node` argument is the node to be processed and typically is the document.  
 
-The `update` argument is optional and defaults to false.  A value of `true` indicated that the document is being updated after changes.  A value of true should only be used when you know the document has already been processed.
+The `options` argument is an object used to control processing
+
+   * `baseURI` - a alternate baseURI to use for the initial processing context (e.g. for manually constructed documents).
+  * `baseURIMap` - a function for mapping base URIs during processing. The value must be a function that takes a single URI as an argument and returns the mapped URI.
+
+== GreenTurtle.implementation ==
+
+Returns the common implementation object that has the following properties and methods:
+
+   * attach(document,options) - the same as GreenTurtle.attach()
+   * parse(text,mediaType,options) - parses a media type (e.g. "text/turtle") into a graph. 
+   * createDocumentData(baseURI) - creates a DocumentData instance using the optional base URI.  
+
+The implementation is always available on `DocumentData` instance (e.g. `document.data.implementation`).
+
+=== GreenTurtle.implementation.attach() ==
+
+See `GreenTurtle.attach()`.
+
+=== GreenTurtle.implentation.parse() ===
+
+`parse(text,mediaType,options)`
+
+Parses the text into a graph.  The options argument can be used to specify:
+
+   * `baseURI` - the base URI to use to process the text
+   * `errorHandler` - a function to receive error messages from the parser.
+
+The returned value is an object with the following properties:
+
+   * `subjects` - a map of subject URIs to RDFaSubject instances.
+   * `prefixes` - a map of prefixes to URIs.
+   * `terms` - a list of recognized terms.
+
+=== GreenTurtle.implentation.createDocumentData() ===
+
+`createDocumentData(baesURI)`
+
+If no base URI is specified, the current window location will be used.  In the absence of any location, "about:blank" will be used as the base URI.
+
+Returns an instance of the class `DocumentData`.
+
 
 = Classes =
 
