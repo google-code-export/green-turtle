@@ -13,6 +13,9 @@ Document level operations:
 || `document.getElementsBySubject(uri)` || Returns a list of elements that originate a given subject URI || 
 || `document.data.getSubjects()` || Returns a list of subjects within the document. ||
 || `document.data.getSubject(uri)` || Returns a subject object (extension) ||
+|| `document.data.graph` || Returns the triples graph ||
+|| `document.data.parse` || Parses media into graphs ||
+|| `document.data.merge` || Merges graphs into this document data's graph. ||
 
 Element operations (extension):
 
