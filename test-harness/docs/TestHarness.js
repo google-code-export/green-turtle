@@ -225,37 +225,34 @@ TestHarness.prototype.generate = function(manifestURI)
    requester.open("GET",manifestURI,false);
    requester.send(null);
    console.log("Parsing manifest...");
+   var data = document.data.implementation.createDocumentData();
    var turtle = document.data.implementation.parse(requester.responseText,"text/turtle",{ baseURI: this.baseURI});
-   //console.log(turtle.toString());
-   var dataDoc = document.implementation.createDocument("http://www.w3.org/1999/xhtml","html",null);
-   dataDoc.documentElement.setAttributeNS("http://www.w3.org/XML/1998/namespace","base",window.location.href);
-   GreenTurtle.attach(dataDoc);
-   console.log("Merging ...");
-   dataDoc.data.merge(turtle.subjects,turtle.prefixes);
+   data.merge(turtle.subjects,{ prefixes: turtle.prefixes });
    console.log("Processing ...");
 
    // load entries
-   var manifestSubject = dataDoc.data.getSubjects("rdf:type","mf:Manifest")[0];
-   var currentSubject = dataDoc.data.getValues(manifestSubject,"mf:entries")[0];
+   var manifestSubject = data.getSubjects("rdf:type","mf:Manifest")[0];
+   var currentSubject = data.getValues(manifestSubject,"mf:entries")[0];
    this.entries = [];
    while (currentSubject!="http://www.w3.org/1999/02/22-rdf-syntax-ns#nil") {
-      var entrySubject = dataDoc.data.getValues(currentSubject,"rdf:first")[0];
+      var entrySubject = data.getValues(currentSubject,"rdf:first")[0];
       var entry = {
          subject: entrySubject
       };
-      entry.name = dataDoc.data.getValues(entry.subject,"mf:name")[0];
-      entry.comment = dataDoc.data.getValues(entry.subject,"rdfs:comment")[0];
-      entry.classification = dataDoc.data.getValues(entry.subject,"test:classification")[0];
-      entry.result = "true"==dataDoc.data.getValues(entry.subject,"mf:result")[0];
+      entry.name = data.getValues(entry.subject,"mf:name")[0];
+      entry.comment = data.getValues(entry.subject,"rdfs:comment")[0];
+      entry.classification = data.getValues(entry.subject,"test:classification")[0];
+      entry.result = "true"==data.getValues(entry.subject,"mf:result")[0];
       
-      var actionSubject = dataDoc.data.getValues(entry.subject,"mf:action")[0];
-      entry.baseURI = dataDoc.data.getValues(actionSubject,"qt:data")[0];
+      var actionSubject = data.getValues(entry.subject,"mf:action")[0];
+      console.log(entry.baseURI);
+      entry.baseURI = data.getValues(actionSubject,"qt:data")[0];
       entry.data = this.mapURI(entry.baseURI);
-      entry.query = this.mapURI(dataDoc.data.getValues(actionSubject,"qt:query")[0]);
+      entry.query = this.mapURI(data.getValues(actionSubject,"qt:query")[0]);
       
       this.entries.push(entry);
       
-      currentSubject = dataDoc.data.getValues(currentSubject,"rdf:rest")[0];
+      currentSubject = data.getValues(currentSubject,"rdf:rest")[0];
    }
    
    if (this.only>=0) {
