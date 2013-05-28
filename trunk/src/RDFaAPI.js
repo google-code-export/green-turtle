@@ -392,10 +392,37 @@ DocumentData.prototype.getProjections = function(property, value, template) {
    return projections;
 };
 
-DocumentData.prototype.merge = function(graph,prefixes) {
+DocumentData.prototype.merge = function(graph,options) {
+   var mergeBlank = options && options.mergeBlankNodes ? true : false;
+   var max = 0;
+   if (!mergeBlank) {
+      for (var subject in this._data_.graph.subjects) {
+         var match = /_:([0-9]+)/.exec(subject);
+         if (match) {
+            var n = parseInt(match[1]);
+            if (n>max) {
+               max = n;
+            }
+         }
+      }
+   }
    if (graph) {
+      var blankMap = {};
+      var subjectMap = mergeBlank ? 
+         function(u) { return u; } :
+         function(u) { 
+            var mapSubject = blankMap[u];
+            if (!mapSubject && /_:([0-9]+)/.test(u)) {
+               max++;
+               mapSubject = "_:"+max;
+               blankMap[u] = mapSubject;
+            }
+            return mapSubject ? mapSubject : u;
+         };
       for (var subject in graph) {
+         var mapSubject = subjectMap(subject);
          var snode = graph[subject];
+         subject = mapSubject ? mapSubject : subject;
          var target = this._data_.graph.subjects[subject];
          if (target) {
             for (var predicate in snode.predicates) {
@@ -412,23 +439,42 @@ DocumentData.prototype.merge = function(graph,prefixes) {
                            toAdd.push(object);
                         }
                      }
+                     // map object subjects
                      for (var j=0; j<toAdd.length; j++) {
+                        if (toAdd[j].type==RDFaProcessor.objectURI) {
+                           toAdd[j].value = subjectMap(toAdd[j].value);
+                        }
                         targetPredicate.objects.push(toAdd[j]);
                      }
                   }
                } else {
                   target.predicates[predicate] = pnode;
+                  // map object subjects
+                  for (var i=0; i<pnode.objects.length; i++) {
+                     if (pnode.objects[i].type==RDFaProcessor.objectURI) {
+                        pnode.objects[i].value = subjectMap(pnode.objects[i].value);
+                     }
+                  }
                }
             }
          } else {
             this._data_.graph.subjects[subject] = snode;
+            // map object subjects
+            for (var predicate in snode.predicates) {
+               var pnode = snode.predicates[predicate];
+               for (var i=0; i<pnode.objects.length; i++) {
+                  if (pnode.objects[i].type==RDFaProcessor.objectURI) {
+                     pnode.objects[i].value = subjectMap(pnode.objects[i].value);
+                  }
+               }
+            }
          }
       }
    }
-   if (prefixes) {
-      for (var prefix in prefixes) {
+   if (options && options.prefixes) {
+      for (var prefix in options.prefixes) {
          if (!this._data_.graph.prefixes[prefix]) {
-            this._data_.graph.prefixes[prefix] = prefixes[prefix];
+            this._data_.graph.prefixes[prefix] = options.prefixes[prefix];
          }
       }
    }
