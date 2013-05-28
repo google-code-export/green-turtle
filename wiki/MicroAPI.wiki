@@ -14,8 +14,9 @@ Document level operations:
 || `document.data.getSubjects()` || Returns a list of subjects within the document. ||
 || `document.data.getSubject(uri)` || Returns a subject object (extension) ||
 || `document.data.graph` || Returns the triples graph ||
-|| `document.data.parse(text,mediaType,options)` || Parses media into graphs ||
 || `document.data.merge(graph,options)` || Merges graphs into this document data's graph. ||
+|| `document.data.implementation` || Returns the RDFa implementation ||
+|| `document.data.implementation.parse(text,mediaType,options)` || Parses representations into graphs ||
 
 Element operations (extension):
 
@@ -44,7 +45,35 @@ for (var i=0; i<people.length; i++) {
 }
 }}}
 
-= Subject Objects =
+= Parsing Turtle or Other Representations and Merging Graphs ==
+
+The API allows parsing of other representations, such as Turtle, into graphs that can be merged into a document's data.  The parser is directly accessible via the RDFa implementation.
+
+You invoke the parser as follows:
+
+{{{
+var graph = document.data.implementation.parse("...", "text/turtle");
+}}}
+
+The returned object has the properties:
+
+   * `subjects` - a map of subject URIs to subject node instances.
+   * `prefixes` - a map of prefixes to URIs.
+   * `terms` - a list of recognized terms.
+   * `base` - the base URI of the representation.
+
+The graph can be merged into any `document.data` instance via the `merge(graph,options)` method:
+
+{{{
+   document.data.merge(graph.subjects)
+}}}
+
+The `options` argument can specify how the graph is to be merged:
+
+   * `mergeBlankNodes` - a boolean that indicates whether blank nodes should be kept verbatim.  A value of false is the default and will ensure that blank nodes being merged are unique and do not conflict with existing nodes.
+   * `prefixes` - a map of prefixes mappings to add.  Any existing prefix will be preserved causing the new prefix mapping to be ignored.   
+
+= Subject Node Objects =
 
 == data.getValues() ==
 The `getValues()` method of the subject returns the object values for specific properties.  The method takes a list of URI, CURIE, or terms for predicates and will return any object values associated.  Object values may be literals or other DOM nodes (i.e. XML Literals).
