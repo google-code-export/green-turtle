@@ -250,7 +250,7 @@ Each object has the following, possible empty, properties:
    new RDFaGraph()
 }}}
 
-=== RDFaGraph.toString() ===
+=== RDFaGraph.toString ===
 
 Generates a [http://www.w3.org/TR/turtle/ Turtle] representation of the complete graph.
 
@@ -312,8 +312,23 @@ Returns the object values as an array for a particular predicate.
 
 Represents a predicate and its objects.
 
-=== RDFaPredicate.toString() ===
-Generates a [http://www.w3.org/TR/turtle/ Turtle] representation of the subject subgraph.
+=== RDFaPredicate.id ===
+
+The predicate URI.
+
+=== RDFaPredicate.objects ===
+
+An array of object values.  Each object value has properties:
+
+  * `value` - the literal value or node,
+  * `language` - the language associated with the value,
+  * `type` - the datatype associated with the value.
+
+=== RDFaPredicate.toString ===
+
+Generates a [http://www.w3.org/TR/turtle/ Turtle] predicate object list representation.
+
+=== RDFaPredicate
 
 == URIResolver == 
 
