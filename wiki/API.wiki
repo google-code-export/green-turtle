@@ -63,7 +63,7 @@ The returned value is an object with the following properties:
 
 === GreenTurtle.implentation.createDocumentData() ===
 
-`createDocumentData(baesURI)`
+`createDocumentData(baseURI)`
 
 If no base URI is specified, the current window location will be used.  In the absence of any location, "about:blank" will be used as the base URI.
 
