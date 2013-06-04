@@ -115,6 +115,8 @@ function manualTransfer() {
       var endTime = new Date();
       chrome.extension.sendRequest({ harvestedTriples: true });
       console.log("Found "+rdfaProcessor.target.tripleCount+" triples, elapsed "+(endTime.getTime()-startTime.getTime())+"ms");
+   } else {
+      console.log("No triples found.");
    }
 }
 
