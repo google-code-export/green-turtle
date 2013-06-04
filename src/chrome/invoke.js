@@ -90,14 +90,14 @@ function setupDocumentTransfer() {
       current = current.nextSibling;
    }
    if (meta==null) {
-      console.log("Cannot initialize transfer from existing RDFa implementation.  Manually transfering triples.");
+      console.log("No load RDFa implementation found.  Manually transfering triples.");
       manualTransfer();
    }
 }
 
 function manualTransfer() {
    var startTime = new Date();
-   var rdfaProcessor = new GraphRDFaProcessor({});
+   var rdfaProcessor = new GraphRDFaProcessor({ graph: new RDFaGraph()});
    chrome.extension.onRequest.addListener(
       function(request,sender,sendResponse) {
          if (request.getSubjects) {

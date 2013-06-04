@@ -64,6 +64,7 @@ var rdfaHostPath = "s3.amazonaws.com/green-turtle/RDFa.${version.label}.js";
 <file file="${src.dir}/URI.js"/>
 <file file="${src.dir}/RDFaProcessor.js"/>
 <file file="${src.dir}/GraphRDFaProcessor.js"/>
+<file file="${src.dir}/RDFaGraph.js"/>
 <file file="${src.dir}/chrome/invoke.js"/>
 </concat>
 <zip destfile="${dist.dir}/${product.label}.zip"
