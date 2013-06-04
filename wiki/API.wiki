@@ -10,11 +10,12 @@ If you want to use just the RDFa processor, just include the built RDFaProcessor
 
 If you are not using the packaged all-in-one script or want to use the internal classes, you need to include the separate source files or package them together.
 
-There are three main scripts:
+There are four main scripts:
 
   * `URI.js` - provides the URIResolver base class for RDFaProcessor
   * `RDFaProcessor.js` - provides the RDFaProcessor class
   * `GraphRDFaProcessor.js` - provides the GraphRDFaProcessor class
+  * `RDFaGraph.js` - provides the RDFaGraph class
 
 = RDFa API =
 
@@ -173,21 +174,15 @@ The GraphRDFaProcess is a subclass of RDFaProcessor that constructs a graph of t
 
 This class also adds a finished handler that must be preserved.  You may add your own handlers as well as long as you do not remove the one added by this class during the `init()` method call.
 
-The `triplesGraph` is an associative array whose key values are the subject URI values.  Each subject URI maps to an object with the following properties:
+By default, this class adds triples to an instance of RDFaGraph contained in `target.graph`.  The minimal contract is an object with three associate arrays:
 
-  * `subject` - the subject URI,
-  * `predicates` - an associative list of predicates.
-
-The value return by accessing a predicate is another object with properties:
-
-  * `predicate` - the predicate URI,
-  * `objects` - an array of values.
-
-Each object has the following, possible empty, properties:
-
-  * `value` - the literal value or node,
-  * `language` - the language associated with the value,
-  * `type` - the datatype associated with the value.
+{{{
+   var graph = {
+       subjects: {},
+       prefixes: {}.
+       terms: {}
+   };
+}}}
 
 
 === Constructing === 
@@ -198,10 +193,58 @@ new GraphRDFaProcessor(targetObject)
 
 The `targetObject` parameter is an optional object use to store data (i.e. the graph) during the processing of the document.  This parameter may be omitted and an instance will be created for you.  
 
-On the target object, two properties are created:
+When target is not supplied, this is equivalent to the invocation:
 
-  * `tripleCount` - a count of the number of triples generated,
-  * `triplesGraph` - a graph containing the triples generated.
+{{{
+new GraphRDFaProcessor({
+    graph: {
+        subjects: {},
+        prefixes: {},
+        terms: {}
+     }
+});
+
+}}}
+
+When the target is specified, the target object must have  a property called `graph` which has an associative array for each of the `subjects`, `prefixes`, and `terms` property:
+
+{{{
+   target.graph = {
+        subjects: {},
+        prefixes: {},
+        terms: {}
+   }
+}}}
+
+Alternatively, you can construct an `RDFaGraph` instance:
+
+{{{
+   target.graph = new RDFaGraph();
+}}}
+
+As a convenience, this processor will also set the `tripleCount` property on the target to the number of triples created.
+
+== RDFaGraph ==
+
+This class is an implementation of the contract between the `GraphRDFaProcessor` and the receiving object for the triples.  
+
+Each subject is keyed by the subject URI and the receiving object has the following properties:
+
+  * `subject` - the subject URI,
+  * `predicates` - an associative list of predicates.
+
+The value return by accessing a predicate is another object with properties:
+
+  * `predicate` - the predicate URI,
+  * `objects` - an array of object values.
+
+Each object has the following, possible empty, properties:
+
+  * `value` - the literal value or node,
+  * `language` - the language associated with the value,
+  * `type` - the datatype associated with the value.
+
+=== Constructing ===
 
 == URIResolver == 
 
