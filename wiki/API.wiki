@@ -270,6 +270,51 @@ An associative array of term definitions, keyed by term and whose entry is the t
 
 A CURIE parser that will use the terms and prefixes of the graph to expand the CURIE into a full URI.
 
+== RDFaSubject ==
+
+An object that represents a set of subject triples.
+
+=== Constructing ===
+
+{{{
+   new RDFaSubject(owningGraph, subject);
+}}}
+
+=== RDFaSubject.subject / RDFaSubject.id ===
+
+The subject URI.
+
+=== RDFaSubject.predicates ===
+
+An associative array of predicates keyed by the predicate URI with target of the predicate object representation (an instance of RDFaPredicate).
+
+=== RDFaSubject.origins ===
+
+An array of subject origins (element nodes).
+
+=== RDFaSubject.types ===
+
+A list of type URIs associated with the subject.
+
+=== RDFaSubject.toString ===
+
+Generates a [http://www.w3.org/TR/turtle/ Turtle] representation of the subject subgraph.
+
+=== RDFaSubject.toObject ===
+
+Generates a object representation of the subject suitable for JSON serialization.
+
+=== RDFaSubject.getValues(predicate) ===
+
+Returns the object values as an array for a particular predicate.
+
+== RDFaPredicate ==
+
+Represents a predicate and its objects.
+
+=== RDFaPredicate.toString() ===
+Generates a [http://www.w3.org/TR/turtle/ Turtle] representation of the subject subgraph.
+
 == URIResolver == 
 
 The `URIResolver` class provides the ability to parse URI values into an object.  That object can then be used normalize, resolve relative URIs, or turn the URI into a relative value.
