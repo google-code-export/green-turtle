@@ -246,6 +246,30 @@ Each object has the following, possible empty, properties:
 
 === Constructing ===
 
+{{{
+   new RDFaGraph()
+}}}
+
+=== RDFaGraph.toString() ===
+
+Generates a [http://www.w3.org/TR/turtle/ Turtle] representation of the complete graph.
+
+=== RDFaGraph.subjects ===
+
+An associative array of subjects keyed by the subject URI.  Each entry is a subject object (an instance of RDFaSubject).
+
+=== RDFaGraph.prefixes ===
+
+An associative array of prefix definitions, keyed by prefix and whose entry is the URI mapping.
+
+=== RDFaGraph.terms ===
+
+An associative array of term definitions, keyed by term and whose entry is the term URI.
+
+=== RDFaGraph.curieParser ===
+
+A CURIE parser that will use the terms and prefixes of the graph to expand the CURIE into a full URI.
+
 == URIResolver == 
 
 The `URIResolver` class provides the ability to parse URI values into an object.  That object can then be used normalize, resolve relative URIs, or turn the URI into a relative value.
