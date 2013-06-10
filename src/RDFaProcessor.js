@@ -5,10 +5,13 @@ function RDFaProcessor(targetObject) {
    if (targetObject) {
       this.target = targetObject;
    } else {
-      this.target = {};
-      this.target.graph = {}
-      this.target.graph.prefixes = {};
-      this.target.graph.terms = {};
+      this.target = {
+         graph: {
+            subjects: {},
+            prefixes: {},
+            terms: {}
+         }
+      };
    }
    this.theOne = "_:"+(new Date()).getTime();
    this.language = null;
