@@ -24,7 +24,8 @@
          <content match="/test-suite" href="http://rdfa.info/test-suite"/>
          <content match="/tests" href="tests"/>
          <content match="/build" href="../build"/>
-         <content match="/manual" href="../tests"/>
+         <content match="/src" href="../src"/>
+         <content match="/rawtests" href="../tests"/>
          <content match="" href="docs"/>
       </host>
    </server>
