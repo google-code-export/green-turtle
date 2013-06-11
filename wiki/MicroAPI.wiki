@@ -16,6 +16,7 @@ Document level operations:
 || `document.data.graph` || Returns the triples graph ||
 || `document.data.merge(graph,options)` || Merges graphs into this document data's graph. ||
 || `document.data.implementation` || Returns the RDFa implementation ||
+|| `document.data.implementation.attach(doc)` || Attaches the RDFa API to a document. ||
 || `document.data.implementation.parse(text,mediaType,options)` || Parses representations into graphs ||
 
 Element operations (extension):
