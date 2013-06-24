@@ -188,7 +188,7 @@ URIResolver.prototype.parseGeneric = function(parsed) {
 
                  for (var j=0; j<check.length; j++) {
             if (check[j].length>0) {
-               throw "Unecaped character "+check[j].charAt(0)+" ("+check[j].charCodeAt(0)+") in URI.";
+               throw "Unecaped character "+check[j].charAt(0)+" ("+check[j].charCodeAt(0)+") in URI "+parsed.spec;
             }
          }
       }
