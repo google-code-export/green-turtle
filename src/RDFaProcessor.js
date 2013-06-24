@@ -560,9 +560,9 @@ RDFaProcessor.prototype.process = function(node,options) {
          
          if (!currentObjectResource) {
             if (hrefAtt) {
-               currentObjectResource = this.resolveAndNormalize(base,hrefAtt.value);
+               currentObjectResource = this.resolveAndNormalize(base,encodeURI(hrefAtt.value));
             } else if (srcAtt) {
-               currentObjectResource = this.resolveAndNormalize(base,srcAtt.value);
+               currentObjectResource = this.resolveAndNormalize(base,encodeURI(srcAtt.value));
             } else if (typeofAtt && !aboutAtt && !(this.inXHTMLMode && (current.localName=="head" || current.localName=="body"))) {
                currentObjectResource = this.newBlankNode();
             }
@@ -595,10 +595,10 @@ RDFaProcessor.prototype.process = function(node,options) {
                typedResource = this.parseSafeCURIEOrCURIEOrURI(resourceAtt.value,prefixes,base);
             }
             if (!typedResource &&hrefAtt) {
-               typedResource = this.resolveAndNormalize(base,hrefAtt.value);
+               typedResource = this.resolveAndNormalize(base,encodeURI(hrefAtt.value));
             }
             if (!typedResource && srcAtt) {
-               typedResource = this.resolveAndNormalize(base,srcAtt.value);
+               typedResource = this.resolveAndNormalize(base,encodeURI(srcAtt.value));
             }
             if (!typedResource && (this.inXHTMLMode || this.inHTMLMode) && (current.localName=="head" || current.localName=="body")) {
                typedResource = newSubject;
@@ -618,10 +618,10 @@ RDFaProcessor.prototype.process = function(node,options) {
             newSubject = this.parseSafeCURIEOrCURIEOrURI(resourceAtt.value,prefixes,base);
          }
          if (!newSubject && hrefAtt) {
-            newSubject = this.resolveAndNormalize(base,hrefAtt.value);
+            newSubject = this.resolveAndNormalize(base,encodeURI(hrefAtt.value));
          }
          if (!newSubject && srcAtt) {
-            newSubject = this.resolveAndNormalize(base,srcAtt.value);
+            newSubject = this.resolveAndNormalize(base,encodeURI(srcAtt.value));
          }
          if (!newSubject) {
             if (current.parentNode.nodeType==Node.DOCUMENT_NODE) {
@@ -751,9 +751,9 @@ RDFaProcessor.prototype.process = function(node,options) {
                content = this.parseSafeCURIEOrCURIEOrURI(resourceAtt.value,prefixes,base);
             }
             if (!content && hrefAtt) {
-               content = this.resolveAndNormalize(base,hrefAtt.value);
+               content = this.resolveAndNormalize(base,encodeURI(hrefAtt.value));
             } else if (!content && srcAtt) {
-               content = this.resolveAndNormalize(base,srcAtt.value);
+               content = this.resolveAndNormalize(base,encodeURI(srcAtt.value));
             }
             if (content) {
                datatype = RDFaProcessor.objectURI;
