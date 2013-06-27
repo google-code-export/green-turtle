@@ -338,7 +338,8 @@ DocumentData.prototype.getSubject = function(subject) {
 
    subject = this._data_.graph.curieParser.parse(subject,true);
  
-   return this._data_.graph.subjects[subject];
+   var snode = this._data_.graph.subjects[subject];
+   return snode ? snode : null;
 }
 
 DocumentData.prototype.getProjection = function(subject, template) {
