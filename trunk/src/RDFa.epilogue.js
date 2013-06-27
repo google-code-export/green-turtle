@@ -62,6 +62,8 @@ var implementation = {
       
       if (!document.data) {
          DocumentData.attach(document,options);
+      } else if (document.data._data_) {
+         document.data._data_.graph.clear();
       }
       
       var processDoc = function() {
