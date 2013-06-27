@@ -31,9 +31,6 @@ function RDFaGraph()
          return resolve ? dataContext.baseURI.resolve(value) : value;
       }
    };
-   this.subjects = {};
-   this.prefixes = {};
-   this.terms = {};
    this.base =  null;
    this.toString = function(baseURI) {
       var s = baseURI ? "@base <"+baseURI+"> .\n" : "";
@@ -44,6 +41,12 @@ function RDFaGraph()
       }
       return s;
    };
+   this.clear = function() {
+      this.subjects = {};
+      this.prefixes = {};
+      this.terms = {};
+   }
+   this.clear();
 }
 
 function RDFaSubject(graph,subject) {
