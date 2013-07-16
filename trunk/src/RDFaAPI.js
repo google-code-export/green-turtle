@@ -320,17 +320,11 @@ DocumentData.prototype.getMapping = function(prefix) {
 };
 
 DocumentData.prototype.expand = function(curie) {
-   return this._data_.graph.curieParser.parse(curie,true);  
+   return this._data_.graph.expand(curie);  
 }
 
 DocumentData.prototype.shorten = function(uri) {
-   for (prefix in this._data_.graph.prefixes) {
-      var mapped = this._data_.graph.prefixes[prefix];
-      if (uri.indexOf(mapped)==0) {
-         return prefix+":"+uri.substring(mapped.length);
-      }
-   }
-   return uri;
+   return this._data_.graph.shorten(uri);
 }
 
 DocumentData.prototype.getSubject = function(subject) {
