@@ -1,5 +1,5 @@
 /**
- * @license Copyright (c) 2011-2012, R. Alexander Milowski <alex@milowski.com>
+ * @license Copyright (c) 2011-2013, R. Alexander Milowski <alex@milowski.com>
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
