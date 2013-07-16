@@ -13,7 +13,6 @@ tbody {
 }
 
 .toolbar {
-   text-align: right;
    margin: 0px;
    padding: 0px;
    margin-bottom: 5px;
@@ -24,6 +23,15 @@ tbody {
 
 #container {
    min-width: 910px;
+}
+
+#turtle-display {
+   display: none;
+}
+
+#turtle-display {
+   border: 1px solid rgb(200,200,200);
+   padding: 0.5em;
 }
 
 #visualization {
