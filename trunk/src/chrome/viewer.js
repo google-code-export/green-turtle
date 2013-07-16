@@ -16,11 +16,57 @@ function Viewer() {
    this.XMLLiteralURI = "http://www.w3.org/1999/02/22-rdf-syntax-ns#XMLLiteral"; 
    this.HTMLLiteralURI = "http://www.w3.org/1999/02/22-rdf-syntax-ns#HTML"; 
    this.PlainLiteralURI = "http://www.w3.org/1999/02/22-rdf-syntax-ns#PlainLiteral";
+   this.prefixes = {};
+   this.prefixes[""] = "http://www.w3.org/1999/xhtml/vocab#";
+
+   // w3c
+   this.prefixes["grddl"] = "http://www.w3.org/2003/g/data-view#";
+   this.prefixes["ma"] = "http://www.w3.org/ns/ma-ont#";
+   this.prefixes["owl"] = "http://www.w3.org/2002/07/owl#";
+   this.prefixes["rdf"] = "http://www.w3.org/1999/02/22-rdf-syntax-ns#";
+   this.prefixes["rdfa"] = "http://www.w3.org/ns/rdfa#";
+   this.prefixes["rdfs"] = "http://www.w3.org/2000/01/rdf-schema#";
+   this.prefixes["rif"] = "http://www.w3.org/2007/rif#";
+   this.prefixes["skos"] = "http://www.w3.org/2004/02/skos/core#";
+   this.prefixes["skosxl"] = "http://www.w3.org/2008/05/skos-xl#";
+   this.prefixes["wdr"] = "http://www.w3.org/2007/05/powder#";
+   this.prefixes["void"] = "http://rdfs.org/ns/void#";
+   this.prefixes["wdrs"] = "http://www.w3.org/2007/05/powder-s#";
+   this.prefixes["xhv"] = "http://www.w3.org/1999/xhtml/vocab#";
+   this.prefixes["xml"] = "http://www.w3.org/XML/1998/namespace";
+   this.prefixes["xsd"] = "http://www.w3.org/2001/XMLSchema#";
+   // non-rec w3c
+   this.prefixes["sd"] = "http://www.w3.org/ns/sparql-service-description#";
+   this.prefixes["org"] = "http://www.w3.org/ns/org#";
+   this.prefixes["gldp"] = "http://www.w3.org/ns/people#";
+   this.prefixes["cnt"] = "http://www.w3.org/2008/content#";
+   this.prefixes["dcat"] = "http://www.w3.org/ns/dcat#";
+   this.prefixes["earl"] = "http://www.w3.org/ns/earl#";
+   this.prefixes["ht"] = "http://www.w3.org/2006/http#";
+   this.prefixes["ptr"] = "http://www.w3.org/2009/pointers#";
+   // widely used
+   this.prefixes["cc"] = "http://creativecommons.org/ns#";
+   this.prefixes["ctag"] = "http://commontag.org/ns#";
+   this.prefixes["dc"] = "http://purl.org/dc/terms/";
+   this.prefixes["dcterms"] = "http://purl.org/dc/terms/";
+   this.prefixes["foaf"] = "http://xmlns.com/foaf/0.1/";
+   this.prefixes["gr"] = "http://purl.org/goodrelations/v1#";
+   this.prefixes["ical"] = "http://www.w3.org/2002/12/cal/icaltzd#";
+   this.prefixes["og"] = "http://ogp.me/ns#";
+   this.prefixes["rev"] = "http://purl.org/stuff/rev#";
+   this.prefixes["sioc"] = "http://rdfs.org/sioc/ns#";
+   this.prefixes["v"] = "http://rdf.data-vocabulary.org/#";
+   this.prefixes["vcard"] = "http://www.w3.org/2006/vcard/ns#";
+   this.prefixes["schema"] = "http://schema.org/";
+   
+   this.prefixesUsed = {};
+   
 }
 
 Viewer.prototype.init = function(url,id) {
    this.url = url;
    this.id = id;
+   this.turtleShown = false;
    this.table = document.getElementById('triples');
    var current = this;
    document.title = "RDFa: "+url;   
@@ -44,6 +90,9 @@ Viewer.prototype.init = function(url,id) {
          current.renderGraph()
       },10);
    };
+   document.getElementById("show-turtle").onclick = function() {
+      current.toggleTurtle();
+   }
    
    var stopButton = document.getElementById("stop");
    stopButton.onclick = function() {
@@ -78,8 +127,9 @@ Viewer.prototype.loadSubjects = function(subjects) {
          continueLoading: true,
          index: 0,
          subjects: subjects,
-         graph: {}
+         graph: new RDFaGraph()
       };
+      this.transferPrefixes(this.inprogressGraph.graph);
    }
    var current = this;
    var getSubject = function() {
@@ -87,8 +137,9 @@ Viewer.prototype.loadSubjects = function(subjects) {
       document.getElementById("inspector").style.display = "block";
       chrome.tabs.sendRequest(current.id,{getSubject: true, subject: current.inprogressGraph.subjects[current.inprogressGraph.index]},function(response) {
          if (response.setSubject) {
-            current.inprogressGraph.graph[response.subject.subject] = response.subject;
-            current.addTriplesToTable(response.subject);
+            var snode =  current.constructSubject(current.inprogressGraph.graph,response.subject);
+            current.inprogressGraph.graph.subjects[response.subject.subject] = snode;
+            current.addTriplesToTable(snode);
             current.inprogressGraph.index++;
             if (current.inprogressGraph.index<current.inprogressGraph.subjects.length) {
                if (current.inprogressGraph.continueLoading) {
@@ -101,12 +152,34 @@ Viewer.prototype.loadSubjects = function(subjects) {
                setTimeout(function() {
                   current.updateGraph();
                },1);
+               current.showPrefixes();
             }
          }
       });
    }
    getSubject();
    
+}
+
+Viewer.prototype.constructSubject = function(graph,subjectData) {
+   var subject = new RDFaSubject(graph,subjectData.subject);
+   for (var predicate in subjectData.predicates) {
+      var predicateData = subjectData.predicates[predicate];
+      var pnode = new RDFaPredicate(predicate);
+      subject.predicates[predicate] = pnode;
+      for (var i=0; i<predicateData.objects.length; i++) {
+         pnode.objects.push(predicateData.objects[i]);
+      }
+   }
+   return subject;
+}
+
+Viewer.prototype.transferPrefixes = function(graph) {
+   for (var prefix in this.prefixes) {
+      if (!(prefix in graph.prefixes)) {
+         graph.prefixes[prefix] = this.prefixes[prefix];
+      }
+   }
 }
 
 Viewer.prototype.addTriplesToTable = function(snode) {
@@ -129,8 +202,8 @@ Viewer.prototype.constructGraph = function() {
    var map = {};
    var graph = [];
    var p = 0;
-   for (var subject in this.triplesGraph) {
-      var snode = this.triplesGraph[subject];
+   for (var subject in this.triplesGraph.subjects) {
+      var snode = this.triplesGraph.subjects[subject];
       var subjectNode = map[subject];
       if (!subjectNode) {
          subjectNode = {
@@ -143,7 +216,7 @@ Viewer.prototype.constructGraph = function() {
                subject: subject
             },
             "adjacencies": [ ]
-	 };
+	      };
          map[subject] = subjectNode;
          graph.push(subjectNode);
       }
@@ -405,7 +478,11 @@ Viewer.prototype.escapeMarkup = function(value) {
 
 Viewer.prototype.addTriple = function(snode,pnode,object) {
    var row = document.createElement("tr");
-   var markup = "<td>&lt;"+snode.subject+"></td><td>&lt;"+pnode.predicate+"></td><td>";
+   var subject = snode.graph.shorten(snode.subject,this.prefixesUsed);
+   if (!subject) { subject = "<"+snode.subject+">"; }
+   var predicate = snode.graph.shorten(pnode.predicate,this.prefixesUsed);
+   if (!predicate) { predicate = "<"+pnode.predicate+">"; }
+   var markup = "<td>"+this.escapeMarkup(subject)+"</td><td>"+this.escapeMarkup(predicate)+"</td><td>";
    if (object.type==this.PlainLiteralURI) {
       var literal = '"'+this.escapeMarkup(object.value)+'"';
       if (object.language) {
@@ -417,7 +494,9 @@ Viewer.prototype.addTriple = function(snode,pnode,object) {
    } else if (object.type==this.HTMLLiteralURI) {
       markup += this.escapeMarkup(object.value);
    } else if (object.type==this.objectURI) {
-      markup += "&lt;"+this.escapeMarkup(object.value)+">";
+      var uri = snode.graph.shorten(object.value,this.prefixesUsed);
+      if (!uri) { uri = "<"+object.value+">"}
+      markup += this.escapeMarkup(uri);
    } else {
       markup += '"'+this.escapeMarkup(object.value)+'"^^&lt;'+object.type+'>';
    }
@@ -433,6 +512,30 @@ Viewer.prototype.addTriple = function(snode,pnode,object) {
    row.firstChild.setAttribute("content",snode.subject);
    row.firstChild.nextSibling.setAttribute("content",pnode.predicate);
    row.firstChild.nextSibling.nextSibling.setAttribute("content",object.value);
+}
+
+Viewer.prototype.showPrefixes = function() {
+   var tbody = document.getElementById("prefixes");
+   for (var prefix in this.prefixesUsed) {
+      var row = document.createElement("tr");
+      var markup = "<td>"+prefix+"</td><td>"+this.escapeMarkup(this.prefixesUsed[prefix])+"</td>";
+      row.innerHTML = markup;
+      tbody.appendChild(row);
+   }
+}
+
+Viewer.prototype.toggleTurtle = function() {
+   if (this.turtleShown) {
+      this.turtleShown = false;
+      document.getElementById("turtle-display").style.display = "none";
+      document.getElementById("show-turtle").innerHTML = "Show Turtle";
+      document.getElementById("turtle-output").innerHTML = "";
+   } else {
+      this.turtleShown = true;
+      document.getElementById("turtle-display").style.display = "block";
+      document.getElementById("show-turtle").innerHTML = "Hide Turtle";
+      document.getElementById("turtle-output").appendChild(document.createTextNode(this.triplesGraph.toString({ shorten: true})));
+   }
 }
 
 var viewer = new Viewer();

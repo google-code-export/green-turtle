@@ -53,6 +53,7 @@ Copyright (c) 2011-2012, R. Alexander Milowski &lt;alex@milowski.com> All rights
 <copy file="${src.dir}/chrome/viewer.xhtml" todir="${install.dir}"/>
 <copy file="${src.dir}/chrome/viewer.js" todir="${install.dir}"/>
 <copy file="${src.dir}/chrome/viewer.css" todir="${install.dir}"/>
+<copy file="${src.dir}/RDFaGraph.js" todir="${install.dir}"/>
 <copy file="${src.dir}/chrome/jit.js" todir="${install.dir}"/>
 <copy file="${src.dir}/chrome/turtle-32x32.png" todir="${install.dir}"/>
 <concat destfile="${install.dir}/harvest.js">
