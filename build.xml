@@ -20,7 +20,7 @@
    <mkdir dir="${install.dir}"/>
    <concat destfile="${install.dir}/license.txt">
       <string>green-turtle version ${version.label} 
-Copyright (c) 2011-2012, R. Alexander Milowski &lt;alex@milowski.com> All rights reserved.
+Copyright (c) 2011-2013, R. Alexander Milowski &lt;alex@milowski.com> All rights reserved.
 </string>
       <file file="${src.dir}/license.txt"/>
    </concat>
