@@ -5,7 +5,9 @@
 <property name="src.dir" location="src"/>
 <property name="version.label" value="${version.major}.${version.minor}.${version.release}"/>
 <property name="dist.dir" location="build"/>
-<property name="product.label" value="green-turtle-${version.label}"/>
+<property name="chrome.version.label" value="${chrome.version.major}.${chrome.version.minor}.${chrome.version.release}"/>
+<property name="product.label" value="green-turtle-${chrome.version.label}"/>
+   
 
 <target name="clean">
 <delete dir="${dist.dir}"/>
@@ -19,7 +21,7 @@
    <delete dir="${install.dir}"/>
    <mkdir dir="${install.dir}"/>
    <concat destfile="${install.dir}/license.txt">
-      <string>green-turtle version ${version.label} 
+      <string>green-turtle version ${version.label}, extension version ${chrome.version.label}
 Copyright (c) 2011-2013, R. Alexander Milowski &lt;alex@milowski.com> All rights reserved.
 </string>
       <file file="${src.dir}/license.txt"/>
@@ -27,7 +29,7 @@ Copyright (c) 2011-2013, R. Alexander Milowski &lt;alex@milowski.com> All rights
 <echo file="${install.dir}/manifest.json">
 {
    "name": "Green Turtle RDFa",
-   "version": "${version.label}",
+   "version": "${chrome.version.label}",
    "manifest_version": 2,
    "description": "An implementation of RDFa processing in the browser.",
    "background": {
@@ -45,6 +47,9 @@ Copyright (c) 2011-2013, R. Alexander Milowski &lt;alex@milowski.com> All rights
    ],
    "permissions": [
      "tabs"
+  ],
+  "web_accessible_resources": [
+     "RDFa.js"
   ]
 
 }
@@ -58,9 +63,10 @@ Copyright (c) 2011-2013, R. Alexander Milowski &lt;alex@milowski.com> All rights
 <copy file="${src.dir}/chrome/turtle-32x32.png" todir="${install.dir}"/>
 <concat destfile="${install.dir}/harvest.js">
 <string>
-// VERSION: ${version.label}
-var version = "${version.label}";
-var rdfaHostPath = "s3.amazonaws.com/green-turtle/RDFa.${version.label}.js";
+var version = {
+   extension: "${chrome.version.label}",
+   "green turtle": "${version.label}"
+};
 </string>
 <file file="${src.dir}/URI.js"/>
 <file file="${src.dir}/RDFaProcessor.js"/>
@@ -68,6 +74,28 @@ var rdfaHostPath = "s3.amazonaws.com/green-turtle/RDFa.${version.label}.js";
 <file file="${src.dir}/RDFaGraph.js"/>
 <file file="${src.dir}/chrome/invoke.js"/>
 </concat>
+   
+<concat destfile="${install.dir}/RDFa.js">
+   <string>/** @preserve green-turtle version ${version.label} Copyright (c) 2011-2013, R. Alexander Milowski &lt;alex@milowski.com> All rights reserved. */
+/**         
+      </string>
+      <file file="${src.dir}/license.txt"/>
+      <string>*/
+ </string>
+   <file file="${src.dir}/RDFa.prolog.js"/>
+   <file file="${src.dir}/URI.js"/>
+   <file file="${src.dir}/RDFaProcessor.js"/>
+   <file file="${src.dir}/RDFaGraph.js"/>
+   <file file="${src.dir}/GraphRDFaProcessor.js"/>
+   <file file="${src.dir}/RDFaAPI.js"/>
+   <file file="${src.dir}/TurtleParser.js"/>
+   <file file="${src.dir}/Microdata.js"/>
+   <file file="${src.dir}/RDFa.epilogue.js"/>
+   <file file="${src.dir}/chrome/inject.js"/>
+</concat>
+   
+
+
 <zip destfile="${dist.dir}/${product.label}.zip"
      basedir="${install.dir}"/>
 </target>
@@ -88,6 +116,7 @@ var rdfaHostPath = "s3.amazonaws.com/green-turtle/RDFa.${version.label}.js";
    <file file="${src.dir}/GraphRDFaProcessor.js"/>
    <file file="${src.dir}/RDFaAPI.js"/>
    <file file="${src.dir}/TurtleParser.js"/>
+   <file file="${src.dir}/Microdata.js"/>
    <file file="${src.dir}/RDFa.epilogue.js"/>
    <file file="${src.dir}/RDFa.invoke.js"/>
    </concat>
