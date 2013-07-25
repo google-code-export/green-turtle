@@ -9,9 +9,19 @@ var implementation = {
       
       var loaded = document.data ? true : false;
       if (document.head) {
-         var meta = document.createElement("meta");
-         meta.setAttribute("name","green-turtle-rdfa-message");
-         document.head.appendChild(meta);
+         var meta = null;
+         var current = document.head.firstElementChild;
+         while (!meta && current) {
+            if (current.localName=="meta" && current.getAttribute("name")=="green-turtle-rdfa-message") {
+               meta = current;
+            }
+            current = current.nextElementSibling;
+         }
+         if (!meta) {
+            meta = document.createElement("meta");
+            meta.setAttribute("name","green-turtle-rdfa-message");
+            document.head.appendChild(meta);
+         }
          var makeEvent = function() {
             var event = document.createEvent("Event");
             event.initEvent("green-turtle-rdfa-extension",true,true);
@@ -21,7 +31,7 @@ var implementation = {
             var message = JSON.parse(meta.getAttribute("content"));
             if (message.type=="status") {
                var doneEvent = makeEvent();
-               meta.setAttribute("content",'{ "type": "status", "loaded": '+loaded+', "count": '+document.data._data_.tripleCount+' }');
+               meta.setAttribute("content",'{ "type": "status", "loaded": '+loaded+', "count": '+document.data.graph.tripleCount+' }');
                setTimeout(function() { meta.dispatchEvent(doneEvent); },1);
             } else if (message.type=="get-subjects") {
                var subjects = document.data.getSubjects();
@@ -132,6 +142,9 @@ implementation.processors["text/turtle"] = {
       return new TurtleParser();
    },
    process: function(node,options) {
+      if (!this.enabled) {
+         return;
+      }
       var owner = node.nodeType==Node.DOCUMENT_NODE ? node : node.ownerDocument;
       if (!owner.data) {
          return;
@@ -155,7 +168,24 @@ implementation.processors["text/turtle"] = {
          }
       }
       return success;
-   }
+   },
+   enabled: true
+};
+
+implementation.processors["microdata"] = {
+   process: function(node,options) {
+      if (!this.enabled) {
+         return;
+      }
+      var owner = node.nodeType==Node.DOCUMENT_NODE ? node : node.ownerDocument;
+      if (!owner.data) {
+         return false;
+      }
+      var processor = new GraphMicrodataProcessor(owner.data.graph);
+      processor.process(node);
+      return true;
+   },
+   enabled: false
 };
 
 Object.defineProperty(env,"implementation", {
@@ -173,5 +203,8 @@ return env;
 
 })();
 
+
 }
+
+
 
