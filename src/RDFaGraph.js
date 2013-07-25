@@ -33,15 +33,15 @@ function RDFaGraph()
    };
    this.base =  null;
    this.toString = function(requestOptions) {
-      var options = requestOptions.shorten ? { graph: this, shorten: true, prefixesUsed: {} } : null;
+      var options = requestOptions && requestOptions.shorten ? { graph: this, shorten: true, prefixesUsed: {} } : null;
       s = "";
       for (var subject in this.subjects) {
          var snode = this.subjects[subject];
          s += snode.toString(options);
          s += "\n";
       }
-      var prolog = requestOptions.baseURI ? "@base <"+baseURI+"> .\n" : "";
-      if (options.shorten) {
+      var prolog = requestOptions && requestOptions.baseURI ? "@base <"+baseURI+"> .\n" : "";
+      if (options && options.shorten) {
          for (var prefix in options.prefixesUsed) {
             prolog += "@prefix "+prefix+" <"+this.prefixes[prefix]+"> .\n";
          }
@@ -54,6 +54,20 @@ function RDFaGraph()
       this.terms = {};
    }
    this.clear();
+   Object.defineProperty(this,"tripleCount",{
+      enumerable: true,
+      configurable: false,
+      get: function() {
+         var count = 0;
+         for (var s in this.subjects) {
+            var snode = this.subjects[s];
+            for (var p in snode.predicates) {
+               count += snode.predicates[p].objects.length;
+            }
+         }
+         return count;
+      }
+   });
 }
 
 RDFaGraph.prototype.expand = function(curie) {
