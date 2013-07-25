@@ -49,7 +49,7 @@ GraphRDFaProcessor.prototype.newSubjectOrigin = function(origin,subject) {
 GraphRDFaProcessor.prototype.newSubject = function(origin,subject) {
    var snode = this.target.graph.subjects[subject];
    if (!snode) {
-      snode = new RDFaSubject(this.target,subject);
+      snode = new RDFaSubject(this.target.graph,subject);
       this.target.graph.subjects[subject] = snode;
    }
    return snode;
