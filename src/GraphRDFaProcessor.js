@@ -16,7 +16,6 @@ GraphRDFaProcessor.prototype.getObjectSize = function(obj) {
 
 
 GraphRDFaProcessor.prototype.init = function() {
-   this.target.tripleCount = 0;
    var thisObj = this;
    this.finishedHandlers.push(function(node) {
       for (var subject in thisObj.target.graph.subjects) {
@@ -77,7 +76,6 @@ GraphRDFaProcessor.prototype.addTriple = function(origin,subject,predicate,objec
          return;
       }
    }
-   this.target.tripleCount++;
    pnode.objects.push(object);   
    object.origin = origin;
    if (predicate==RDFaProcessor.typeURI) {
