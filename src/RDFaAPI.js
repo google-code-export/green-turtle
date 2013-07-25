@@ -68,7 +68,6 @@ DocumentData.prototype = new URIResolver();
 DocumentData.prototype.constructor = DocumentData;
 function DocumentData (uri) {
    this._data_ = { 
-      tripleCount: 0,
       graph: new RDFaGraph()
    };
    this._data_.graph.baseURI = this.parseURI(uri)
