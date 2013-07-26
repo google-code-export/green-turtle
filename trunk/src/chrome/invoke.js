@@ -105,8 +105,12 @@ function setupDocumentTransfer() {
 }
 
 function injectGreenTurtle() {
-   chrome.extension.sendRequest({method: "getMicrodataEnabled"}, function(response) {
-      var options = "window.GreenTurtleOptions = { microdataEnabled: "+response.enabled+" };"
+   chrome.extension.sendRequest({method: "getOptions"}, function(response) {
+      if (!response.injectionEnabled) {
+         manualTransfer();
+         return;
+      }
+      var options = "window.GreenTurtleOptions = { microdataEnabled: "+response.microdataEnabled+" };"
       var optionsURL = "data:text/javascript;base64,"+btoa(options);
       log("Injecting Green Turtle RDFa ...");
       var optionsScript = document.createElement("script");
