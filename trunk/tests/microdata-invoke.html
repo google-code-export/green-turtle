@@ -2,7 +2,10 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
    <head>
       <title>Microdata Test</title>
+      <script type="text/javascript" src="/build/RDFa.js"></script>
+      <script type="text/javascript" src="../build/RDFa.js"></script>
       <script type="text/javascript">
+GreenTurtle.implementation.processors["microdata"].enabled = true;
 document.addEventListener("rdfa.loaded",function(e) {
    console.log(document.data.graph.toString());
 },false);
