@@ -137,6 +137,9 @@ Viewer.prototype.loadSubjects = function(subjects) {
       document.getElementById("inspector").style.display = "block";
       chrome.tabs.sendRequest(current.id,{getSubject: true, subject: current.inprogressGraph.subjects[current.inprogressGraph.index]},function(response) {
          if (response.setSubject) {
+            if (!response.subject) {
+               return;
+            }
             var snode =  current.constructSubject(current.inprogressGraph.graph,response.subject);
             current.inprogressGraph.graph.subjects[response.subject.subject] = snode;
             current.addTriplesToTable(snode);
