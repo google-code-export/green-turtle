@@ -8,45 +8,34 @@ var implementation = {
       }
       
       var loaded = document.data ? true : false;
-      if (document.head) {
-         var meta = null;
-         var current = document.head.firstElementChild;
-         while (!meta && current) {
-            if (current.localName=="meta" && current.getAttribute("name")=="green-turtle-rdfa-message") {
-               meta = current;
+      if (!document.data) {
+         DocumentData.attach(document,options);
+         var makeEvent = function(msg) {
+            if (!msg.id) {
+               msg.id = "R"+Date.now();
             }
-            current = current.nextElementSibling;
-         }
-         if (!meta) {
-            meta = document.createElement("meta");
-            meta.setAttribute("name","green-turtle-rdfa-message");
-            document.head.appendChild(meta);
-         }
-         var makeEvent = function() {
-            var event = document.createEvent("Event");
-            event.initEvent("green-turtle-rdfa-extension",true,true);
+            var event = new CustomEvent("green-turtle-response", {"detail": msg });
             return event;
-         }
-         meta.addEventListener("green-turtle-rdfa-document",function(event) {
-            var message = JSON.parse(meta.getAttribute("content"));
-            if (message.type=="status") {
-               var doneEvent = makeEvent();
-               meta.setAttribute("content",'{ "type": "status", "loaded": '+loaded+', "count": '+document.data.graph.tripleCount+' }');
-               setTimeout(function() { meta.dispatchEvent(doneEvent); },1);
-            } else if (message.type=="get-subjects") {
+         };
+         window.addEventListener("green-turtle-request",function(event) {
+            if (event.detail.type=="status") {
+               var response = { "type": "status", version: GreenTurtle.version, "loaded": loaded, count: document.data.graph.tripleCount, id: event.detail.id};
+               window.dispatchEvent(makeEvent(response));
+            } else if (event.detail.type=="get-subjects") {
                var subjects = document.data.getSubjects();
-               meta.setAttribute("content",'{ "type": "subjects", "subjects": '+JSON.stringify(subjects)+' }');
-               var getSubjectsEvent = makeEvent();
-               setTimeout(function() { meta.dispatchEvent(getSubjectsEvent); },1);
-            } else if (message.type=="get-subject") {
+               var response = { "type": "subjects", "subjects": subjects, id: event.detail.id };
+               window.dispatchEvent(makeEvent(response));
+            } else if (event.detail.type=="get-subject") {
                var triples = null;
+               var subject = event.detail.subject;
                if (document.data.getSubject) {
                   // Use the Green Turtle triples extension
-                  triples = document.data.getSubject(message.subject).toObject();
+                  var subjectNode = document.data.getSubject(subject);
+                  triples = subjectNode ? subjectNode.toObject() : null;
                } else {
                   // Do it the hard way!
-                  triples = { subject: message.subject, predicates: {} };
-                  var projection = document.data.getProjection(message.subject);
+                  triples = { subject: subject, predicates: {} };
+                  var projection = document.data.getProjection(subject);
                   var properties = projection.getProperties();
                   for (var i=0; i<properties.length; i++) {
                      var objects = [];
@@ -61,17 +50,12 @@ var implementation = {
                      }
                   }
                }
-               var response = { type: "subject", subject: message.subject, triples: triples };
-               meta.setAttribute("content",JSON.stringify(response));
-               var getSubjectEvent = makeEvent();
-               setTimeout(function() { meta.dispatchEvent(getSubjectEvent); },1);
+               var response = { type: "subject", subject: subject, triples: triples, id: event.detail.id };
+               window.dispatchEvent(makeEvent(response));
+            } else {
+               console.log("Unrecognized message: "+JSON.stringify(event.detail));
             }
          },false);
-      }
-      
-      
-      if (!document.data) {
-         DocumentData.attach(document,options);
       } else if (document.data._data_) {
          document.data._data_.graph.clear();
       }

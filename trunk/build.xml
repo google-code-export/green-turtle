@@ -68,7 +68,7 @@ Copyright (c) 2011-2013, R. Alexander Milowski &lt;alex@milowski.com> All rights
 <string>
 var version = {
    extension: "${chrome.version.label}",
-   "green turtle": "${version.label}"
+   greenTurtle: "${version.label}"
 };
 </string>
 <file file="${src.dir}/URI.js"/>
@@ -86,6 +86,9 @@ var version = {
       <string>*/
  </string>
    <file file="${src.dir}/RDFa.prolog.js"/>
+   <string>
+      env.version = "${version.label}";
+   </string>
    <file file="${src.dir}/URI.js"/>
    <file file="${src.dir}/RDFaProcessor.js"/>
    <file file="${src.dir}/RDFaGraph.js"/>
@@ -113,7 +116,10 @@ var version = {
       <string>*/
 </string>
    <file file="${src.dir}/RDFa.prolog.js"/>
-   <file file="${src.dir}/URI.js"/>
+   <string>
+      env.version = "${version.label}";
+   </string>
+    <file file="${src.dir}/URI.js"/>
    <file file="${src.dir}/RDFaProcessor.js"/>
    <file file="${src.dir}/RDFaGraph.js"/>
    <file file="${src.dir}/GraphRDFaProcessor.js"/>

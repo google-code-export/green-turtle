@@ -32,70 +32,73 @@ function log(msg) {
    console.log("Green Turtle: "+msg);
 }
 
-function detectGreenTurtle() {
-   var current = document.head.firstElementChild;
-   while (current) {
-      if (current.localName=="meta" && current.getAttribute("name")=="green-turtle-rdfa-message") {
-         log("Green Turtle implementation detected.");
-         return current;
-      }
-      current = current.nextElementSibling;
-   }
-   return null;
-}
-
-function setupDocumentTransfer(meta) {
-   var makeEvent = function() {
-      var event = document.createEvent("Event");
-      event.initEvent("green-turtle-rdfa-document",true,true);
+function detectGreenTurtle(waitPeriod,response) {
+   var timer = setTimeout(function() {
+      window.removeEventListener("green-turtle-response",handler,false);
+      response(false);
+   },waitPeriod);
+   var makeRequest = function(msg,action) {
+      msg.id = "R"+Date.now();
+      responseQueue[msg.id] = action;
       return event;
    };
-   meta.addEventListener("green-turtle-rdfa-extension",function(event) {
-      var message = JSON.parse(meta.getAttribute("content"));
-      if (message.type=="status") {
-         if (message.count) {
-            chrome.extension.sendRequest({ harvestedTriples: true });
-         }
-         log("Found "+message.count+" triples");
+   
+   var handler = function(event) {
+      clearTimeout(timer);
+      window.removeEventListener("green-turtle-response",handler,false);
+      console.log("Green Turtle "+event.detail.version+" detected.");
+      response(true);
+   };
+   window.addEventListener("green-turtle-response",handler,false);
+   var event = new CustomEvent("green-turtle-request", {"detail": { type: "status"} });
+   window.dispatchEvent(event);   
+   
+
+}
+
+var responseQueue = {};
+
+function setupDocumentTransfer() {
+   var makeRequest = function(msg,action) {
+      msg.id = "R"+Date.now();
+      responseQueue[msg.id] = action;
+      var event = new CustomEvent("green-turtle-request", {"detail": msg });
+      return event;
+   };
+   
+   window.addEventListener("green-turtle-response",function(event) {
+      var action = responseQueue[event.detail.id];
+      if (action) {
+         delete responseQueue[event.detail.id];
+         action(event);
       }
    },false);
 
-   var checkEvent= makeEvent();
-   meta.setAttribute("content",'{ "type": "status"}');
-   meta.dispatchEvent(checkEvent);
+   var checkEvent = makeRequest({ type: "status"},function(event) {
+      if (event.detail.count) {
+         chrome.extension.sendRequest({ harvestedTriples: true });
+      }
+      log("Found "+event.detail.count+" triples");
+   });
+   window.dispatchEvent(checkEvent);   
    var transferStatus = {};
    chrome.extension.onRequest.addListener(
       function(request,sender,sendResponse) {
          if (request.getSubjects) {
-            meta.setAttribute("content",JSON.stringify({ type: "get-subjects"}));
-            var event = makeEvent();
-            meta.dispatchEvent(event);
-            var handleResponse = function(event) {
-               meta.removeEventListener("green-turtle-rdfa-extension",handleResponse,false);
-               var message = JSON.parse(meta.getAttribute("content"));
-               if (message.type!="subjects") {
-                  return;
-               }
-               sendResponse({ setSubjects: true, subjects: message.subjects});
-            }
-            meta.addEventListener("green-turtle-rdfa-extension",handleResponse,false);
-            meta.setAttribute("content",JSON.stringify({ type: "get-subjects"}));
-            var event = makeEvent();
-            meta.dispatchEvent(event);
+            var requestEvent = makeRequest({ type: "get-subjects"},function(event) {
+               //console.log(event.detail);
+               sendResponse({ setSubjects: true, subjects: event.detail.subjects});
+            });
+            window.dispatchEvent(requestEvent);
          } else if (request.getSubject) {
             log("Getting subject "+request.subject);
-            var handleResponse = function(event) {
-               meta.removeEventListener("green-turtle-rdfa-extension",handleResponse,false);
-               var message = JSON.parse(meta.getAttribute("content"));
-               if (message.type!="subject") {
-                  return;
-               }
-               sendResponse({ setSubject: true, subject: message.triples});
-            }
-            meta.addEventListener("green-turtle-rdfa-extension",handleResponse,false);
-            meta.setAttribute("content",JSON.stringify({ type: "get-subject", subject: request.subject}));
-            var event = makeEvent();
-            meta.dispatchEvent(event);
+            var start = Date.now();
+            var requestEvent = makeRequest({ type: "get-subject", subject: request.subject},function(event) {
+               //console.log("response received, elapsed: "+(Date.now()-start));
+               //console.log(event.detail.triples);
+               sendResponse({ setSubject: true, subject: event.detail.triples});
+            });
+            window.dispatchEvent(requestEvent);
          }
       }
    );
@@ -143,31 +146,35 @@ function manualTransfer() {
 }
 
 function findImplementation() {
-   var meta = detectGreenTurtle();
-   if (!meta) {
-      injectGreenTurtle();
-   } else if (!document.greenTurtleInvoked) {
-      document.greenTurtleInvoked = true;
-      setupDocumentTransfer(meta);
-   }
-}
-var treeSource = document.getElementById("webkit-xml-viewer-source-xml");
-if (!treeSource && document.head) {
-   document.addEventListener("rdfa.loaded",function() {
-      document.ignoreLoad = true;    
-      var meta = detectGreenTurtle();
-      if (meta) {
+   detectGreenTurtle(500,function(found){
+      if (found) {
          if (!document.greenTurtleInvoked) {
             document.greenTurtleInvoked = true;
-            setupDocumentTransfer(meta);
+            setupDocumentTransfer();
          }
       } else {
-         manualTransfer();
+         injectGreenTurtle();
       }
-   },false);
-   document.addEventListener("non-green-turtle-rdfa",function() {
-      manualTransfer();
-   },false);
+   });
+}
+
+var treeSource = document.getElementById("webkit-xml-viewer-source-xml");
+if (!treeSource && document.head) {
+   var loaded = function() {
+      document.removeEventListener("rdfa.loaded",loaded,false);
+      document.ignoreLoad = true;    
+      detectGreenTurtle(100,function(found) {
+         if (found || document.greenTurtleInvoked) {
+            if (!document.greenTurtleInvoked) {
+               document.greenTurtleInvoked = true;
+               setupDocumentTransfer();
+            }
+         } else {
+            manualTransfer();
+         }
+      });
+   };
+   document.addEventListener("rdfa.loaded",loaded,false);
    if (document.readyState=="complete") {
       findImplementation();
    } else {
@@ -179,5 +186,6 @@ if (!treeSource && document.head) {
    }
 
 } else {
+   log("Non-HTML detected, running Green Turtle "+version.greenTurtle+" outside of document.");
    manualTransfer();
 }
