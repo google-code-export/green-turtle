@@ -5,8 +5,13 @@ try {
      if (request.harvestedTriples) {
          chrome.pageAction.show(sender.tab.id);
          sendResponse({});
-     } else if (request.method == "getMicrodataEnabled") {
-        sendResponse({enabled: localStorage["microdata.enabled"]=="true"});
+     } else if (request.method == "getOptions") {
+        var injectionValue = localStorage["injection.enabled"];
+        if (injectionValue===undefined) {
+           localStorage["injection.enabled"] = "true";
+           injectionValue = "true";
+        }
+        sendResponse({microdataEnabled: localStorage["microdata.enabled"]=="true", injectionEnabled: injectionValue=="true"});
      } else {
         sendResponse({}); // snub them.
      }
