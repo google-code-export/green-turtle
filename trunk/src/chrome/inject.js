@@ -1,6 +1,15 @@
 if (document.data === undefined) {
-   GreenTurtle.implementation.processors["microdata"].enabled = true;
-   GreenTurtle.attach(document);
+   var checker = function() {
+      if (typeof GreenTurtleOptions == "undefined") {
+         setTimeout(function() {
+            checker()
+         },10);
+      } else {
+         GreenTurtle.implementation.processors["microdata"].enabled = GreenTurtleOptions.microdataEnabled;
+         GreenTurtle.attach(document);
+      }
+   }
+   checker();
 } else {
 
    var meta = null;

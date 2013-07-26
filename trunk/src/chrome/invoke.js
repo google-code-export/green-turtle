@@ -102,12 +102,20 @@ function setupDocumentTransfer(meta) {
 }
 
 function injectGreenTurtle() {
-   log("Injecting Green Turtle RDFa ...");
-   var scriptURL = chrome.extension.getURL("RDFa.js");
-   var script = document.createElement("script");
-   script.setAttribute("type","text/javascript");
-   script.setAttribute("src",scriptURL);
-   document.head.appendChild(script);
+   chrome.extension.sendRequest({method: "getMicrodataEnabled"}, function(response) {
+      var options = "window.GreenTurtleOptions = { microdataEnabled: "+response.enabled+" };"
+      var optionsURL = "data:text/javascript;base64,"+btoa(options);
+      log("Injecting Green Turtle RDFa ...");
+      var optionsScript = document.createElement("script");
+      optionsScript.setAttribute("type","text/javascript");
+      optionsScript.setAttribute("src",optionsURL);
+      document.head.appendChild(optionsScript);
+      var scriptURL = chrome.extension.getURL("RDFa.js");
+      var script = document.createElement("script");
+      script.setAttribute("type","text/javascript");
+      script.setAttribute("src",scriptURL);
+      document.head.appendChild(script);
+   });
 }
 
 function manualTransfer() {
