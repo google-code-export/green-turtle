@@ -45,6 +45,7 @@ Copyright (c) 2011-2013, R. Alexander Milowski &lt;alex@milowski.com> All rights
          "js": [ "harvest.js" ]
       }
    ],
+   "options_page" : "options.html",
    "permissions": [
      "tabs"
   ],
@@ -61,6 +62,8 @@ Copyright (c) 2011-2013, R. Alexander Milowski &lt;alex@milowski.com> All rights
 <copy file="${src.dir}/RDFaGraph.js" todir="${install.dir}"/>
 <copy file="${src.dir}/chrome/jit.js" todir="${install.dir}"/>
 <copy file="${src.dir}/chrome/turtle-32x32.png" todir="${install.dir}"/>
+<copy file="${src.dir}/chrome/options.html" todir="${install.dir}"/>
+<copy file="${src.dir}/chrome/options.js" todir="${install.dir}"/>
 <concat destfile="${install.dir}/harvest.js">
 <string>
 var version = {
