@@ -76,7 +76,6 @@ RDFaGraph.prototype.expand = function(curie) {
 
 RDFaGraph.prototype.shorten = function(uri,prefixesUsed) {
    for (prefix in this.prefixes) {
-      console.log("Testing "+prefix+" against "+uri);
       var mapped = this.prefixes[prefix];
       if (uri.indexOf(mapped)==0) {
          if (prefixesUsed) {
