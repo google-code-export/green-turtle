@@ -209,9 +209,11 @@ RDFaPredicate.prototype.toString = function(options) {
          if (this.objects[i].value.substring(0,2)=="_:") {
             s += this.objects[i].value;
          } else if (options && options.shorten && options.graph) {
-            s = options.graph.shorten(this.objects[i].value,options.prefixesUsed);
-            if (!s) {
-               s = "<" + this.objects[i].value + ">"
+            u = options.graph.shorten(this.objects[i].value,options.prefixesUsed);
+            if (u) {
+               s += u;
+            } else {
+               s += "<" + this.objects[i].value + ">";
             }
          } else {
             s += "<" + this.objects[i].value + ">";
