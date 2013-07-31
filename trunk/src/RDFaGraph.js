@@ -43,7 +43,7 @@ function RDFaGraph()
       var prolog = requestOptions && requestOptions.baseURI ? "@base <"+baseURI+"> .\n" : "";
       if (options && options.shorten) {
          for (var prefix in options.prefixesUsed) {
-            prolog += "@prefix "+prefix+" <"+this.prefixes[prefix]+"> .\n";
+            prolog += "@prefix "+prefix+": <"+this.prefixes[prefix]+"> .\n";
          }
       }
       return prolog.length==0 ? s : prolog+"\n"+s;
