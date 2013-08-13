@@ -16,8 +16,8 @@ window.addEventListener("load",function() {
    var requester = new XMLHttpRequest();
    requester.open("GET",manifestURI,false);
    requester.send(null);
-   var turtle = document.data.parse(requester.responseText,"text/turtle",{ baseURI: "https://dvcs.w3.org/hg/rdf/raw-file/default/rdf-turtle/tests-ttl/manifest.ttl"});
-   document.data.merge(turtle.graph,turtle.prefixes);
+   var turtle = document.data.implementation.parse(requester.responseText,"text/turtle",{ baseURI: "http://www.w3.org/2013/TurtleTests/manifest.ttl"});
+   document.data.merge(turtle.subjects,{prefixes: turtle.prefixes, mergeBlankNodes: true});
    var manifestSubject = document.data.getSubjects("rdf:type","mf:Manifest")[0];
    var currentSubject = document.data.getValues(manifestSubject,"mf:entries")[0];
    while (currentSubject!="http://www.w3.org/1999/02/22-rdf-syntax-ns#nil") {
