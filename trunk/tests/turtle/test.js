@@ -174,7 +174,7 @@ window.addEventListener("load",function() {
    requester.open("GET",manifestURI,false);
    requester.send(null);
    var turtle = document.data.implementation.parse(requester.responseText,"text/turtle",{ baseURI: manifestURI});
-   document.data.merge(turtle.subjects,turtle.prefixes);
+   document.data.merge(turtle.subjects,{prefixes: turtle.prefixes, mergeBlankNodes: true});
    var manifestSubject = document.data.getSubjects("rdf:type","mf:Manifest")[0];
    //console.log("Manifest subject: "+manifestSubject);
    var currentSubject = document.data.getValues(manifestSubject,"mf:entries")[0];
@@ -204,10 +204,10 @@ window.addEventListener("load",function() {
    requester.open("GET",mappingsURI,false);
    requester.send(null);
    var turtle = document.data.implementation.parse(requester.responseText,"text/turtle",{ baseURI: manifestURI});
-   var mapDoc = document.implementation.createDocument("http://www.w3.org/1999/xhtml","html",null);
-   mapDoc.documentElement.setAttributeNS("http://www.w3.org/XML/1998/namespace","base",window.location.href);
-   GreenTurtle.attach(mapDoc);
-   mapDoc.data.merge(turtle.subjects);
+   var mapData = document.data.implementation.createDocumentData(manifestURI);
+   mapData.merge(turtle.subjects,{prefixes: turtle.prefixes, mergeBlankNodes: true});
+   mapData.setMapping("rdf","http://www.w3.org/1999/02/22-rdf-syntax-ns#");
+   //console.log(turtle.toString());
    for (var i=0; i<entries.length; i++) {
       var entry = entries[i];
       entry.subjectMap = { forward: {}, reverse: {} ,
@@ -220,22 +220,22 @@ window.addEventListener("load",function() {
             return mapped ? mapped : s;
          }
       };
-      var fromSubjects = mapDoc.data.getValues(entry.subject,"http://www.milowski.com/testing/from");
-      var toSubjects = mapDoc.data.getValues(entry.subject,"http://www.milowski.com/testing/to");
+      var fromSubjects = mapData.getValues(entry.subject,"http://www.milowski.com/testing/from");
+      var toSubjects = mapData.getValues(entry.subject,"http://www.milowski.com/testing/to");
       if (fromSubjects.length==0) {
          continue;
       }
       console.log("Loading subject map for "+entry.subject);
       var currentFromSubject = fromSubjects[0];
       var currentToSubject = toSubjects[0];
-      while (currentFromSubject!="http://www.w3.org/1999/02/22-rdf-syntax-ns#nil") {
-         var from = mapDoc.data.getValues(currentFromSubject,"rdf:first")[0];
-         var to = mapDoc.data.getValues(currentToSubject,"rdf:first")[0];
+      while (currentFromSubject && currentFromSubject!="http://www.w3.org/1999/02/22-rdf-syntax-ns#nil") {
+         var from = mapData.getValues(currentFromSubject,"rdf:first")[0];
+         var to = mapData.getValues(currentToSubject,"rdf:first")[0];
          entry.subjectMap.forward[from] = to;
          entry.subjectMap.reverse[to] = from;
          console.log(from+" -> "+to);
-         currentFromSubject = mapDoc.data.getValues(currentFromSubject,"rdf:rest")[0];
-         currentToSubject = mapDoc.data.getValues(currentToSubject,"rdf:rest")[0];
+         currentFromSubject = mapData.getValues(currentFromSubject,"rdf:rest")[0];
+         currentToSubject = mapData.getValues(currentToSubject,"rdf:rest")[0];
       }
    }
    
