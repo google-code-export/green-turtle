@@ -80,7 +80,7 @@ function test(entry) {
    entry.shouldParse = entry.type!=negativeSyntaxTest;
    entry.passed = false;
    try {
-      var baseURI = "http://example/base/" + entry.action.substring(entry.action.lastIndexOf("/")+1);
+      var baseURI = "http://www.w3.org/2013/TurtleTests/" + entry.action.substring(entry.action.lastIndexOf("/")+1);
       entry.output = document.data.implementation.parse(requester.responseText,"text/turtle",{ baseURI: baseURI});
       entry.parsed = true;
       if (entry.type==positiveSyntaxTest) {
@@ -118,20 +118,23 @@ function generateEARL(earlProlog,target,entries)
    var now = new Date();
    var dateStr = now.format("yyyy-mm-dd")
    var dateTimeStr = now.format("yyyy-mm-dd'T'HH:MM:sso")
+   dateTimeStr = dateTimeStr.substring(0,dateTimeStr.length-2)+":"+dateTimeStr.substring(dateTimeStr.length-2);
    var requester = new XMLHttpRequest();
    requester.open("GET",earlProlog,false);
    requester.send(null);
-   var parts = requester.responseText.split(/({date})/);
+   var parts = requester.responseText.split(/({date}|{dateTime})/);
    for (var i=0; i<parts.length; i++) {
       if (parts[i]=="{date}") {
          target.appendChild(document.createTextNode(dateStr));
+      } else if (parts[i]=="{dateTime}") {
+         target.appendChild(document.createTextNode(dateTimeStr));
       } else {
          target.appendChild(document.createTextNode(parts[i]));
       }
    }
    
    for (var i=0; i<entries.length; i++) {
-      var subject = "https://dvcs.w3.org/hg/rdf/raw-file/default/rdf-turtle/tests-ttl/manifest.ttl"+entries[i].subject.substring(entries[i].subject.indexOf("#"));
+      var subject = "http://www.w3.org/2013/TurtleTests/manifest.ttl"+entries[i].subject.substring(entries[i].subject.indexOf("#"));
       var s = "[ a earl:Assertion; \n\
   earl:assertedBy <http://www.milowski.com#alex>; \n\
   earl:subject <https://code.google.com/p/green-turtle/>; \n\
@@ -147,7 +150,7 @@ function generateEARL(earlProlog,target,entries)
    }
    // check report
    try {
-      document.data.implementation.parse(target.textContent,"text/turtle");
+      document.data.implementation.parse(target.textContent,"text/turtle", {baseURI: window.location.href});
    } catch (ex) {
       alert("EARL format is invalid.");
    }
