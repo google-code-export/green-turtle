@@ -73,6 +73,28 @@ Returns an instance of the class `DocumentData`.
 
 = Classes =
 
+== DocumentData ==
+
+=== Constructing ===
+
+{{{
+   new DocumentData(baseURI);
+}}}
+
+Constructs a DocumentData instance with the associated base URI.  A subsequent call to `attach()` must be made to associate the instance with a document.
+
+=== DocumentData.expand() ===
+=== DocumentData.getMapping() ===
+=== DocumentData.getProperties() ===
+=== DocumentData.getSubject() ===
+=== DocumentData.getSubjects() ===
+=== DocumentData.getValueOrigins() ===
+=== DocumentData.getValues() ===
+=== DocumentData.merge() ===
+=== DocumentData.setMapping() ===
+=== DocumentData.shorten() ===
+
+
 == RDFaProcessor ==
 
 The `RDFaProcessor` class is the main implementation of the [http://www.w3.org/TR/rdfa-core/#s_sequence RDFa 1.1 Sequence Algorithm].  It provides the ability to process any DOM node into a set of triples (subject, predicate, and object).
