@@ -97,10 +97,37 @@ where:
 The options object may contain a "baseURI" property that specifies the base URI of the document to use instead of that found on the target document.
 
 === `DocumentData.expand()` ===
+
+{{{ 
+   expand(curie);
+}}}
+
+Expands a CURIE.
+
 === `DocumentData.getMapping()` ===
+
+{{{ 
+   getMapping(prefix)
+}}}
+
 === `DocumentData.getProperties()` ===
+
+{{{
+   getProperties(subject)
+}}}
+
 === `DocumentData.getSubject()` ===
+
+{{{ 
+   getSubject(subject);
+}}}
+
 === `DocumentData.getSubjects() `===
+
+{{{ 
+   getSubjects(property,value)
+}}}
+
 === `DocumentData.getValueOrigins()` ===
 
 {{{
@@ -122,9 +149,27 @@ The return is an array of object value objects with the following properties:
   * `value` - the object value of the associated triple.
 
 === `DocumentData.getValues()` ===
+
+{{{
+   getValues(subject,property);
+}}}
+
 === `DocumentData.merge()` ===
+{{{
+   merge(graph,options);
+}}}
 === `DocumentData.setMapping()` ===
+{{{
+   setMapping(prefix,uri);
+}}}
+
 === `DocumentData.shorten()` ===
+
+{{{
+   shorten(uri);
+}}}
+
+Shortens a URI via the defined prefixes into a CURIE.
 
 
 == RDFaProcessor ==
