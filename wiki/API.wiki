@@ -19,7 +19,7 @@ There are four main scripts:
 
 = RDFa API =
 
-== GreenTurtle.attach() ==
+== `GreenTurtle.attach()` ==
 
 {{{
 GreenTurtle.attach(node,options)
@@ -32,7 +32,7 @@ The `options` argument is an object used to control processing
    * `baseURI` - a alternate baseURI to use for the initial processing context (e.g. for manually constructed documents).
   * `baseURIMap` - a function for mapping base URIs during processing. The value must be a function that takes a single URI as an argument and returns the mapped URI.
 
-== GreenTurtle.implementation ==
+== `GreenTurtle.implementation` ==
 
 Returns the common implementation object that has the following properties and methods:
 
@@ -42,11 +42,11 @@ Returns the common implementation object that has the following properties and m
 
 The implementation is always available on `DocumentData` instance (e.g. `document.data.implementation`).
 
-=== GreenTurtle.implementation.attach() ==
+=== `GreenTurtle.implementation.attach()` ==
 
 See `GreenTurtle.attach()`.
 
-=== GreenTurtle.implentation.parse() ===
+=== `GreenTurtle.implentation.parse()` ===
 
 `parse(text,mediaType,options)`
 
@@ -62,7 +62,7 @@ The returned value is an object with the following properties:
    * `terms` - a list of recognized terms.
    * `base` - the base URI of the representation.
 
-=== GreenTurtle.implentation.createDocumentData() ===
+=== `GreenTurtle.implentation.createDocumentData()` ===
 
 `createDocumentData(baseURI)`
 
@@ -73,7 +73,7 @@ Returns an instance of the class `DocumentData`.
 
 = Classes =
 
-==DocumentData==
+== `DocumentData` ==
 
 === Constructing ===
 
@@ -83,16 +83,22 @@ Returns an instance of the class `DocumentData`.
 
 Constructs a DocumentData instance with the associated base URI.  A subsequent call to `attach()` must be made to associate the instance with a document.
 
-=== DocumentData.expand() ===
-=== DocumentData.getMapping() ===
-=== DocumentData.getProperties() ===
-=== DocumentData.getSubject() ===
-=== DocumentData.getSubjects() ===
-=== DocumentData.getValueOrigins() ===
-=== DocumentData.getValues() ===
-=== DocumentData.merge() ===
-=== DocumentData.setMapping() ===
-=== DocumentData.shorten() ===
+=== `DocumentData.attach()` ===
+
+{{{
+   data.attach(target,options)
+}}}
+
+=== `DocumentData.expand()` ===
+=== `DocumentData.getMapping()` ===
+=== `DocumentData.getProperties()` ===
+=== `DocumentData.getSubject()` ===
+=== `DocumentData.getSubjects() `===
+=== `DocumentData.getValueOrigins()` ===
+=== `DocumentData.getValues()` ===
+=== `DocumentData.merge()` ===
+=== `DocumentData.setMapping()` ===
+=== `DocumentData.shorten()` ===
 
 
 == RDFaProcessor ==
