@@ -73,7 +73,7 @@ Returns an instance of the class `DocumentData`.
 
 = Classes =
 
-== DocumentData ==
+==DocumentData==
 
 === Constructing ===
 
