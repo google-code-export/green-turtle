@@ -86,8 +86,15 @@ Constructs a DocumentData instance with the associated base URI.  A subsequent c
 === `DocumentData.attach()` ===
 
 {{{
-   data.attach(target,options)
+   attach(target,options)
 }}}
+
+where:
+
+   * target - the target document
+   * options - an options object (optional or may be null).
+
+The options object may contain a "baseURI" property that specifies the base URI of the document to use instead of that found on the target document.
 
 === `DocumentData.expand()` ===
 === `DocumentData.getMapping()` ===
@@ -95,6 +102,25 @@ Constructs a DocumentData instance with the associated base URI.  A subsequent c
 === `DocumentData.getSubject()` ===
 === `DocumentData.getSubjects() `===
 === `DocumentData.getValueOrigins()` ===
+
+{{{
+   getValueOrigins(subject,property);
+}}}
+
+Returns a set of value origin objects for matching objects within triples.
+
+The `subject` and `property` parameters are either a URI or CURIE that will be expanded into a URI.  All parameters are optional and have the following effect:
+
+   * if both the subject and property are specified, all the object values on the subject for the property are returned.
+   * if only the subject is specified, all the property object values are returned.
+   * if only the property is specified, all the matching property object values for all subjects are returned.
+   * if no arguments are specified, all object values are returned.
+
+The return is an array of object value objects with the following properties:
+
+  * `origin` - the element origin of the object value.
+  * `value` - the object value of the associated triple.
+
 === `DocumentData.getValues()` ===
 === `DocumentData.merge()` ===
 === `DocumentData.setMapping()` ===
