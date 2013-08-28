@@ -114,6 +114,7 @@ MicrodataProcessor.prototype.process = function(node) {
          if (itemType) {
             vocabulary = this.getVocabulary(itemType);
             subject = itemId ? itemId : this.newBlankNode();
+            this.newSubjectOrigin(current,subject);
             this.addTriple(current,subject,MicrodataProcessor.typeURI, {type: MicrodataProcessor.objectURI, value: itemType});
          }
       }
@@ -170,6 +171,22 @@ function GraphMicrodataProcessor(targetGraph) {
    this.graph = targetGraph;
 }
 
+GraphMicrodataProcessor.prototype.newSubjectOrigin = function(origin,subject) {
+   var snode = this.graph.subjects[subject];
+   if (!snode) {
+      snode = new RDFaSubject(this.graph,subject);
+      this.graph.subjects[subject] = snode;
+   }
+   if (!origin.data) {
+      Object.defineProperty(origin,"data", {
+            value: snode,
+            writable: false,
+            configurable: true,
+            enumerable: true
+         });
+   }
+}
+
 GraphMicrodataProcessor.prototype.addTriple = function(origin,subject,predicate,object) {
    var snode = this.graph.subjects[subject];
    if (!snode) {
@@ -200,6 +217,7 @@ GraphMicrodataProcessor.prototype.addTriple = function(origin,subject,predicate,
    if (predicate==MicrodataProcessor.typeURI) {
       snode.types.push(object.value);
    }
+   
 }
 
 
