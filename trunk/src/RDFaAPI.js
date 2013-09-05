@@ -476,13 +476,16 @@ DocumentData.prototype.merge = function(graph,options) {
 }
 
 Element.prototype.getElementsByType = function() {
-   var typeList = arguments;
+   var typeList = [];
+   for (var i=0; i<arguments.length; i++) {
+      typeList.push(this.ownerDocument.data.graph.curieParser.parse(arguments[i],false));
+   }
    var walker = this.ownerDocument.createTreeWalker(this,NodeFilter.SHOW_ELEMENT,
      { acceptNode: function(e) {
           if (!e.data) { return NodeFilter.FILTER_SKIP; }
           for (var i=0; i<typeList.length; i++) {
              if (e.data.types.indexOf(typeList[i])>=0) {
-                return NodeFilter.FILTER_ACCEPT;
+                return e.getAttributeNode("typeof") ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_SKIP;
              }
           }
           return NodeFilter.FILTER_SKIP;
@@ -500,13 +503,16 @@ Element.prototype.getElementsByType = function() {
 }
 
 Element.prototype.getFirstElementByType = function() {
-   var typeList = arguments;
+   var typeList = [];
+   for (var i=0; i<arguments.length; i++) {
+      typeList.push(this.ownerDocument.data.graph.curieParser.parse(arguments[i],false));
+   }
    var walker = this.ownerDocument.createTreeWalker(this,NodeFilter.SHOW_ELEMENT,
      { acceptNode: function(e) {
           if (!e.data) { return NodeFilter.FILTER_SKIP; }
           for (var i=0; i<typeList.length; i++) {
              if (e.data.types.indexOf(typeList[i])>=0) {
-                return NodeFilter.FILTER_ACCEPT;
+                return e.getAttributeNode("typeof") ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_SKIP;
              }
           }
           return NodeFilter.FILTER_SKIP;
