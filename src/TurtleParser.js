@@ -62,7 +62,6 @@ TurtleParser.xsdBooleanURI = "http://www.w3.org/2001/XMLSchema#boolean";
 
 TurtleParser.prototype.reset = function() {
    this.context = new RDFaGraph();
-   this.blankNodeCounter = 0;
    this.errorCount = 0;
    this.lineNumber = 1;
 }
@@ -72,11 +71,6 @@ TurtleParser.dumpGraph = function(graph) {
       var snode = graph[subject];
       console.log(snode.toString());
    }
-}
-
-TurtleParser.prototype.newBlankNode = function() {
-   this.blankNodeCounter++;
-   return "_:"+this.blankNodeCounter;
 }
 
 TurtleParser.prototype._match = function(re,text) {
@@ -271,12 +265,12 @@ TurtleParser.prototype.parseTriples = function(text) {
             if (currentSubject) {
                this.addTriple(currentSubject,TurtleParser.restURI,{ type: TurtleParser.objectURI, value: TurtleParser.nilURI});
             } else {
-               subject = this.newBlankNode();
+               subject = this.context.newBlankNode();
             }
             break;
          }
          
-         var nextSubject = this.newBlankNode();
+         var nextSubject = this.context.newBlankNode();
          if (!currentSubject) {
             subject = nextSubject;
          } else {
@@ -291,7 +285,7 @@ TurtleParser.prototype.parseTriples = function(text) {
    // blank node property list as subject
    match = this._match(TurtleParser.openSquareBracketRE,text);
    if (match) {
-      var subject = this.newBlankNode();
+      var subject = this.context.newBlankNode();
       var remaining = this._trim(match.remaining);
       // test for empty node
       match = this._match(TurtleParser.closeSquareBracketRE,remaining);
@@ -398,7 +392,7 @@ TurtleParser.prototype.parseObject = function(subject,predicate,text) {
             return match.remaining;
          }
          
-         var nextSubject = this.newBlankNode();
+         var nextSubject = this.context.newBlankNode();
          // there must be an object
          if (collectionSubject==subject) {
             this.addTriple(subject,predicate,{ type: TurtleParser.objectURI, value: nextSubject});
@@ -412,7 +406,7 @@ TurtleParser.prototype.parseObject = function(subject,predicate,text) {
    }
    match = this._match(TurtleParser.openSquareBracketRE,text);
    if (match) {
-      var newSubject = this.newBlankNode();
+      var newSubject = this.context.newBlankNode();
       this.addTriple(subject,predicate,{ type: TurtleParser.objectURI, value: newSubject});
       var remaining = this.parsePredicateObjectList(newSubject,this._trim(match.remaining),true);
       remaining = this._trim(remaining);

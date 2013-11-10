@@ -174,6 +174,9 @@ function GraphMicrodataProcessor(targetGraph) {
    this.graph = targetGraph;
 }
 
+GraphMicrodataProcessor.prototype.newBlankNode = function() {
+   return this.graph.newBlankNode();
+}
 GraphMicrodataProcessor.prototype.newSubjectOrigin = function(origin,subject) {
    var snode = this.graph.subjects[subject];
    if (!snode) {
