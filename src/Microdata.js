@@ -161,6 +161,9 @@ MicrodataProcessor.prototype.push = function(parent,subject,vocabulary) {
    };
 }
 
+
+MicrodataProcessor.prototype.newSubjectOrigin = function(origin,subject) {}
+
 MicrodataProcessor.prototype.addTriple = function(origin,subject,predicate,object) {
 }
 
