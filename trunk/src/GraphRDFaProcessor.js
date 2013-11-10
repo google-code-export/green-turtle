@@ -26,6 +26,9 @@ GraphRDFaProcessor.prototype.init = function() {
       }
    });
 }
+GraphRDFaProcessor.prototype.newBlankNode = function() {
+   return this.target.graph.newBlankNode();
+}
 
 GraphRDFaProcessor.prototype.newSubjectOrigin = function(origin,subject) {
    var snode = this.newSubject(null,subject);

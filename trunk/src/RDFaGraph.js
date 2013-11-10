@@ -60,10 +60,12 @@ function RDFaGraph()
       }
       return prolog.length==0 ? s : prolog+"\n"+s;
    };
+   this.blankNodeCounter = 0;
    this.clear = function() {
       this.subjects = {};
       this.prefixes = {};
       this.terms = {};
+      this.blankNodeCounter = 0;
    }
    this.clear();
    this.prefixes[""] = "http://www.w3.org/1999/xhtml/vocab#";
@@ -129,6 +131,11 @@ function RDFaGraph()
    });
 }
 
+RDFaGraph.prototype.newBlankNode = function() {
+   this.blankNodeCounter++;
+   return "_:"+this.blankNodeCounter;
+}
+
 RDFaGraph.prototype.expand = function(curie) {
    return this.curieParser.parse(curie,true);  
 }
@@ -161,7 +168,7 @@ RDFaGraph.prototype.add = function(subject,predicate,object,options) {
       snode.origins.push(options.origin);
    }
    if (predicate=="http://www.w3.org/1999/02/22-rdf-syntax-ns#type") {
-      this.types.push(object);
+      snode.types.push(object);
    }
    var pnode = snode.predicates[predicate];
    if (!pnode) {
@@ -176,13 +183,69 @@ RDFaGraph.prototype.add = function(subject,predicate,object,options) {
       });
    } else {
       pnode.objects.push({
-         type: object.type ? object.type : RDFaProcessor.PlainLiteralURI,
+         type: object.type ? this.expand(object.type) : RDFaProcessor.PlainLiteralURI,
          value: object.value ? object.value : "",
          origin: object.origin,
          language: object.language
       });
    }
    
+}
+
+RDFaGraph.prototype.addCollection = function(subject,predicate,objectList,options) {
+   if (!subject || !predicate || !objectList) {
+      return;
+   }
+   
+   var lastSubject = subject;
+   var lastPredicate = predicate;
+   for (var i=0; i<objectList.length; i++) {
+      var object = { type: options && options.type ? options.type : "rdf:PlainLiteral"};
+      if (options && options.language) {
+         object.language = options.language;
+      }
+      if (options && options.datatype) {
+         object.datatype = options.datatype;
+      }
+      if (typeof objectList[i] == "object") {
+         object.value = objectList[i].value ?  objectList[i].value : "";
+         if (objectList[i].type) {
+            object.type = objectList[i].type;
+         }
+         if (objectList[i].language) {
+            object.language = objectList[i].language;
+         }
+         if (objectList[i].datatype) {
+            object.datatype = objectList[i].datatype;
+         }
+      } else {
+         object.value = objectList[i]
+      }
+      var bnode = this.newBlankNode();
+      this.add(lastSubject,lastPredicate,{ type: "rdf:object", value: bnode});
+      this.add(bnode,"rdf:first",object);
+      lastSubject = bnode;
+      lastPredicate = "http://www.w3.org/1999/02/22-rdf-syntax-ns#rest";
+   }
+   this.add(lastSubject,lastPredicate,{ type: "rdf:object", value: "http://www.w3.org/1999/02/22-rdf-syntax-ns#nil"});
+}
+
+RDFaGraph.prototype.remove = function(subject,predicate) {
+   if (!subject) {
+      this.subjects = {};
+      return;
+   }
+   subject = this.expand(subject);
+   var snode = this.subjects[snode];
+   if (!snode) {
+      return;
+   }
+   if (!predicate) {
+      delete this.subjects[subject];
+      return;
+   }
+   predicate = this.expand(predicate);
+   delete snode.predicates[predicate];
 }
 
 function RDFaSubject(graph,subject) {
